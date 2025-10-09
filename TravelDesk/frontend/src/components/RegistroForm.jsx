@@ -31,12 +31,31 @@ export default function RegistroForm() {
     setErrors((prev) => ({ ...prev, [name]: fieldErrors[name] }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const fieldErrors = validateFields(values);
     setErrors(fieldErrors);
     const hasErrors = Object.values(fieldErrors).some(Boolean);
     setOk(!hasErrors);
+
+    if (!hasErrors) {
+      try {
+        const res = await fetch("http://localhost:3000/api/registro", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        });
+        const data = await res.json();
+        if (data.ok) {
+          setOk(true);
+          // Opcional: limpiar formulario o mostrar mensaje de éxito
+        } else {
+          setErrors((prev) => ({ ...prev, general: data.error || "Error en el registro" }));
+        }
+      } catch (err) {
+        setErrors((prev) => ({ ...prev, general: "Error de conexión con el servidor" }));
+      }
+    }
   }
 
   return (
