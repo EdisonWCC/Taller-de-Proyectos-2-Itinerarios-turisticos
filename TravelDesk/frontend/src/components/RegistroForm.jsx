@@ -40,21 +40,47 @@ export default function RegistroForm() {
 
     if (!hasErrors) {
       try {
+        console.log("📤 Enviando datos al backend...", values);
+
         const res = await fetch("http://localhost:3000/api/registro", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
         });
+
         const data = await res.json();
+        console.log("📥 Respuesta del servidor:", data);
+
         if (data.ok) {
           setOk(true);
-          // Opcional: limpiar formulario o mostrar mensaje de éxito
+          alert("✅ Registro exitoso");
+          // Limpia formulario
+          setValues({
+            nombre: "",
+            apellido: "",
+            email: "",
+            usuario: "",
+            contrasena: "",
+            confirmar: "",
+            fecha_nac: "",
+            genero: "",
+            terminos: false,
+          });
         } else {
-          setErrors((prev) => ({ ...prev, general: data.error || "Error en el registro" }));
+          setErrors((prev) => ({
+            ...prev,
+            general: data.error || "Error en el registro",
+          }));
         }
       } catch (err) {
-        setErrors((prev) => ({ ...prev, general: "Error de conexión con el servidor" }));
+        console.error("❌ Error en conexión con el servidor:", err);
+        setErrors((prev) => ({
+          ...prev,
+          general: "Error de conexión con el servidor",
+        }));
       }
+    } else {
+      console.warn("⚠️ Hay errores de validación:", fieldErrors);
     }
   }
 
