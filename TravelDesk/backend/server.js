@@ -43,6 +43,31 @@ app.post("/api/registro", async (req, res) => {
   }
 });
 
+// Endpoint de login
+app.post("/api/login", async (req, res) => {
+  const { usuario, contrasena } = req.body;
+  if (!usuario || !contrasena) {
+    return res.status(400).json({ error: "Usuario y contraseña requeridos." });
+  }
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM usuarios WHERE nombre_usuario = ?",
+      [usuario]
+    );
+    if (rows.length === 0) {
+      return res.status(401).json({ error: "Credenciales incorrectas." });
+    }
+    const user = rows[0];
+    // Comparación simple, en producción usa bcrypt
+    if (user.password !== contrasena) {
+      return res.status(401).json({ error: "Credenciales incorrectas." });
+    }
+    res.json({ ok: true, usuario: user.nombre_usuario });
+  } catch (err) {
+    res.status(500).json({ error: "Error en el servidor." });
+  }
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);

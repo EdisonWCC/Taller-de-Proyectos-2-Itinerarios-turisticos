@@ -1,94 +1,54 @@
-import { useState } from 'react';
-import '../styles/registro.css';
+import { useState } from "react";
 
 export default function LoginForm() {
-  const [values, setValues] = useState({
-    email: '',
-    contrasena: '',
-    recordar: false,
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  function onChange(e) {
-    const { name, value, type, checked } = e.target;
-    setValues((v) => ({ ...v, [name]: type === 'checkbox' ? checked : value }));
-  }
+  const [usuario, setUsuario] = useState("");
+  const [contrasena, setContrasena] = useState("");
+  const [error, setError] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
-    if (!values.email || !values.contrasena) {
-      setError('Ingresa tu correo/usuario y contraseña');
-      return;
-    }
-
+    setError("");
     try {
-      setLoading(true);
-      const res = await fetch('http://localhost:3000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+      const res = await fetch("http://localhost:3000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ usuario, contrasena }),
       });
       const data = await res.json();
-      if (!res.ok || !data.ok) {
-        setError(data.error || 'Credenciales inválidas');
-        return;
+      if (data.ok) {
+        alert("¡Bienvenido " + data.usuario + "!");
+        // Aquí puedes redirigir o guardar el usuario en contexto
+      } else {
+        setError(data.error || "Credenciales incorrectas");
       }
-      // Éxito: aquí podrías guardar token, redirigir, etc.
-      alert('✅ Inicio de sesión exitoso');
-    } catch (err) {
-      console.error('Login error', err);
-      setError('Error de conexión con el servidor');
-    } finally {
-      setLoading(false);
+    } catch {
+      setError("Error de conexión con el servidor");
     }
   }
 
   return (
-    <form className="container-reg" onSubmit={handleSubmit} noValidate>
-      <h1>Iniciar Sesión</h1>
-
-      <div className="form-group full">
-        <label htmlFor="email">Correo o usuario</label>
+    <form onSubmit={handleSubmit}>
+      <h2>Iniciar sesión</h2>
+      <div>
+        <label>Usuario</label>
         <input
-          id="email"
-          name="email"
           type="text"
-          value={values.email}
-          onChange={onChange}
-          placeholder="tu@correo.com o usuario"
+          value={usuario}
+          onChange={(e) => setUsuario(e.target.value)}
+          required
         />
       </div>
-
-      <div className="form-group">
-        <label htmlFor="contrasena">Contraseña</label>
+      <div>
+        <label>Contraseña</label>
         <input
-          id="contrasena"
-          name="contrasena"
           type="password"
-          value={values.contrasena}
-          onChange={onChange}
-          placeholder="Tu contraseña"
+          value={contrasena}
+          onChange={(e) => setContrasena(e.target.value)}
+          required
         />
       </div>
-
-      <div className="form-group inline">
-        <input
-          id="recordar"
-          name="recordar"
-          type="checkbox"
-          checked={values.recordar}
-          onChange={onChange}
-        />
-        <label htmlFor="recordar">Recordarme</label>
-      </div>
-
-      {error && <small className="error" style={{ display: 'block' }}>{error}</small>}
-
-      <button type="submit" className="btn" disabled={loading}>
-        {loading ? 'Ingresando...' : 'Ingresar'}
-      </button>
+      {error && <div style={{ color: "red" }}>{error}</div>}
+      <button type="submit">Entrar</button>
     </form>
   );
 }
