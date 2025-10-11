@@ -4,10 +4,12 @@ export default function LoginForm() {
   const [usuario, setUsuario] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setLoading(true);
     try {
       const res = await fetch("http://localhost:3000/api/login", {
         method: "POST",
@@ -15,14 +17,16 @@ export default function LoginForm() {
         body: JSON.stringify({ usuario, contrasena }),
       });
       const data = await res.json();
-      if (data.ok) {
+      if (res.ok && data.ok) {
         alert("¡Bienvenido " + data.usuario + "!");
         // Aquí puedes redirigir o guardar el usuario en contexto
       } else {
-        setError(data.error || "Credenciales incorrectas");
+        setError(data.error || "Error desconocido. Intenta de nuevo.");
       }
     } catch {
-      setError("Error de conexión con el servidor");
+      setError("Error de conexión con el servidor.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -47,8 +51,10 @@ export default function LoginForm() {
           required
         />
       </div>
-      {error && <div style={{ color: "red" }}>{error}</div>}
-      <button type="submit">Entrar</button>
+      {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
+      <button type="submit" disabled={loading}>
+        {loading ? "Verificando..." : "Entrar"}
+      </button>
     </form>
   );
 }
