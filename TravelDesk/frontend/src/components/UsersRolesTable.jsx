@@ -2,15 +2,35 @@ import { useMemo, useState } from 'react';
 import { ROLES } from '../utils/rbac.js';
 import '../styles/registro.css';
 
-// Diseño-only: tabla de usuarios con selector de rol (sin conexión a backend)
 export default function UsersRolesTable({ initialUsers }) {
   const [users, setUsers] = useState(initialUsers || []);
   const roles = useMemo(() => Object.values(ROLES), []);
   const [filter, setFilter] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  function onChangeRole(id, role) {
-    setUsers((list) => list.map((u) => (u.id === id ? { ...u, role } : u)));
+  async function onChangeRole(id, role) {
+    setSaving(true);
+    const user = JSON.parse(localStorage.getItem("user"));
+    try {
+      const res = await fetch(`http://localhost:3000/api/usuarios/${id}/rol`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${user.token}`
+        },
+        body: JSON.stringify({ role }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setUsers(list => list.map(u => (u.id === id ? { ...u, role } : u)));
+      } else {
+        alert(data.error || "Error al actualizar el rol");
+      }
+    } catch {
+      alert("Error de conexión con el servidor");
+    }
+    setSaving(false);
   }
 
   const filtered = users.filter((u) => {
@@ -54,7 +74,11 @@ export default function UsersRolesTable({ initialUsers }) {
               <td style={td}>{u.name}</td>
               <td style={td}>{u.email}</td>
               <td style={td}>
-                <select value={u.role} onChange={(e) => onChangeRole(u.id, e.target.value)}>
+                <select
+                  value={u.role}
+                  onChange={e => onChangeRole(u.id, e.target.value)}
+                  disabled={saving}
+                >
                   {roles.map((r) => (
                     <option key={r} value={r}>{r}</option>
                   ))}
@@ -65,15 +89,6 @@ export default function UsersRolesTable({ initialUsers }) {
           ))}
         </tbody>
       </table>
-
-      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-        <button className="btn" type="button" onClick={() => { /* diseño-only */ }}>
-          Guardar cambios
-        </button>
-        <button className="btn" type="button" onClick={() => setUsers(initialUsers || [])}>
-          Deshacer cambios
-        </button>
-      </div>
     </div>
   );
 }

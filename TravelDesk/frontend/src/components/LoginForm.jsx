@@ -6,6 +6,8 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -17,17 +19,24 @@ export default function LoginForm() {
         body: JSON.stringify({ usuario, contrasena }),
       });
       const data = await res.json();
-      if (res.ok && data.ok) {
-        alert("¡Bienvenido " + data.usuario + "!");
-        // Aquí puedes redirigir o guardar el usuario en contexto
+      if (data.ok) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify({ name: data.usuario, role: data.role, token: data.token })
+        );
+        window.location.reload(); // Recarga para actualizar el estado
       } else {
-        setError(data.error || "Error desconocido. Intenta de nuevo.");
+        setError(data.error || "Credenciales incorrectas");
       }
     } catch {
-      setError("Error de conexión con el servidor.");
-    } finally {
-      setLoading(false);
+      setError("Error de conexión con el servidor");
     }
+    setLoading(false);
+  }
+
+  function logout() {
+    localStorage.removeItem("user");
+    window.location.reload();
   }
 
   return (
@@ -40,6 +49,7 @@ export default function LoginForm() {
           value={usuario}
           onChange={(e) => setUsuario(e.target.value)}
           required
+          disabled={!!user}
         />
       </div>
       <div>
@@ -49,12 +59,18 @@ export default function LoginForm() {
           value={contrasena}
           onChange={(e) => setContrasena(e.target.value)}
           required
+          disabled={!!user}
         />
       </div>
       {error && <div style={{ color: "red", marginTop: 8 }}>{error}</div>}
-      <button type="submit" disabled={loading}>
+      <button type="submit" disabled={loading || !!user}>
         {loading ? "Verificando..." : "Entrar"}
       </button>
+      {user && (
+        <button type="button" onClick={logout} style={{ marginLeft: 12 }}>
+          Cerrar sesión
+        </button>
+      )}
     </form>
   );
 }
