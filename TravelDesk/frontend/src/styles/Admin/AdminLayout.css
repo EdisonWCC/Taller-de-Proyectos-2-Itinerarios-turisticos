@@ -1,0 +1,58 @@
+/* === Estructura general === */
+.admin-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background-color: #f5f6fa;
+}
+
+/* === Sidebar fijo === */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-right: 1px solid #e9ecef;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+/* === Contenedor principal donde van las vistas === */
+.admin-main {
+  position: relative;
+  margin-left: 280px;        /* 💡 esto alinea con el sidebar */
+  width: calc(100% - 280px); /* ocupa el espacio restante */
+  height: 100vh;
+  overflow-y: auto;
+  background-color: #ffffff;
+  box-sizing: border-box;
+
+  /* Espaciado interno (ajustable) */
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .admin-main {
+    margin-left: 0;
+    width: 100%;
+    padding: 16px;
+  }
+}

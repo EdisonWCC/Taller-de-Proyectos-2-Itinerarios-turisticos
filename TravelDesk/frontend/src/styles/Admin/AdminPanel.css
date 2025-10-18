@@ -1,0 +1,92 @@
+/* ======= Panel Administrativo ======= */
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f6fa;
+  min-height: 100vh;
+  padding: 1.5rem 1rem 2rem 1rem; /* menos padding lateral */
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* ======= Encabezado ======= */
+.admin-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 3px solid #ff7b00;
+  padding-bottom: 0.5rem;
+}
+
+.admin-panel-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ff7b00;
+  margin: 0;
+}
+
+.admin-panel-header p {
+  color: #555;
+  font-size: 1rem;
+}
+
+/* ======= Sección principal de métricas ======= */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+/* ======= Tarjetas de métricas ======= */
+.card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-left: 5px solid #ff7b00;
+  transition: all 0.3s ease;
+  min-height: 120px;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(255, 123, 0, 0.2);
+}
+
+/* ======= Contenido dentro de cada tarjeta ======= */
+.card-icon {
+  font-size: 2.2rem;
+  color: #ff7b00;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-top: 0.4rem;
+}
+
+.card-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #222;
+  margin-top: 0.3rem;
+}
+
+/* ======= Responsivo ======= */
+@media (max-width: 1200px) {
+  .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+}

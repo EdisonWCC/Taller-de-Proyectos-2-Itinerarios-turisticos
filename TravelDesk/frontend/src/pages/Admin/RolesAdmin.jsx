@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import UsersRolesTable from '../components/UsersRolesTable.jsx';
+import UsersRolesTable from '../../components/UsersRolesTable.jsx';
 
 export default function RolesAdmin() {
   const [users, setUsers] = useState([]);

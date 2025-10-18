@@ -1,0 +1,29 @@
+/* Admin Navbar Styles */
+.admin-navbar {
+  background-color: #ffffff; /* White background */
+  padding: 10px 20px;
+  border-bottom: 2px solid #ff9500; /* Orange border */
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-navbar-link {
+  color: #333; /* Dark text */
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.3s, color 0.3s;
+  font-weight: 500;
+}
+
+.admin-navbar-link:hover {
+  background-color: #ff9500; /* Orange background on hover */
+  color: #ffffff; /* White text on hover */
+}
+
+.admin-navbar-link.active {
+  background-color: #ff9500; /* Orange background for active */
+  color: #ffffff; /* White text for active */
+}

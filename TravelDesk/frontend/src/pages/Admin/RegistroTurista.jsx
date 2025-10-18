@@ -1,4 +1,4 @@
-import RegistroForm from '../components/RegistroForm.jsx';
+import RegistroForm from '../../components/RegistroForm.jsx';
 
 export default function Registro() {
   return (

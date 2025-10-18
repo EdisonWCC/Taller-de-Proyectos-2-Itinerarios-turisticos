@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ROLES } from '../utils/rbac.js';
-import '../styles/registro.css';
+import '../styles/Admin/registro.css';
 
 export default function UsersRolesTable({ initialUsers }) {
   const [users, setUsers] = useState(initialUsers || []);

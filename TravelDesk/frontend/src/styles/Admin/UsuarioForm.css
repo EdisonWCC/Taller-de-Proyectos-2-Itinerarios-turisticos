@@ -1,0 +1,104 @@
+/* === Contenedor general === */
+.registro-form {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 18px;
+  padding: 40px 50px;
+  width: 100%;
+  max-width: 700px;
+  margin: 60px auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+/* === Contenedor padre para centrar en pantalla === */
+.admin-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 60px); /* ajusta según tu navbar o layout */
+  background: #fafafa;
+  overflow-y: auto;
+}
+
+/* === Título === */
+.registro-form h2 {
+  text-align: center;
+  color: #ff9500;
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+/* === Etiquetas === */
+.registro-form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+  gap: 8px;
+}
+
+/* === Campos de entrada === */
+.registro-form input,
+.registro-form select {
+  padding: 14px 16px;
+  border: 1px solid #dcdfe4;
+  border-radius: 10px;
+  background-color: #f8f9fa;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+/* === Efecto focus === */
+.registro-form input:focus,
+.registro-form select:focus {
+  outline: none;
+  border-color: #ff9500;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.2);
+}
+
+/* === Botón de acción === */
+.registro-form button {
+  background: linear-gradient(135deg, #ff9500 0%, #ffb347 100%);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 16px 0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+/* Hover elegante */
+.registro-form button:hover {
+  background: linear-gradient(135deg, #ffb347 0%, #ff9500 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 149, 0, 0.3);
+}
+
+/* === Animación de entrada === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .registro-form {
+    padding: 30px;
+    max-width: 90%;
+  }
+}
