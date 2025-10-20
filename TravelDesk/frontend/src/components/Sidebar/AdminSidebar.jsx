@@ -9,8 +9,7 @@ function AdminSidebar() {
         <ul>
           <li><Link to="/admin">🏠 Dashboard</Link></li>
           <li><Link to="/admin/roles">👥 Roles</Link></li>
-          <li><Link to="/admin/registro">📝 Registro Turista</Link></li>
-          <li><Link to="/admin/registroUsuario">📝 Registrar Usuario</Link></li>
+          <li><Link to="/admin/registro">📝 Registro General</Link></li>
         </ul>
       </nav>
     </aside>

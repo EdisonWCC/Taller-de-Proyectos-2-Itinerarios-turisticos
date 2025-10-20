@@ -1,0 +1,104 @@
+/* === CONTENEDOR PRINCIPAL CENTRADO === */
+.registro-general {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 60px;
+  min-height: 100vh;
+  padding: 60px 20px;
+  background-color: #fafafa;
+  overflow-y: auto;
+}
+
+/* === CONTENIDO CENTRADO === */
+.registro-seccion {
+  width: 100%;
+  max-width: 1200px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(255, 102, 0, 0.1);
+  padding: 40px;
+  box-sizing: border-box;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* === TÍTULOS INTERNOS === */
+.registro-seccion h1 {
+  font-size: 2.2rem;
+  color: #ff6600;
+  font-weight: 700;
+  margin-bottom: 25px;
+  border-left: 4px solid #ff6600;
+  padding-left: 15px;
+}
+
+/* === FORMULARIOS DENTRO DE LAS SECCIONES === */
+.registro-seccion .container-reg {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  gap: 2rem;
+  min-height: auto;
+}
+
+.registro-seccion .container-reg::before {
+  display: none;
+}
+
+.registro-seccion .container-reg h1 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.registro-seccion .container-reg h1::after {
+  width: 60px;
+  height: 3px;
+}
+
+/* === SCROLL BÁSICO === */
+.registro-general::-webkit-scrollbar {
+  width: 8px;
+}
+
+.registro-general::-webkit-scrollbar-thumb {
+  background-color: #ff6600;
+  border-radius: 4px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 1024px) {
+  .registro-seccion {
+    padding: 30px;
+    max-width: 95%;
+  }
+
+  .registro-seccion h1 {
+    text-align: center;
+    border: none;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .registro-seccion {
+    padding: 20px;
+  }
+}
+
+/* === ANIMACIÓN BÁSICA === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
