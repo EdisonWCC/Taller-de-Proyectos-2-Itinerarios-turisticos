@@ -43,34 +43,12 @@ export default function TuristaRegistroForm() {
     }
 
     try {
-      console.log("📤 Enviando datos al backend...", values);
-
-      const res = await fetch("http://localhost:3000/api/turistas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      });
-
-      const data = await res.json();
-      if (data.ok) {
-        setOk(true);
-        alert("✅ Registro de turista exitoso");
-
-        setValues({
-          nombre: "",
-          apellido: "",
-          dni: "",
-          pasaporte: "",
-          nacionalidad: "",
-          fecha_nacimiento: "",
-          genero: "",
-        });
-      } else {
-        alert("⚠️ Error al registrar turista: " + (data.error || "Error desconocido"));
-      }
+      localStorage.setItem("turistaDraft", JSON.stringify(values));
+      setOk(true);
+      alert("Datos del turista listos. Completa el formulario de usuario y registra.");
     } catch (err) {
-      console.error("❌ Error de conexión:", err);
-      alert("No se pudo conectar al servidor.");
+      setOk(false);
+      alert("No se pudieron guardar los datos localmente.");
     }
   };
 
@@ -164,7 +142,7 @@ export default function TuristaRegistroForm() {
       </div>
 
       <button type="submit" className="btn">
-        Registrar Turista
+        Guardar Datos de Turista
       </button>
 
       {ok && <p className="success">✅ Turista registrado correctamente.</p>}

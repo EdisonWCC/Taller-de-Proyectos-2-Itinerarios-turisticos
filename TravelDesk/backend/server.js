@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import pool, { testConnection } from "./src/config/db.js";
 const SECRET = 'tu_clave_secreta'; // Usa una variable de entorno en producción
 
@@ -112,6 +113,65 @@ app.get("/api/usuarios", async (req, res) => {
   } catch (err) {
     console.error("❌ Error al obtener usuarios:", err.message);
     res.status(500).json({ error: "Error al obtener usuarios." });
+  }
+});
+
+// Registro combinado: crea Turista y Usuario en una sola transacción
+app.post("/api/usuarios/registro-completo", async (req, res) => {
+  const { usuario, turista } = req.body;
+  if (!usuario || !turista) {
+    return res.status(400).json({ ok: false, error: "Payload inválido" });
+  }
+  const { nombre_usuario, email, password, rol = "cliente" } = usuario;
+  const { nombre, apellido, dni, pasaporte, nacionalidad, fecha_nacimiento, genero } = turista;
+
+  if (!nombre_usuario || !email || !password) {
+    return res.status(400).json({ ok: false, error: "Faltan datos de usuario" });
+  }
+  if (!nombre || !apellido || !nacionalidad || !fecha_nacimiento || !genero) {
+    return res.status(400).json({ ok: false, error: "Faltan datos de turista" });
+  }
+  if (!dni && !pasaporte) {
+    return res.status(400).json({ ok: false, error: "Debe ingresar DNI o Pasaporte" });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
+
+    // 1) Crear USUARIO primero (según tu esquema)
+    const hashed = await bcrypt.hash(password, 10);
+    const [usuarioResult] = await conn.query(
+      `INSERT INTO usuarios (nombre_usuario, email, password, rol)
+       VALUES (?, ?, ?, ?)`,
+      [nombre_usuario, email.toLowerCase(), hashed, (rol || "cliente").toLowerCase()]
+    );
+    const usuarioId = usuarioResult.insertId;
+
+    // 2) Crear TURISTA vinculado a usuario mediante id_usuario
+    const [turistaResult] = await conn.query(
+      `INSERT INTO turistas (nombre, apellido, dni, pasaporte, nacionalidad, fecha_nacimiento, genero, id_usuario)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nombre, apellido, dni || null, pasaporte || null, nacionalidad, fecha_nacimiento, genero, usuarioId]
+    );
+    const turistaId = turistaResult.insertId;
+
+    await conn.commit();
+    return res.json({
+      ok: true,
+      usuario: { id: usuarioId, nombre_usuario, email: email.toLowerCase(), rol: (rol || "cliente").toUpperCase() },
+      turista: { id: turistaId, nombre, apellido }
+    });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    if (err && err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ ok: false, error: "Dato duplicado (email, usuario, dni o pasaporte)" });
+    }
+    console.error("❌ Error en registro-completo:", err.message);
+    return res.status(500).json({ ok: false, error: "Error en el servidor" });
+  } finally {
+    if (conn) conn.release();
   }
 });
 
