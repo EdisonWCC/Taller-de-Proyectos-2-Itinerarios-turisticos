@@ -1,0 +1,330 @@
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success-color: #059669;
+  --success-hover: #047857;
+  --danger-color: #dc2626;
+  --danger-hover: #b91c1c;
+  --warning-color: #d97706;
+  --warning-hover: #b45309;
+
+  --background-primary: #ffffff;
+  --background-secondary: #f8fafc;
+  --background-tertiary: #f1f5f9;
+
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  --border-color: #e2e8f0;
+  --border-hover: #cbd5e1;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  --border-radius: 12px;
+  --border-radius-sm: 8px;
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Contenedor principal */
+.editar-turista-container {
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, var(--background-secondary) 0%, var(--background-tertiary) 100%);
+  min-height: calc(100vh - 48px);
+  box-sizing: border-box;
+}
+
+/* Lista de turistas */
+.lista-turistas {
+  flex: 1;
+  background: var(--background-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+.lista-turistas:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-hover);
+}
+
+.lista-turistas h3 {
+  margin: 0 0 20px 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lista-turistas h3::before {
+  content: '👥';
+  font-size: 1.2em;
+}
+
+.lista-turistas table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.lista-turistas th {
+  background: var(--background-secondary);
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.lista-turistas td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.lista-turistas tbody tr {
+  transition: var(--transition);
+}
+
+.lista-turistas tbody tr:hover {
+  background: var(--background-secondary);
+  transform: translateX(2px);
+}
+
+.lista-turistas tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.lista-turistas button {
+  padding: 8px 16px;
+  border: none;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+  color: white;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.lista-turistas button:hover {
+  background: linear-gradient(135deg, var(--primary-hover) 0%, #1e40af 100%);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.lista-turistas button:active {
+  transform: translateY(0);
+}
+
+/* Formulario de edición */
+.form-edicion {
+  flex: 2;
+  background: var(--background-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 32px;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+.form-edicion:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-hover);
+}
+
+.form-edicion h3 {
+  margin: 0 0 24px 0;
+  color: var(--text-primary);
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.form-edicion h3::before {
+  content: '✏️';
+  font-size: 1.1em;
+}
+
+.form-edicion form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-edicion form label {
+  display: block;
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.form-edicion form input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: var(--background-primary);
+  box-sizing: border-box;
+}
+
+.form-edicion form input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+  background: var(--background-primary);
+}
+
+.form-edicion form input:hover {
+  border-color: var(--border-hover);
+}
+
+.form-edicion form input:invalid {
+  border-color: var(--danger-color);
+}
+
+.form-edicion form input:valid {
+  border-color: var(--success-color);
+}
+
+/* Placeholder styling */
+.form-edicion form input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Botones del formulario */
+.botones {
+  margin-top: 32px;
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+}
+
+.botones button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+  overflow: hidden;
+}
+
+.botones button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.botones button:hover::before {
+  left: 100%;
+}
+
+.botones button[type="submit"] {
+  background: linear-gradient(135deg, var(--success-color) 0%, var(--success-hover) 100%);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.botones button[type="submit"]:hover {
+  background: linear-gradient(135deg, var(--success-hover) 0%, #065f46 100%);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.botones button[type="button"] {
+  background: linear-gradient(135deg, var(--danger-color) 0%, var(--danger-hover) 100%);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.botones button[type="button"]:hover {
+  background: linear-gradient(135deg, var(--danger-hover) 0%, #991b1b 100%);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.botones button:active {
+  transform: translateY(0);
+}
+
+/* Estado cuando no hay turista seleccionado */
+.form-edicion p {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 40px 20px;
+  background: var(--background-secondary);
+  border-radius: var(--border-radius-sm);
+  border: 2px dashed var(--border-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .editar-turista-container {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .lista-turistas,
+  .form-edicion {
+    padding: 20px;
+  }
+
+  .lista-turistas h3,
+  .form-edicion h3 {
+    font-size: 1.25rem;
+  }
+
+  .botones {
+    flex-direction: column;
+  }
+
+  .botones button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .editar-turista-container {
+    padding: 12px;
+  }
+
+  .lista-turistas,
+  .form-edicion {
+    padding: 16px;
+  }
+}
