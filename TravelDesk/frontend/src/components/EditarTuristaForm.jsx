@@ -3,14 +3,12 @@ import  { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/Admin/EditarTuristaForm.css"; // Importa el estilo
 
-const turistasIniciales = [
-  { id: 1, nombre: "Carlos", apellido: "Pérez", documento: "12345678", telefono: "987654321", correo: "carlosperez@email.com", pais: "Perú" },
-  { id: 2, nombre: "Ana", apellido: "Gómez", documento: "87654321", telefono: "912345678", correo: "anagomez@email.com", pais: "Chile" },
-  { id: 3, nombre: "Luis", apellido: "Ramírez", documento: "11223344", telefono: "998877665", correo: "luisramirez@email.com", pais: "Argentina" }
-];
+const turistasIniciales = [];
 
 const EditarTuristaForm = () => {
-  const [turistas] = useState(turistasIniciales);
+  const [turistas, setTuristas] = useState(turistasIniciales);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
   const [turistaSeleccionado, setTuristaSeleccionado] = useState(null);
   const [datos, setDatos] = useState({
     nombre: "",
@@ -24,8 +22,33 @@ const EditarTuristaForm = () => {
 
   const handleSeleccionar = (turista) => {
     setTuristaSeleccionado(turista);
-    setDatos(turista);
+    setDatos({
+      nombre: turista.nombre || "",
+      apellido: turista.apellido || "",
+      documento: turista.dni || "",
+      telefono: turista.telefono || "",
+      correo: turista.email || "",
+      pais: turista.nacionalidad || "",
+    });
   };
+
+  useEffect(() => {
+    const fetchTuristas = async () => {
+      setLoading(true);
+      setLoadError("");
+      try {
+        const resp = await fetch("http://localhost:3000/api/turistas");
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data?.error || "Error al cargar turistas");
+        setTuristas(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setLoadError(e.message || "Error de red");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTuristas();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,20 +71,72 @@ const EditarTuristaForm = () => {
     return errs;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const v = validate(datos);
-    setErrors(v);
-    if (Object.keys(v).length > 0) return;
-    console.log("Datos actualizados:", datos);
-    alert("Cambios guardados (validación local)");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const v = validate(datos);
+  setErrors(v);
+  if (Object.keys(v).length > 0) return;
+
+  if (!turistaSeleccionado || !turistaSeleccionado.id) {
+    alert("Turista inválido");
+    return;
+  }
+
+  const payload = {
+    nombre: datos.nombre?.trim(),
+    apellido: datos.apellido?.trim(),
+    nacionalidad: datos.pais?.trim(),
+    dni: datos.documento ? String(datos.documento).trim() : undefined,
+    pasaporte: undefined,
+    fecha_nacimiento: undefined,
+    genero: undefined,
+    email: datos.correo ? String(datos.correo).trim() : undefined,
   };
+
+  try {
+    const resp = await fetch(`http://localhost:3000/api/turistas/${turistaSeleccionado.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const be = data?.fields || {};
+      const mapped = {
+        nombre: be.nombre,
+        apellido: be.apellido,
+        pais: be.nacionalidad,
+        documento: be.dni || be.pasaporte,
+        correo: be.email,
+      };
+      setErrors((prev) => ({ ...prev, ...mapped }));
+      alert(data?.error || "Error al actualizar");
+      return;
+    }
+
+    // Aquí actualizas la lista localmente
+    setTuristas((prevTuristas) =>
+      prevTuristas.map((t) =>
+        t.id === turistaSeleccionado.id
+          ? { ...t, nombre: datos.nombre, apellido: datos.apellido, dni: datos.documento, email: datos.correo, nacionalidad: datos.pais }
+          : t
+      )
+    );
+
+    alert("Cambios guardados");
+  } catch (err) {
+    alert("Error de red al actualizar");
+  }
+};
+
 
   return (
     <div className="editar-turista-container">
       {/* Lista de turistas */}
       <div className="lista-turistas">
         <h3>Lista de Turistas</h3>
+        {loading && <p>Cargando...</p>}
+        {loadError && <p className="error">{loadError}</p>}
         <table>
           <thead>
             <tr>
