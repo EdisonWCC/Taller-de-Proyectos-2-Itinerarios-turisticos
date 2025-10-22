@@ -127,8 +127,27 @@
   transform: translateY(-1px);
 }
 
-.lista-turistas button:active {
-  transform: translateY(0);
+.lista-turistas button.delete-button {
+  background: transparent;
+  color: var(--danger-color);
+  box-shadow: none;
+  font-size: 1.2rem;
+  padding: 4px 8px;
+  min-width: auto;
+  border: 1px solid transparent;
+}
+
+.lista-turistas button.delete-button:hover {
+  background: var(--danger-color);
+  color: white;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--danger-color);
+  transform: translateY(-1px);
+}
+
+.lista-turistas td:last-child {
+  text-align: center;
+  width: 60px;
 }
 
 /* Formulario de edición */
@@ -276,8 +295,17 @@
   transform: translateY(-2px);
 }
 
-.botones button:active {
-  transform: translateY(0);
+.botones button.delete-button {
+  background: linear-gradient(135deg, var(--danger-color) 0%, var(--danger-hover) 100%);
+  color: white;
+  box-shadow: var(--shadow-md);
+  font-weight: 600;
+}
+
+.botones button.delete-button:hover {
+  background: linear-gradient(135deg, var(--danger-hover) 0%, #991b1b 100%);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 /* Estado cuando no hay turista seleccionado */

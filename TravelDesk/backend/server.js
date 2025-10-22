@@ -126,12 +126,13 @@ app.put("/api/usuarios/:id/rol", requireRole(["ADMIN"]), async (req, res) => {
 app.get("/api/usuarios", async (req, res) => {
   try {
     const [rows] = await pool.query(
-      "SELECT id_usuario AS id, nombre_usuario AS name, email, rol FROM usuarios"
+      "SELECT id_usuario AS id, nombre_usuario AS name, email, rol, created_at FROM usuarios"
     );
-    // Normaliza el rol a mayúsculas
+    // Normaliza el rol a mayúsculas y agrega estado activo por defecto
     const users = rows.map(u => ({
       ...u,
-      role: u.rol ? u.rol.toUpperCase() : "CLIENTE"
+      role: u.rol ? u.rol.toUpperCase() : "CLIENTE",
+      active: true // Por defecto todos los usuarios están activos
     }));
     res.json(users);
   } catch (err) {
@@ -140,7 +141,46 @@ app.get("/api/usuarios", async (req, res) => {
   }
 });
 
-// Registro combinado: crea Turista y Usuario en una sola transacción
+// Endpoint para cambiar el estado de un usuario (activar/desactivar)
+app.put("/api/usuarios/:id/status", requireRole(["ADMIN"]), async (req, res) => {
+  const { id } = req.params;
+  const { active } = req.body;
+  if (typeof active !== 'boolean') {
+    return res.status(400).json({ error: "El estado 'active' debe ser true o false." });
+  }
+  try {
+    const [result] = await pool.query(
+      "UPDATE usuarios SET updated_at = NOW() WHERE id_usuario = ?",
+      [id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("❌ Error al cambiar estado del usuario:", err.message);
+    res.status(500).json({ error: "Error al cambiar estado del usuario." });
+  }
+});
+
+// Endpoint para eliminar un usuario (borrado lógico)
+app.delete("/api/usuarios/:id", requireRole(["ADMIN"]), async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Verificar si el usuario existe
+    const [rows] = await pool.query(
+      "SELECT id_usuario FROM usuarios WHERE id_usuario = ?",
+      [id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Usuario no encontrado." });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("❌ Error al eliminar usuario:", err.message);
+    res.status(500).json({ error: "Error al eliminar usuario." });
+  }
+});
 app.post("/api/usuarios/registro-completo", async (req, res) => {
   const { usuario, turista } = req.body;
   if (!usuario || !turista) {
@@ -196,138 +236,6 @@ app.post("/api/usuarios/registro-completo", async (req, res) => {
     return res.status(500).json({ ok: false, error: "Error en el servidor" });
   } finally {
     if (conn) conn.release();
-  }
-});
-
-// Actualizar datos de un turista (y opcionalmente email del usuario vinculado)
-app.put("/api/turistas/:id", async (req, res) => {
-  const { id } = req.params;
-  const {
-    nombre,
-    apellido,
-    dni,
-    pasaporte,
-    nacionalidad,
-    fecha_nacimiento,
-    genero,
-    email, // opcional: actualizar email del usuario vinculado
-  } = req.body || {};
-
-  // Validaciones básicas
-  if (!nombre || !apellido || !nacionalidad) {
-    return res.status(400).json({
-      ok: false,
-      error: "Faltan campos obligatorios",
-      fields: {
-        nombre: !nombre ? "Requerido" : undefined,
-        apellido: !apellido ? "Requerido" : undefined,
-        nacionalidad: !nacionalidad ? "Requerido" : undefined,
-      },
-    });
-  }
-  // Regla: al menos uno entre DNI o Pasaporte si alguno cambia/está presente
-  if ((dni === undefined && pasaporte === undefined) === false) {
-    if (!dni && !pasaporte) {
-      return res.status(400).json({ ok: false, error: "Debe ingresar DNI o Pasaporte" });
-    }
-  }
-
-  // Normalizar strings vacíos a null
-  const dniVal = dni === "" ? null : dni ?? undefined;
-  const pasVal = pasaporte === "" ? null : pasaporte ?? undefined;
-  const fechaVal = fecha_nacimiento === "" ? null : fecha_nacimiento ?? undefined;
-  const generoVal = genero === "" ? null : genero ?? undefined;
-
-  let conn;
-  try {
-    conn = await pool.getConnection();
-    await conn.beginTransaction();
-
-    // Verificar existencia del turista y obtener id_usuario
-    const [turRows] = await conn.query(
-      "SELECT id_usuario FROM turistas WHERE id_turista = ?",
-      [id]
-    );
-    if (turRows.length === 0) {
-      await conn.rollback();
-      return res.status(404).json({ ok: false, error: "Turista no encontrado" });
-    }
-    const idUsuario = turRows[0].id_usuario;
-
-    // Construir actualización parcial de turista
-    const setParts = [];
-    const values = [];
-    setParts.push("nombre = ?"); values.push(nombre);
-    setParts.push("apellido = ?"); values.push(apellido);
-    if (dniVal !== undefined) { setParts.push("dni = ?"); values.push(dniVal); }
-    if (pasVal !== undefined) { setParts.push("pasaporte = ?"); values.push(pasVal); }
-    if (nacionalidad !== undefined) { setParts.push("nacionalidad = ?"); values.push(nacionalidad); }
-    if (fechaVal !== undefined) { setParts.push("fecha_nacimiento = ?"); values.push(fechaVal); }
-    if (generoVal !== undefined) { setParts.push("genero = ?"); values.push(generoVal); }
-
-    if (setParts.length === 0) {
-      await conn.rollback();
-      return res.status(400).json({ ok: false, error: "No hay campos para actualizar" });
-    }
-
-    const updateSql = `UPDATE turistas SET ${setParts.join(", ")} WHERE id_turista = ?`;
-    values.push(id);
-    const [updTur] = await conn.query(updateSql, values);
-    if (updTur.affectedRows === 0) {
-      await conn.rollback();
-      return res.status(404).json({ ok: false, error: "Turista no encontrado" });
-    }
-
-    // Opcional: actualizar email del usuario
-    if (email !== undefined) {
-      const emailNorm = email ? String(email).toLowerCase() : null;
-      await conn.query(
-        "UPDATE usuarios SET email = ? WHERE id_usuario = ?",
-        [emailNorm, idUsuario]
-      );
-    }
-
-    await conn.commit();
-    return res.json({ ok: true });
-  } catch (err) {
-    if (conn) await conn.rollback();
-    if (err && err.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ ok: false, error: "Dato duplicado (email, dni o pasaporte)" });
-    }
-    console.error("❌ Error al actualizar turista:", err.message);
-    return res.status(500).json({ ok: false, error: "Error en el servidor" });
-  } finally {
-    if (conn) conn.release();
-  }
-});
-
-// Endpoint de login
-app.post("/api/login", async (req, res) => {
-  const { usuario, contrasena } = req.body;
-  if (!usuario || !contrasena) {
-    return res.status(400).json({ error: "Usuario y contraseña requeridos." });
-  }
-  try {
-    const [rows] = await pool.query(
-      "SELECT * FROM usuarios WHERE nombre_usuario = ?",
-      [usuario]
-    );
-    if (rows.length === 0) {
-      return res.status(401).json({ error: "Credenciales incorrectas." });
-    }
-    const user = rows[0];
-    if (user.password !== contrasena) {
-      return res.status(401).json({ error: "Credenciales incorrectas." });
-    }
-    // Genera el token con el rol
-    const token = jwt.sign(
-      { id: user.id_usuario, usuario: user.nombre_usuario, role: user.rol.toUpperCase() },
-      SECRET,
-      { expiresIn: '2h' }
-    );
-    res.json({ ok: true, usuario: user.nombre_usuario, role: user.rol.toUpperCase(), token });
-  } catch (err) {
-    res.status(500).json({ error: "Error en el servidor." });
   }
 });
 

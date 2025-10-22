@@ -58,6 +58,45 @@ const EditarTuristaForm = () => {
     }
   };
 
+  const handleDelete = async (turista) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar a ${turista.nombre} ${turista.apellido}?`)) {
+      return;
+    }
+
+    try {
+      const resp = await fetch(`http://localhost:3000/api/turistas/${turista.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        alert(data?.error || "Error al eliminar turista");
+        return;
+      }
+
+      // Actualizar la lista localmente
+      setTuristas((prevTuristas) => prevTuristas.filter((t) => t.id !== turista.id));
+
+      // Si el turista eliminado era el que se estaba editando, limpiar la selección
+      if (turistaSeleccionado && turistaSeleccionado.id === turista.id) {
+        setTuristaSeleccionado(null);
+        setDatos({
+          nombre: "",
+          apellido: "",
+          documento: "",
+          telefono: "",
+          correo: "",
+          pais: "",
+        });
+      }
+
+      alert("Turista eliminado exitosamente");
+    } catch (err) {
+      alert("Error de red al eliminar turista");
+    }
+  };
+
   const validate = (values) => {
     const errs = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -71,7 +110,7 @@ const EditarTuristaForm = () => {
     return errs;
   };
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
   e.preventDefault();
   const v = validate(datos);
   setErrors(v);
@@ -142,6 +181,7 @@ const handleSubmit = async (e) => {
             <tr>
               <th>Nombre</th>
               <th>Editar</th>
+              <th>Eliminar</th>
             </tr>
           </thead>
           <tbody>
@@ -150,6 +190,9 @@ const handleSubmit = async (e) => {
                 <td>{t.nombre} {t.apellido}</td>
                 <td>
                   <button onClick={() => handleSeleccionar(t)}>Editar</button>
+                </td>
+                <td>
+                  <button onClick={() => handleDelete(t)} className="delete-button" title="Eliminar turista">🗑️</button>
                 </td>
               </tr>
             ))}
@@ -189,6 +232,7 @@ const handleSubmit = async (e) => {
 
               <div className="botones">
                 <button type="submit">Guardar Cambios</button>
+                <button type="button" onClick={() => handleDelete(turistaSeleccionado)} className="delete-button">Eliminar</button>
                 <button type="button" onClick={() => setTuristaSeleccionado(null)}>Cancelar</button>
               </div>
             </form>

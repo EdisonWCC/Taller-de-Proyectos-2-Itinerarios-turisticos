@@ -38,6 +38,48 @@
   align-items: stretch;
 }
 
+/* === Header con información del usuario === */
+.admin-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px 24px;
+  margin: -24px -32px 24px -32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.admin-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-greeting {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.user-role {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  font-weight: 400;
+  text-transform: capitalize;
+}
+
 /* === Responsive === */
 @media (max-width: 768px) {
   .sidebar {
@@ -48,6 +90,19 @@
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  .admin-header {
+    padding: 12px 16px;
+    margin: -16px -16px 16px -16px;
+  }
+
+  .user-greeting {
+    font-size: 1rem;
+  }
+
+  .user-role {
+    font-size: 0.8rem;
   }
 
   .admin-main {

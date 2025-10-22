@@ -1,7 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "../../styles/Admin/AdminSidebar.css"; // tu CSS
 
 function AdminSidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
   return (
     <aside className="sidebar">
       <h2 className="sidebar-title">Panel Admin</h2>
@@ -13,6 +20,12 @@ function AdminSidebar() {
           <li><Link to="/admin/editar-turista">📝 Editar Turista</Link></li>
         </ul>
       </nav>
+
+      <div className="sidebar-footer">
+        <button className="logout-button" onClick={handleLogout}>
+          🚪 Cerrar Sesión
+        </button>
+      </div>
     </aside>
   );
 }
