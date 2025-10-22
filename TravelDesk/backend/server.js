@@ -46,29 +46,6 @@ app.post("/api/registro", async (req, res) => {
   }
 });
 
-// Listar turistas con email de usuario
-app.get("/api/turistas", async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT 
-         t.id_turista AS id,
-         t.nombre,
-         t.apellido,
-         t.dni,
-         t.pasaporte,
-         t.nacionalidad,
-         t.fecha_nacimiento,
-         t.genero,
-         u.email
-       FROM turistas t
-       LEFT JOIN usuarios u ON u.id_usuario = t.id_usuario`
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error("❌ Error al obtener turistas:", err.message);
-    res.status(500).json({ ok: false, error: "Error al obtener turistas" });
-  }
-});
 
 // Endpoint de login
 app.post("/api/login", async (req, res) => {
@@ -162,6 +139,62 @@ app.put("/api/usuarios/:id/status", requireRole(["ADMIN"]), async (req, res) => 
     res.status(500).json({ error: "Error al cambiar estado del usuario." });
   }
 });
+
+// Listar turistas activos
+app.get("/api/turistas", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT 
+         t.id_turista AS id,
+         t.nombre,
+         t.apellido,
+         t.dni,
+         t.pasaporte,
+         t.nacionalidad,
+         t.fecha_nacimiento,
+         t.genero,
+         u.email
+       FROM turistas t
+       LEFT JOIN usuarios u ON u.id_usuario = t.id_usuario
+       WHERE t.activo = 1`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Error al obtener turistas:", err.message);
+    res.status(500).json({ ok: false, error: "Error al obtener turistas" });
+  }
+});
+
+// Borrado lógico de turista
+app.delete("/api/turistas/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Verificar si el turista existe y está activo
+    const [rows] = await pool.query(
+      "SELECT id_turista, activo FROM turistas WHERE id_turista = ?",
+      [id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Turista no encontrado" });
+    }
+    if (rows[0].activo === 0) {
+      return res.status(400).json({ error: "El turista ya fue eliminado" });
+    }
+
+    // Borrado lógico
+    await pool.query(
+      "UPDATE turistas SET activo = 0 WHERE id_turista = ?",
+      [id]
+    );
+
+    res.json({ ok: true, message: "Turista eliminado lógicamente" });
+  } catch (err) {
+    console.error("❌ Error al eliminar turista:", err.message);
+    res.status(500).json({ error: "Error al eliminar turista" });
+  }
+});
+
 
 // Endpoint para eliminar un usuario (borrado lógico)
 app.delete("/api/usuarios/:id", requireRole(["ADMIN"]), async (req, res) => {

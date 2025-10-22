@@ -160,7 +160,8 @@ CREATE TABLE `turistas` (
   `pasaporte` varchar(20) DEFAULT NULL,
   `nacionalidad` varchar(100) DEFAULT NULL,
   `fecha_nacimiento` date DEFAULT NULL,
-  `genero` enum('M','F','Otro') DEFAULT NULL
+  `genero` enum('M','F','Otro') DEFAULT NULL,
+  `activo` TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
