@@ -4,7 +4,6 @@ import AdminLayout from './layouts/AdminLayout.jsx';
 import AdminPanel from './pages/Admin/AdminPanel.jsx';
 import RegistroGeneral from './pages/Admin/RegistroGeneral.jsx';
 import RolesAdmin from './pages/Admin/RolesAdmin.jsx';
-import Editarturista from './pages/Admin/Editarturista.jsx';
 import ListarTuristas from './pages/Admin/ListarTuristas.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Dashboard from './pages/Dashboard.jsx';
@@ -26,7 +25,6 @@ function App() {
           <Route index element={<AdminPanel />} />
           <Route path="registro" element={<RegistroGeneral />} />
           <Route path="roles" element={<RolesAdmin />} />
-          <Route path="editar-turista" element={<Editarturista />} />
           <Route path="listar-turistas" element={<ListarTuristas />} />
         </Route>
 

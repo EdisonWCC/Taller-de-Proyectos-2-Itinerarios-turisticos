@@ -1,187 +1,46 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import EditarTuristaForm from './EditarTuristaForm';
 import '../styles/Admin/ListarTuristasTable.css';
 
 const ListarTuristasTable = () => {
-  // Datos de ejemplo para la tabla (simulando API)
-  const [turistas] = useState([
-    {
-      id: 1,
-      nombre: 'María',
-      apellido: 'González',
-      email: 'maria.gonzalez@email.com',
-      documento: '12345678',
-      telefono: '555-0101',
-      nacionalidad: 'Argentina',
-      genero: 'Femenino',
-      activo: true
-    },
-    {
-      id: 2,
-      nombre: 'Carlos',
-      apellido: 'Rodríguez',
-      email: 'carlos.rodriguez@email.com',
-      documento: '87654321',
-      telefono: '555-0102',
-      nacionalidad: 'México',
-      genero: 'Masculino',
-      activo: true
-    },
-    {
-      id: 3,
-      nombre: 'Ana',
-      apellido: 'López',
-      email: 'ana.lopez@email.com',
-      documento: '11223344',
-      telefono: '555-0103',
-      nacionalidad: 'España',
-      genero: 'Femenino',
-      activo: false
-    },
-    {
-      id: 4,
-      nombre: 'Juan',
-      apellido: 'Martínez',
-      email: 'juan.martinez@email.com',
-      documento: '99887766',
-      telefono: '555-0104',
-      nacionalidad: 'Argentina',
-      genero: 'Masculino',
-      activo: true
-    },
-    {
-      id: 5,
-      nombre: 'Lucía',
-      apellido: 'Fernández',
-      email: 'lucia.fernandez@email.com',
-      documento: '55443322',
-      telefono: '555-0105',
-      nacionalidad: 'Chile',
-      genero: 'Femenino',
-      activo: true
-    },
-    {
-      id: 6,
-      nombre: 'Diego',
-      apellido: 'Sánchez',
-      email: 'diego.sanchez@email.com',
-      documento: '66778899',
-      telefono: '555-0106',
-      nacionalidad: 'Colombia',
-      genero: 'Masculino',
-      activo: false
-    },
-    {
-      id: 7,
-      nombre: 'Carmen',
-      apellido: 'Pérez',
-      email: 'carmen.perez@email.com',
-      documento: '77889900',
-      telefono: '555-0107',
-      nacionalidad: 'Perú',
-      genero: 'Femenino',
-      activo: true
-    },
-    {
-      id: 8,
-      nombre: 'Miguel',
-      apellido: 'Torres',
-      email: 'miguel.torres@email.com',
-      documento: '88990011',
-      telefono: '555-0108',
-      nacionalidad: 'Uruguay',
-      genero: 'Masculino',
-      activo: true
-    },
-    {
-      id: 9,
-      nombre: 'Sofia',
-      apellido: 'Ramírez',
-      email: 'sofia.ramirez@email.com',
-      documento: '44556677',
-      telefono: '555-0109',
-      nacionalidad: 'Brasil',
-      genero: 'Femenino',
-      activo: true
-    },
-    {
-      id: 10,
-      nombre: 'Andrés',
-      apellido: 'Morales',
-      email: 'andres.morales@email.com',
-      documento: '33445566',
-      telefono: '555-0110',
-      nacionalidad: 'Ecuador',
-      genero: 'Masculino',
-      activo: true
-    },
-    {
-      id: 11,
-      nombre: 'Isabella',
-      apellido: 'García',
-      email: 'isabella.garcia@email.com',
-      documento: '22334455',
-      telefono: '555-0111',
-      nacionalidad: 'Venezuela',
-      genero: 'Femenino',
-      activo: false
-    },
-    {
-      id: 12,
-      nombre: 'Felipe',
-      apellido: 'Díaz',
-      email: 'felipe.diaz@email.com',
-      documento: '11223344',
-      telefono: '555-0112',
-      nacionalidad: 'Bolivia',
-      genero: 'Masculino',
-      activo: true
-    },
-    {
-      id: 13,
-      nombre: 'Valentina',
-      apellido: 'Hernández',
-      email: 'valentina.hernandez@email.com',
-      documento: '99887766',
-      telefono: '555-0113',
-      nacionalidad: 'Paraguay',
-      genero: 'Femenino',
-      activo: true
-    },
-    {
-      id: 14,
-      nombre: 'Sebastián',
-      apellido: 'Ruiz',
-      email: 'sebastian.ruiz@email.com',
-      documento: '88776655',
-      telefono: '555-0114',
-      nacionalidad: 'Panamá',
-      genero: 'Masculino',
-      activo: true
-    },
-    {
-      id: 15,
-      nombre: 'Camila',
-      apellido: 'Vargas',
-      email: 'camila.vargas@email.com',
-      documento: '77665544',
-      telefono: '555-0115',
-      nacionalidad: 'Costa Rica',
-      genero: 'Femenino',
-      activo: false
-    }
-  ]);
+  // Estados para la tabla
+  const [turistas, setTuristas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Estados para los filtros y paginación
+  // Estados para filtros y paginación
   const [filtros, setFiltros] = useState({
     busqueda: '',
     nacionalidad: '',
     genero: '',
     estado: ''
   });
-
-  // Estados para paginación
   const [paginaActual, setPaginaActual] = useState(1);
   const elementosPorPagina = 10;
+
+  // Estados para el modal de edición
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [turistaSeleccionado, setTuristaSeleccionado] = useState(null);
+
+  // Cargar turistas desde API
+  useEffect(() => {
+    const fetchTuristas = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch("http://localhost:3000/api/turistas");
+        if (!response.ok) throw new Error("Error al cargar turistas");
+        const data = await response.json();
+        setTuristas(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setError(err.message || "Error de conexión");
+        setTuristas([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTuristas();
+  }, []);
 
   // Obtener opciones únicas para los filtros
   const nacionalidades = useMemo(() => {
@@ -195,7 +54,7 @@ const ListarTuristasTable = () => {
       const coincideBusqueda = filtros.busqueda === '' ||
         `${turista.nombre} ${turista.apellido}`.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
         turista.email.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
-        turista.documento.includes(filtros.busqueda);
+        (turista.dni || turista.documento || '').includes(filtros.busqueda);
 
       const coincideNacionalidad = filtros.nacionalidad === '' ||
         turista.nacionalidad === filtros.nacionalidad;
@@ -239,6 +98,75 @@ const ListarTuristasTable = () => {
   // Función para cambiar página
   const cambiarPagina = (nuevaPagina) => {
     setPaginaActual(nuevaPagina);
+  };
+
+  // Función para abrir modal de edición
+  const abrirModalEditar = (turista) => {
+    setTuristaSeleccionado(turista);
+    setModalAbierto(true);
+  };
+
+  // Función para cerrar modal
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setTuristaSeleccionado(null);
+  };
+
+  // Función para refrescar datos después de guardar
+  const refrescarDatos = () => {
+    // Recargar los turistas desde la API
+    const fetchTuristas = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch("http://localhost:3000/api/turistas");
+        if (!response.ok) throw new Error("Error al cargar turistas");
+        const data = await response.json();
+        setTuristas(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setError(err.message || "Error de conexión");
+        setTuristas([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTuristas();
+  };
+
+  // Función para toggle de estado activo/inactivo
+  const toggleEstado = async (turista) => {
+    const nuevoEstado = !turista.activo;
+    const confirmacion = window.confirm(
+      `¿Estás seguro de que deseas ${nuevoEstado ? 'activar' : 'desactivar'} a ${turista.nombre} ${turista.apellido}?`
+    );
+
+    if (!confirmacion) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/api/turistas/${turista.id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ activo: nuevoEstado }),
+      });
+
+      if (response.ok) {
+        // Actualizar la lista localmente
+        setTuristas(prevTuristas =>
+          prevTuristas.map(t =>
+            t.id === turista.id
+              ? { ...t, activo: nuevoEstado }
+              : t
+          )
+        );
+        alert(`Turista ${nuevoEstado ? 'activado' : 'desactivado'} exitosamente`);
+      } else {
+        alert('Error al cambiar estado del turista');
+      }
+    } catch (error) {
+      alert('Error de conexión');
+    }
   };
 
   return (
@@ -296,70 +224,89 @@ const ListarTuristasTable = () => {
       </div>
 
       <div className="listar-turistas-table-wrapper">
-        <table className="listar-turistas-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Apellido</th>
-              <th>Email</th>
-              <th>Documento</th>
-              <th>Teléfono</th>
-              <th>País</th>
-              <th>Género</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {turistasPaginados.length > 0 ? (
-              turistasPaginados.map(turista => (
-                <tr key={turista.id}>
-                  <td>{turista.nombre}</td>
-                  <td>{turista.apellido}</td>
-                  <td>{turista.email}</td>
-                  <td>{turista.documento}</td>
-                  <td>{turista.telefono}</td>
-                  <td>
-                    <span className="badge badge-pais">{turista.nacionalidad}</span>
-                  </td>
-                  <td>
-                    <span className="badge badge-genero">{turista.genero}</span>
-                  </td>
-                  <td>
-                    <span className={`badge ${turista.activo ? 'badge-activo' : 'badge-inactivo'}`}>
-                      {turista.activo ? '✅ Activo' : '❌ Inactivo'}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="acciones-buttons">
-                      <button className="btn-editar" title="Editar turista">
-                        ✏️ Editar
-                      </button>
-                      <button
-                        className={`btn-toggle ${turista.activo ? 'btn-desactivar' : 'btn-activar'}`}
-                        title={turista.activo ? 'Desactivar turista' : 'Activar turista'}
-                      >
-                        {turista.activo ? '❌' : '✅'}
+        {loading ? (
+          <div className="loading">Cargando turistas...</div>
+        ) : error ? (
+          <div className="no-data">
+            <div className="no-data-content">
+              <span className="no-data-icon">❌</span>
+              <p>{error}</p>
+              <button onClick={() => window.location.reload()} className="btn-limpiar">
+                Reintentar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <table className="listar-turistas-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Email</th>
+                <th>Documento</th>
+                <th>Teléfono</th>
+                <th>País</th>
+                <th>Género</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {turistasPaginados.length > 0 ? (
+                turistasPaginados.map(turista => (
+                  <tr key={turista.id}>
+                    <td>{turista.nombre}</td>
+                    <td>{turista.apellido}</td>
+                    <td>{turista.email}</td>
+                    <td>{turista.dni || turista.documento || 'N/A'}</td>
+                    <td>{turista.telefono || 'N/A'}</td>
+                    <td>
+                      <span className="badge badge-pais">{turista.nacionalidad}</span>
+                    </td>
+                    <td>
+                      <span className="badge badge-genero">{turista.genero || 'N/A'}</span>
+                    </td>
+                    <td>
+                      <span className={`badge ${turista.activo ? 'badge-activo' : 'badge-inactivo'}`}>
+                        {turista.activo ? '✅ Activo' : '❌ Inactivo'}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="acciones-buttons">
+                        <button
+                          className="btn-editar"
+                          title="Editar turista"
+                          onClick={() => abrirModalEditar(turista)}
+                        >
+                          ✏️ Editar
+                        </button>
+                        <button
+                          className={`btn-toggle ${turista.activo ? 'btn-desactivar' : 'btn-activar'}`}
+                          title={turista.activo ? 'Desactivar turista' : 'Activar turista'}
+                          onClick={() => toggleEstado(turista)}
+                        >
+                          {turista.activo ? '❌' : '✅'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="9" className="no-data">
+                    <div className="no-data-content">
+                      <span className="no-data-icon">🔍</span>
+                      <p>No se encontraron turistas con los filtros aplicados</p>
+                      <button onClick={limpiarFiltros} className="btn-limpiar">
+                        Limpiar filtros
                       </button>
                     </div>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="9" className="no-data">
-                  <div className="no-data-content">
-                    <span className="no-data-icon">🔍</span>
-                    <p>No se encontraron turistas con los filtros aplicados</p>
-                    <button onClick={limpiarFiltros} className="btn-limpiar">
-                      Limpiar filtros
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Controles de paginación */}
@@ -399,6 +346,14 @@ const ListarTuristasTable = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Edición usando el componente existente */}
+      <EditarTuristaForm
+        isOpen={modalAbierto}
+        onClose={cerrarModal}
+        turistaSeleccionado={turistaSeleccionado}
+        onSave={refrescarDatos}
+      />
     </div>
   );
 };
