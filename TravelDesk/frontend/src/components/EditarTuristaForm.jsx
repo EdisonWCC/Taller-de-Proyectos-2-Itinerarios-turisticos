@@ -13,13 +13,11 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
     nombre: "",
     apellido: "",
     documento: "",
-    telefono: "",
     correo: "",
     pais: "",
     genero: "",
     pasaporte: "",
     fecha_nacimiento: "",
-    activo: true
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -31,13 +29,11 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
         nombre: turistaSeleccionado.nombre || "",
         apellido: turistaSeleccionado.apellido || "",
         documento: turistaSeleccionado.dni || turistaSeleccionado.documento || "",
-        telefono: turistaSeleccionado.telefono || "",
         correo: turistaSeleccionado.email || "",
         pais: turistaSeleccionado.nacionalidad || "",
         genero: turistaSeleccionado.genero || "",
         pasaporte: turistaSeleccionado.pasaporte || "",
         fecha_nacimiento: turistaSeleccionado.fecha_nacimiento || "",
-        activo: turistaSeleccionado.activo !== undefined ? turistaSeleccionado.activo : true
       });
     }
   }, [turistaSeleccionado]);
@@ -96,7 +92,6 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
     if (!values.apellido || values.apellido.trim().length < 2) errs.apellido = "Apellido requerido (mín. 2)";
     if (values.documento && (!onlyDigits.test(values.documento) || values.documento.length < 6)) errs.documento = "Documento inválido";
     if (values.pasaporte && (!onlyDigits.test(values.pasaporte) || values.pasaporte.length < 6)) errs.pasaporte = "Pasaporte inválido";
-    if (values.telefono && (!onlyDigits.test(values.telefono) || values.telefono.length < 7)) errs.telefono = "Teléfono inválido";
     if (!values.correo || !emailRegex.test(values.correo)) errs.correo = "Correo inválido";
     if (!values.pais || values.pais.trim().length === 0) errs.pais = "País requerido";
     if (!values.genero || values.genero.trim().length === 0) errs.genero = "Género requerido";
@@ -126,8 +121,6 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
       fecha_nacimiento: datos.fecha_nacimiento ? String(datos.fecha_nacimiento) : undefined,
       genero: datos.genero?.trim(),
       email: datos.correo ? String(datos.correo).trim() : undefined,
-      telefono: datos.telefono ? String(datos.telefono).trim() : undefined,
-      activo: datos.activo
     };
 
     try {
@@ -148,7 +141,6 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
           fecha_nacimiento: be.fecha_nacimiento,
           correo: be.email,
           genero: be.genero,
-          telefono: be.telefono
         };
         setErrors(prev => ({ ...prev, ...mapped }));
         alert(data?.error || "Error al actualizar");
@@ -200,12 +192,6 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
                 <input type="text" name="documento" value={datos.documento} onChange={handleChange} />
                 {errors.documento && <span className="error">{errors.documento}</span>}
               </div>
-
-              <div className="form-group">
-                <label>Teléfono</label>
-                <input type="text" name="telefono" value={datos.telefono} onChange={handleChange} />
-                {errors.telefono && <span className="error">{errors.telefono}</span>}
-              </div>
             </div>
 
             <div className="form-row">
@@ -241,24 +227,11 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
                 <label>Género</label>
                 <select name="genero" value={datos.genero} onChange={handleChange}>
                   <option value="">Seleccionar género</option>
-                  <option value="Masculino">Masculino</option>
-                  <option value="Femenino">Femenino</option>
+                  <option value="M">Masculino</option>
+                  <option value="F">Femenino</option>
                   <option value="Otro">Otro</option>
                 </select>
                 {errors.genero && <span className="error">{errors.genero}</span>}
-              </div>
-
-              <div className="form-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    name="activo"
-                    checked={datos.activo}
-                    onChange={handleChange}
-                  />
-                  <span className="checkmark"></span>
-                  Turista Activo
-                </label>
               </div>
             </div>
 

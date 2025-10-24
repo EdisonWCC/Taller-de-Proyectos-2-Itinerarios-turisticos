@@ -77,6 +77,109 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// Cambiar estado activo/inactivo de turista
+app.put("/api/turistas/:id/status", async (req, res) => {
+  const { id } = req.params;
+  const { activo } = req.body;
+
+  if (typeof activo !== 'boolean') {
+    return res.status(400).json({ ok: false, error: "El campo 'activo' debe ser true o false." });
+  }
+
+  try {
+    const [result] = await pool.query(
+      "UPDATE turistas SET activo = ? WHERE id_turista = ?",
+      [activo ? 1 : 0, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, error: "Turista no encontrado." });
+    }
+
+    res.json({ ok: true, message: `Turista ${activo ? 'activado' : 'desactivado'} correctamente` });
+  } catch (err) {
+    console.error("❌ Error al cambiar estado del turista:", err.message);
+    res.status(500).json({ ok: false, error: "Error al cambiar estado del turista" });
+  }
+});
+
+// Listar todos los turistas (activos e inactivos)
+app.get("/api/turistas", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT 
+         t.id_turista AS id,
+         t.nombre,
+         t.apellido,
+         t.dni,
+         t.pasaporte,
+         t.nacionalidad,
+         t.fecha_nacimiento,
+         t.genero,
+         t.activo,
+         u.email
+       FROM turistas t
+       LEFT JOIN usuarios u ON u.id_usuario = t.id_usuario`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Error al obtener turistas:", err.message);
+    res.status(500).json({ ok: false, error: "Error al obtener turistas" });
+  }
+});
+
+
+// Actualizar datos de un turista y su email (usuario asociado)
+app.put("/api/turistas/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nombre, apellido, dni, pasaporte, nacionalidad, fecha_nacimiento, genero, email } = req.body;
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
+
+    // 1️⃣ Obtener el id_usuario vinculado al turista
+    const [rows] = await conn.query(
+      "SELECT id_usuario FROM turistas WHERE id_turista = ?",
+      [id]
+    );
+    if (rows.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ ok: false, error: "Turista no encontrado" });
+    }
+    const idUsuario = rows[0].id_usuario;
+
+    // 2️⃣ Actualizar datos del turista
+    const [updateTurista] = await conn.query(
+      `UPDATE turistas 
+       SET nombre = ?, apellido = ?, dni = ?, pasaporte = ?, nacionalidad = ?, fecha_nacimiento = ?, genero = ?
+       WHERE id_turista = ?`,
+      [nombre, apellido, dni || null, pasaporte || null, nacionalidad, fecha_nacimiento, genero, id]
+    );
+
+    // 3️⃣ Si se envía email, actualizarlo también en usuarios
+    if (email && idUsuario) {
+      await conn.query(
+        "UPDATE usuarios SET email = ? WHERE id_usuario = ?",
+        [email.toLowerCase(), idUsuario]
+      );
+    }
+
+    await conn.commit();
+    res.json({ ok: true, message: "Turista actualizado correctamente" });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error("❌ Error al actualizar turista:", err.message);
+    res.status(500).json({ ok: false, error: "Error al actualizar turista" });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+
+
+
 // Endpoint para actualizar el rol de un usuario
 app.put("/api/usuarios/:id/rol", requireRole(["ADMIN"]), async (req, res) => {
   const { id } = req.params;
@@ -140,7 +243,7 @@ app.put("/api/usuarios/:id/status", requireRole(["ADMIN"]), async (req, res) => 
   }
 });
 
-// Listar turistas activos
+// Listar todos los turistas (activos e inactivos)
 app.get("/api/turistas", async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -153,10 +256,10 @@ app.get("/api/turistas", async (req, res) => {
          t.nacionalidad,
          t.fecha_nacimiento,
          t.genero,
+         t.activo,
          u.email
        FROM turistas t
-       LEFT JOIN usuarios u ON u.id_usuario = t.id_usuario
-       WHERE t.activo = 1`
+       LEFT JOIN usuarios u ON u.id_usuario = t.id_usuario`
     );
     res.json(rows);
   } catch (err) {
@@ -164,6 +267,7 @@ app.get("/api/turistas", async (req, res) => {
     res.status(500).json({ ok: false, error: "Error al obtener turistas" });
   }
 });
+
 
 // Borrado lógico de turista
 app.delete("/api/turistas/:id", async (req, res) => {

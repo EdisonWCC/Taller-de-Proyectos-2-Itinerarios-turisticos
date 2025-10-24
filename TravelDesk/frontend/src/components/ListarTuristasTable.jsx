@@ -204,8 +204,8 @@ const ListarTuristasTable = () => {
           onChange={(e) => handleFiltroChange('genero', e.target.value)}
         >
           <option value="">Todos los géneros</option>
-          <option value="Masculino">Masculino</option>
-          <option value="Femenino">Femenino</option>
+          <option value="M">Masculino</option>
+          <option value="F">Femenino</option>
           <option value="Otro">Otro</option>
         </select>
 
@@ -244,7 +244,6 @@ const ListarTuristasTable = () => {
                 <th>Apellido</th>
                 <th>Email</th>
                 <th>Documento</th>
-                <th>Teléfono</th>
                 <th>País</th>
                 <th>Género</th>
                 <th>Estado</th>
@@ -258,8 +257,7 @@ const ListarTuristasTable = () => {
                     <td>{turista.nombre}</td>
                     <td>{turista.apellido}</td>
                     <td>{turista.email}</td>
-                    <td>{turista.dni || turista.documento || 'N/A'}</td>
-                    <td>{turista.telefono || 'N/A'}</td>
+                    <td>{turista.dni || turista.pasaporte || 'N/A'}</td>
                     <td>
                       <span className="badge badge-pais">{turista.nacionalidad}</span>
                     </td>
