@@ -1,5 +1,5 @@
 // src/components/Turistas/EditarTuristaForm.jsx - Convertido a Modal
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "../styles/Admin/EditarTuristaForm.css";
 
 // Props que recibe el componente como modal
@@ -17,6 +17,8 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
     correo: "",
     pais: "",
     genero: "",
+    pasaporte: "",
+    fecha_nacimiento: "",
     activo: true
   });
   const [errors, setErrors] = useState({});
@@ -33,6 +35,8 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
         correo: turistaSeleccionado.email || "",
         pais: turistaSeleccionado.nacionalidad || "",
         genero: turistaSeleccionado.genero || "",
+        pasaporte: turistaSeleccionado.pasaporte || "",
+        fecha_nacimiento: turistaSeleccionado.fecha_nacimiento || "",
         activo: turistaSeleccionado.activo !== undefined ? turistaSeleccionado.activo : true
       });
     }
@@ -85,14 +89,18 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
     const errs = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const onlyDigits = /^\d+$/;
+    const today = new Date();
+    const birthDate = new Date(values.fecha_nacimiento);
 
     if (!values.nombre || values.nombre.trim().length < 2) errs.nombre = "Nombre requerido (mín. 2)";
     if (!values.apellido || values.apellido.trim().length < 2) errs.apellido = "Apellido requerido (mín. 2)";
     if (values.documento && (!onlyDigits.test(values.documento) || values.documento.length < 6)) errs.documento = "Documento inválido";
+    if (values.pasaporte && (!onlyDigits.test(values.pasaporte) || values.pasaporte.length < 6)) errs.pasaporte = "Pasaporte inválido";
     if (values.telefono && (!onlyDigits.test(values.telefono) || values.telefono.length < 7)) errs.telefono = "Teléfono inválido";
     if (!values.correo || !emailRegex.test(values.correo)) errs.correo = "Correo inválido";
     if (!values.pais || values.pais.trim().length === 0) errs.pais = "País requerido";
     if (!values.genero || values.genero.trim().length === 0) errs.genero = "Género requerido";
+    if (values.fecha_nacimiento && birthDate > today) errs.fecha_nacimiento = "Fecha de nacimiento no puede ser futura";
 
     return errs;
   };
@@ -114,8 +122,8 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
       apellido: datos.apellido?.trim(),
       nacionalidad: datos.pais?.trim(),
       dni: datos.documento ? String(datos.documento).trim() : undefined,
-      pasaporte: undefined,
-      fecha_nacimiento: undefined,
+      pasaporte: datos.pasaporte ? String(datos.pasaporte).trim() : undefined,
+      fecha_nacimiento: datos.fecha_nacimiento ? String(datos.fecha_nacimiento) : undefined,
       genero: datos.genero?.trim(),
       email: datos.correo ? String(datos.correo).trim() : undefined,
       telefono: datos.telefono ? String(datos.telefono).trim() : undefined,
@@ -135,7 +143,9 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
           nombre: be.nombre,
           apellido: be.apellido,
           pais: be.nacionalidad,
-          documento: be.dni || be.pasaporte,
+          documento: be.dni,
+          pasaporte: be.pasaporte,
+          fecha_nacimiento: be.fecha_nacimiento,
           correo: be.email,
           genero: be.genero,
           telefono: be.telefono
@@ -195,6 +205,20 @@ const EditarTuristaForm = ({ isOpen, onClose, turistaSeleccionado, onSave }) => 
                 <label>Teléfono</label>
                 <input type="text" name="telefono" value={datos.telefono} onChange={handleChange} />
                 {errors.telefono && <span className="error">{errors.telefono}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Pasaporte</label>
+                <input type="text" name="pasaporte" value={datos.pasaporte} onChange={handleChange} />
+                {errors.pasaporte && <span className="error">{errors.pasaporte}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Fecha de Nacimiento</label>
+                <input type="date" name="fecha_nacimiento" value={datos.fecha_nacimiento} onChange={handleChange} />
+                {errors.fecha_nacimiento && <span className="error">{errors.fecha_nacimiento}</span>}
               </div>
             </div>
 
