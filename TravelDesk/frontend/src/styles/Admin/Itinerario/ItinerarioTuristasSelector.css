@@ -1,0 +1,535 @@
+/* ItinerarioTuristasSelector.css - Componente integrado en el wizard usando 85% del espacio */
+
+/* Variables CSS específicas del componente */
+:root {
+  --turistas-primary: #10b981;
+  --turistas-primary-dark: #059669;
+  --turistas-success: #10b981;
+  --turistas-danger: #ef4444;
+  --turistas-warning: #f59e0b;
+  --turistas-gray-50: #f9fafb;
+  --turistas-gray-100: #f3f4f6;
+  --turistas-gray-200: #e5e7eb;
+  --turistas-gray-300: #d1d5db;
+  --turistas-gray-400: #9ca3af;
+  --turistas-gray-500: #6b7280;
+  --turistas-gray-600: #4b5563;
+  --turistas-gray-700: #374151;
+  --turistas-gray-800: #1f2937;
+  --turistas-gray-900: #111827;
+  --turistas-transition: all 0.3s ease;
+  --turistas-border-radius: 8px;
+  --turistas-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --turistas-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --turistas-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Contenedor Principal - Se adapta al contenido completo */
+.step-wizard-container:has(.turistas-selector-header) {
+  width: 85%;
+  margin: 0 auto;
+  background: transparent;
+  height: auto; /* Se adapta al contenido */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header - Centrado y alineado */
+.turistas-selector-header.expanded.turistas {
+  background: transparent;
+  padding: 0 0 2rem 0;
+  border-bottom: 1px solid var(--wizard-border, #e5e7eb);
+  margin-bottom: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.turistas-selector-step-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.turistas-selector-step-number {
+  background: var(--turistas-primary, #10b981);
+  color: white;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.25rem;
+  box-shadow: var(--turistas-shadow-lg);
+}
+
+.turistas-selector-step-title h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--turistas-gray-800);
+  text-align: center;
+}
+
+.turistas-selector-step-title p {
+  margin: 0;
+  opacity: 0.8;
+  font-size: 1rem;
+  color: var(--turistas-gray-600);
+  text-align: center;
+}
+
+/* Content - Layout de dos columnas principales (60% - 40%) */
+.turistas-selector-content {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: 2rem;
+  padding: 0;
+  height: auto; /* Se adapta al contenido */
+  overflow: visible; /* Permitir que el contenido se vea completo */
+}
+
+/* Primera Columna - Controles de selección (agregar por grupo + buscar turistas) */
+.turistas-selector-left-panel {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 1.5rem;
+  height: auto; /* Se adapta al contenido */
+  overflow: visible;
+}
+
+/* Contenedor para "agregar por grupo" y "buscar turistas" - CON SCROLL Y ALINEADOS */
+.turistas-selector-controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  align-items: start; /* Alinear elementos al inicio */
+}
+
+/* Scrollbar personalizado para el área de controles */
+.turistas-selector-controls-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.turistas-selector-controls-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.turistas-selector-controls-grid::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.turistas-selector-controls-grid::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Grupo Selector */
+.turistas-selector-grupo-selector,
+.turistas-selector-turistas-search {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--turistas-border-radius);
+  border: 1px solid var(--wizard-border, #e5e7eb);
+  box-shadow: var(--turistas-shadow);
+  height: fit-content;
+  min-height: 120px; /* Altura mínima para alinear visualmente */
+  display: flex;
+  flex-direction: column;
+}
+
+.turistas-selector-grupo-selector h4 {
+  margin: 0 0 1rem 0;
+  color: var(--wizard-text, #1f2937);
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.turistas-selector-form-group {
+  margin-bottom: 1rem;
+}
+
+.turistas-selector-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--wizard-text, #1f2937);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.turistas-selector-form-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.turistas-selector-form-control {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--wizard-border, #e5e7eb);
+  border-radius: var(--turistas-border-radius);
+  font-size: 0.875rem;
+  transition: var(--turistas-transition);
+  background: white;
+}
+
+.turistas-selector-form-control:focus {
+  outline: none;
+  border-color: var(--turistas-primary, #10b981);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.turistas-selector-form-control.search-input {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+/* Turistas Search */
+.turistas-selector-turistas-search h4 {
+  margin: 0 0 1rem 0;
+  color: var(--wizard-text, #1f2937);
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Turistas Disponibles - SIN SCROLL (ver todo el contenido) */
+.turistas-selector-turistas-disponibles {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--turistas-border-radius);
+  border: 1px solid var(--wizard-border, #e5e7eb);
+  box-shadow: var(--turistas-shadow);
+  height: 100%;
+  overflow: visible; /* Permitir que el contenido se vea completo */
+  display: flex;
+  flex-direction: column;
+}
+
+.turistas-selector-turistas-list {
+  flex: 1;
+  overflow-y: visible; /* Sin scroll - ver todo el contenido */
+  display: grid;
+  gap: 1rem;
+  padding: 0.5rem;
+}
+
+/* Turista Items */
+.turistas-selector-turista-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--wizard-border, #e5e7eb);
+  border-radius: var(--turistas-border-radius);
+  background: white;
+  transition: var(--turistas-transition);
+}
+
+.turistas-selector-turista-item:hover {
+  border-color: var(--turistas-primary, #10b981);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+.turistas-selector-turista-info {
+  flex: 1;
+}
+
+.turistas-selector-turista-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.turistas-selector-turista-header h5 {
+  margin: 0;
+  color: var(--wizard-text, #1f2937);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.turista-nacionalidad {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.turistas-selector-turista-details {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.turistas-selector-detail-item {
+  color: var(--wizard-text-muted, #6b7280);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.turistas-selector-turista-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Segunda Columna - Turistas Seleccionados */
+.turistas-selector-right-panel {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--turistas-border-radius);
+  border: 1px solid var(--wizard-border, #e5e7eb);
+  box-shadow: var(--turistas-shadow);
+  height: auto; /* Se adapta al contenido */
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+.turistas-selector-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.turistas-selector-section-header h4 {
+  margin: 0;
+  color: var(--wizard-text, #1f2937);
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Información simplificada de turistas seleccionados */
+.turistas-selector-selected-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.turistas-selector-selected-info strong {
+  color: var(--wizard-text, #1f2937);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.turistas-selector-selected-details {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.turistas-selector-detail-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.turistas-selector-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.turistas-selector-data-table th {
+  background: #f8fafc;
+  color: var(--wizard-text, #1f2937);
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--wizard-border, #e5e7eb);
+  font-size: 0.875rem;
+}
+
+.turistas-selector-data-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--wizard-text, #1f2937);
+  vertical-align: top;
+}
+
+.turistas-selector-data-table tr:hover {
+  background: #f8fafc;
+}
+
+.turistas-selector-data-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Estados vacíos */
+.turistas-selector-empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--wizard-text-muted, #6b7280);
+  font-size: 0.875rem;
+  background: #f8fafc;
+  border-radius: var(--turistas-border-radius);
+  border: 2px dashed #e2e8f0;
+}
+
+.turistas-selector-empty-state p {
+  margin: 0;
+}
+
+/* Mensajes de error y carga */
+.turistas-selector-error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: var(--turistas-border-radius);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.turistas-selector-loading-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--wizard-text-muted, #6b7280);
+  font-size: 0.875rem;
+}
+
+.turistas-selector-loading-state p {
+  margin: 0;
+}
+
+.turistas-selector-step-description {
+  background: #f8fafc;
+  padding: 1rem 1.25rem;
+  border-radius: var(--turistas-border-radius);
+  border-left: 4px solid var(--turistas-primary, #10b981);
+  box-shadow: var(--turistas-shadow);
+  margin-bottom: 1.5rem;
+}
+
+.turistas-selector-step-description p {
+  margin: 0;
+  color: var(--wizard-text, #1f2937);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .step-wizard-container:has(.turistas-selector-header) {
+    width: 95%;
+  }
+
+  .turistas-selector-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    height: auto;
+  }
+
+  .turistas-selector-controls-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    max-height: 250px;
+  }
+
+  .turistas-selector-left-panel {
+    grid-template-rows: auto auto; /* Sin altura fija para turistas disponibles */
+  }
+
+  .turistas-selector-grupo-selector,
+  .turistas-selector-turistas-search {
+    min-height: 100px; /* Altura mínima menor para tablet */
+  }
+
+  .turistas-selector-header.expanded.turistas {
+    padding: 0 0 1.5rem 0;
+    margin-bottom: 1.5rem;
+  }
+
+  .turistas-selector-step-title h3 {
+    font-size: 1.5rem;
+  }
+
+  .turistas-selector-step-title p {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .step-wizard-container:has(.turistas-selector-header) {
+    width: 100%;
+    margin: 0;
+  }
+
+  .turistas-selector-header.expanded.turistas {
+    padding: 0 0 1rem 0;
+    margin-bottom: 1rem;
+  }
+
+  .turistas-selector-step-title h3 {
+    font-size: 1.25rem;
+  }
+
+  .turistas-selector-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    height: auto;
+  }
+
+  .turistas-selector-controls-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    max-height: 200px;
+  }
+
+  .turistas-selector-left-panel {
+    grid-template-rows: auto auto; /* Sin altura fija */
+  }
+
+  .turistas-selector-grupo-selector,
+  .turistas-selector-turistas-search {
+    min-height: 90px; /* Altura mínima para móvil */
+  }
+
+  .turistas-selector-selected-info strong {
+    font-size: 0.875rem;
+  }
+
+  .turistas-selector-selected-details {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .turistas-selector-detail-badge {
+    font-size: 0.6875rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .turistas-selector-data-table th,
+  .turistas-selector-data-table td {
+    padding: 0.5rem;
+  }
+}

@@ -1,0 +1,1336 @@
+/* 🎯 ItinerarioProgramasSelector.css - Estilos únicos para el bloque 4 */
+
+:root {
+  /* Colores específicos para el bloque de programas */
+  --programas-primary: #ff7b00;
+  --programas-secondary: #6b7280;
+  --programas-success: #10b981;
+  --programas-danger: #ef4444;
+  --programas-warning: #f59e0b;
+  --programas-info: #3b82f6;
+
+  /* Gradientes modernos */
+  --programas-gradient-primary: linear-gradient(135deg, #ff7b00 0%, #e55a00 100%);
+  --programas-gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --programas-gradient-info: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --programas-gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+
+  /* Sombras y efectos */
+  --programas-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --programas-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --programas-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --programas-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  /* Border radius */
+  --programas-radius-sm: 6px;
+  --programas-radius-md: 8px;
+  --programas-radius-lg: 12px;
+  --programas-radius-xl: 16px;
+
+  /* Transiciones */
+  --programas-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --programas-transition-fast: all 0.15s ease-out;
+}
+
+/* Contenedor principal - SIN SCROLL para ver todo el contenido de una vez */
+.programas-selector-container {
+  width: 100%; /* Usa todo el ancho disponible del wizard-content */
+  max-width: none;
+  margin: 0;
+  height: auto; /* Altura automática según el contenido */
+  background: transparent;
+  font-family: system-ui, -apple-system, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: visible; /* Sin scroll para ver todo el contenido */
+  border-radius: 0;
+  box-sizing: border-box; /* Incluir padding y border en el cálculo */
+  min-height: 0; /* Sin altura mínima restrictiva */
+}
+
+/* Header del step - centrado como en FormularioDatosItinerario */
+.programas-selector-header {
+  background: transparent;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.5rem 1rem 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.programas-selector-header .programas-selector-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.programas-selector-number {
+  background: var(--programas-gradient-primary);
+  color: white;
+  width: 2.5rem; /* Similar al FormularioDatosItinerario */
+  height: 2.5rem; /* Similar al FormularioDatosItinerario */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.125rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.programas-selector-title {
+  text-align: center;
+  flex: 1;
+}
+
+.programas-selector-title h3 {
+  color: var(--wizard-text, #1f2937);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  text-align: center;
+}
+
+.programas-selector-title p {
+  color: var(--wizard-text-muted, #6b7280);
+  margin: 0;
+  opacity: 0.8;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* Content principal - SIN SCROLL para ver todo el contenido */
+.programas-selector-content {
+  flex: none; /* No usa flex para que se expanda automáticamente */
+  padding: 0;
+  overflow: visible; /* Sin scroll para ver todo el contenido */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Espacio entre elementos */
+  align-items: stretch;
+  height: auto; /* Altura automática según el contenido */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box; /* Incluir padding en el cálculo */
+  overflow-x: hidden; /* Solo prevenir scroll horizontal si es necesario */
+}
+
+/* Descripción e información */
+.programas-selector-description {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 1.25rem;
+  border-radius: var(--programas-radius-lg);
+  border: 1px solid #e2e8f0;
+}
+
+.programas-selector-description p {
+  color: #475569;
+  font-size: 1rem;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.6;
+}
+
+.programas-selector-itinerario-info {
+  background: var(--programas-gradient-info);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: var(--programas-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: var(--programas-shadow-sm);
+}
+
+.programas-selector-error-message {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: var(--programas-danger);
+  padding: 1rem;
+  border-radius: var(--programas-radius-md);
+  border: 1px solid #fecaca;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+.programas-selector-loading-state {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 2rem;
+  border-radius: var(--programas-radius-lg);
+  text-align: center;
+  color: #64748b;
+  border: 2px dashed #cbd5e1;
+  animation: pulse 2s infinite;
+}
+
+/* Sección de programas seleccionados - RESPETA el contenedor padre del wizard */
+.programas-selector-seleccionados {
+  background: white;
+  border-radius: var(--programas-radius-xl);
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--programas-shadow-md);
+  overflow: visible; /* Permitir que se vea todo el contenido sin scroll */
+  flex: none; /* No usa flex para que se expanda automáticamente */
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Importante para flex */
+  max-height: none; /* Sin límite de altura para ver todos los programas */
+  box-sizing: border-box; /* Incluir border y padding en el cálculo */
+  height: auto; /* Altura automática para mostrar todo el contenido */
+}
+
+.programas-selector-section-header {
+  background: var(--programas-gradient-primary);
+  color: white;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0; /* No se reduce, mantiene su tamaño */
+  box-sizing: border-box; /* Incluir padding en el cálculo */
+}
+
+/* Indicador de progreso en el header */
+.programas-selector-progress-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-badge {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--programas-radius-lg);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  box-shadow: var(--programas-shadow-sm);
+  transition: var(--programas-transition);
+}
+
+.progress-badge:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: var(--programas-shadow-md);
+}
+
+.progress-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.progress-percentage {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.programas-selector-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--programas-radius-md);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: var(--programas-transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  min-width: 140px;
+  justify-content: center;
+  white-space: nowrap;
+  box-shadow: var(--programas-shadow-sm);
+}
+
+.programas-selector-btn-primary {
+  background: var(--programas-gradient-primary);
+  color: white;
+}
+
+.programas-selector-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--programas-shadow-lg);
+  background: linear-gradient(135deg, #e55a00 0%, #d97706 100%);
+}
+
+.programas-selector-btn-secondary {
+  background: var(--programas-secondary);
+  color: white;
+}
+
+.programas-selector-btn-secondary:hover {
+  background: #4b5563;
+  transform: translateY(-2px);
+  box-shadow: var(--programas-shadow-lg);
+}
+
+.programas-selector-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding-top: 0.25rem;
+  justify-content: flex-end; /* Alinear a la derecha */
+}
+
+.programas-selector-btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  padding: 0.375rem; /* Padding más pequeño para botón compacto */
+  min-width: 32px; /* Ancho mínimo más pequeño */
+  height: 32px; /* Altura fija */
+  border-radius: var(--programas-radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: var(--programas-transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.programas-selector-btn-danger:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px) scale(1.05); /* Elevación y escala */
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.programas-selector-btn-danger:active {
+  transform: translateY(0) scale(0.95); /* Efecto de presión */
+}
+
+.programas-selector-btn-sm {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
+  min-width: auto;
+  height: auto;
+}
+
+.programas-selector-btn-add {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Botón dentro del empty state - ajustado para no sobrepasar */
+.programas-selector-empty-state .programas-selector-btn {
+  min-width: auto; /* Sin ancho mínimo para adaptarse mejor */
+  padding: 0.5rem 1rem; /* Padding más pequeño */
+  font-size: 0.875rem; /* Texto más pequeño */
+}
+
+/* Estados vacíos - RESPETA el contenedor padre del wizard y mejor integración */
+.programas-selector-empty-state {
+  /* Usa todo el espacio disponible del contenedor padre (wizard-content) */
+  width: 100%;
+  height: auto; /* Altura automática según el contenido */
+  min-height: 300px; /* Altura mínima garantizada */
+  max-height: none; /* Sin límite superior para usar todo el espacio */
+  padding: 1rem; /* Padding para no tocar los bordes */
+  margin: 0; /* Sin margin para integrarse completamente */
+
+  /* Layout flex para centrar contenido */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem; /* Gap más pequeño para mejor ajuste */
+
+  /* Estilos visuales modernos */
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px dashed #cbd5e1;
+  border-radius: var(--programas-radius-xl);
+  position: relative;
+  overflow: visible; /* Permitir que el contenido sea visible */
+
+  /* Integración perfecta con el wizard */
+  box-sizing: border-box; /* Incluir border en el cálculo del tamaño */
+  transition: var(--programas-transition);
+
+  /* Efectos visuales sutiles */
+  backdrop-filter: blur(5px);
+}
+
+.programas-selector-empty-state::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 123, 0, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.programas-selector-empty-state > * {
+  position: relative;
+  z-index: 1;
+}
+
+.programas-selector-empty-state .empty-state-icon {
+  font-size: 3rem; /* Reducido de 4rem */
+  opacity: 0.8;
+  margin-bottom: 0.25rem; /* Reducido */
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  animation: float 3s ease-in-out infinite;
+}
+
+.programas-selector-empty-state .empty-state-title {
+  font-size: 1.25rem; /* Reducido de 1.5rem */
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0; /* Reducido */
+  text-align: center;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.programas-selector-empty-state .empty-state-description {
+  color: #64748b;
+  font-size: 0.875rem; /* Reducido de 1rem */
+  margin: 0 0 0.75rem 0; /* Reducido */
+  text-align: center;
+  line-height: 1.5; /* Reducido de 1.6 */
+  max-width: 350px; /* Reducido de 400px */
+  opacity: 0.9;
+}
+
+.programas-selector-empty-state .empty-state-hint {
+  font-size: 0.8125rem; /* Reducido de 0.875rem */
+  color: #94a3b8;
+  margin: 0.25rem 0 0 0; /* Reducido */
+  text-align: center;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.programas-selector-empty-state .empty-state-actions {
+  display: flex;
+  gap: 0.75rem; /* Reducido de 1rem */
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 0.25rem; /* Reducido */
+}
+
+.programas-selector-empty-state .programas-selector-btn {
+  min-width: auto;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--programas-radius-lg);
+  box-shadow: var(--programas-shadow-md);
+  transition: var(--programas-transition);
+  backdrop-filter: blur(10px);
+}
+
+.programas-selector-empty-state .programas-selector-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--programas-shadow-lg);
+}
+
+.programas-selector-empty-state .programas-selector-btn-primary {
+  background: var(--programas-gradient-primary);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.programas-selector-empty-state .programas-selector-btn-primary:hover {
+  background: linear-gradient(135deg, #e55a00 0%, #d97706 100%);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 25px rgba(255, 123, 0, 0.3);
+}
+
+.programas-selector-empty-state .programas-selector-btn-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--programas-primary);
+  border: 2px solid var(--programas-primary);
+}
+
+.programas-selector-empty-state .programas-selector-btn-secondary:hover {
+  background: var(--programas-primary);
+  color: white;
+  box-shadow: 0 8px 25px rgba(255, 123, 0, 0.2);
+}
+
+/* Estados especiales del empty state */
+.programas-selector-empty-state.complete {
+  border-color: var(--programas-success);
+  border-style: solid;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.programas-selector-empty-state.complete::before {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+}
+
+.programas-selector-empty-state.complete .empty-state-icon {
+  color: var(--programas-success);
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.programas-selector-empty-state.complete .empty-state-title {
+  color: var(--programas-success);
+}
+
+.programas-selector-empty-state.loading {
+  border-style: solid;
+  border-color: var(--programas-primary);
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.programas-selector-empty-state.loading .empty-state-icon {
+  animation: spin 2s linear infinite;
+}
+
+.programas-selector-empty-state.loading .empty-state-title {
+  color: var(--programas-primary);
+}
+
+/* Animaciones para el empty state */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.1) translateY(-5px); }
+}
+
+/* Indicador de progreso en el empty state */
+.empty-state-progress {
+  width: 100%;
+  max-width: 250px; /* Reducido de 300px */
+  margin: 0.75rem 0; /* Reducido de 1rem */
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px; /* Reducido de 8px */
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px; /* Reducido de 4px */
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--programas-gradient-primary);
+  border-radius: 3px; /* Reducido de 4px */
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 0.8125rem; /* Reducido de 0.875rem */
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 0.375rem; /* Reducido de 0.5rem */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Lista de programas - SIN SCROLL para ver todos de una vez */
+.programas-selector-list {
+  padding: 0 1rem 1rem 1rem; /* Padding para que no toque los bordes */
+  flex: 1; /* Usa todo el espacio disponible dentro de la sección */
+  overflow: visible; /* Sin scroll para ver todos los programas */
+  min-height: 0; /* Importante para flex */
+  max-height: none; /* Sin límite de altura */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; /* Espacio entre items */
+  box-sizing: border-box; /* Incluir padding en el cálculo */
+}
+
+.programas-selector-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.75rem 1rem; /* Padding más compacto */
+  margin: 0; /* Sin margin para usar todo el espacio */
+  border-radius: var(--programas-radius-lg); /* Bordes redondeados */
+  transition: var(--programas-transition);
+  background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); /* Gradiente sutil */
+  border: 1px solid #e5e7eb; /* Borde sutil */
+  box-shadow: var(--programas-shadow-sm); /* Sombra suave */
+  gap: 1rem;
+  position: relative; /* Para posicionar elementos */
+}
+
+.programas-selector-item:last-child {
+  border-bottom: none;
+}
+
+.programas-selector-item:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  transform: translateY(-2px); /* Elevación al hover */
+  box-shadow: var(--programas-shadow-md); /* Sombra más pronunciada */
+  border-color: var(--programas-primary); /* Borde con color primario */
+}
+
+.programas-selector-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--programas-gradient-primary);
+  border-radius: var(--programas-radius-lg) var(--programas-radius-lg) 0 0;
+  opacity: 0;
+  transition: var(--programas-transition);
+}
+
+.programas-selector-item:hover::before {
+  opacity: 1; /* Muestra la línea superior al hover */
+}
+
+.programas-selector-info {
+  flex: 1;
+}
+
+.programas-selector-tipo-badge {
+  padding: 0.375rem 0.875rem; /* Padding más generoso */
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600; /* Más grueso */
+  text-transform: capitalize;
+  white-space: nowrap;
+  box-shadow: var(--programas-shadow-sm);
+  border: 2px solid transparent; /* Borde transparente para hover */
+  transition: var(--programas-transition-fast);
+  backdrop-filter: blur(10px); /* Efecto blur */
+}
+
+.programas-selector-tipo-tour {
+  background: var(--programas-gradient-info);
+  color: white;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.programas-selector-tipo-actividad {
+  background: var(--programas-gradient-success);
+  color: white;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.programas-selector-tipo-machupicchu {
+  background: var(--programas-gradient-warning);
+  color: white;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.programas-selector-tipo-badge:hover {
+  transform: scale(1.05); /* Efecto de escala al hover */
+  box-shadow: var(--programas-shadow-md);
+}
+
+.programas-selector-descripcion {
+  color: #64748b;
+  font-size: 0.8rem; /* Texto más pequeño para más compacto */
+  line-height: 1.4; /* Línea más compacta */
+  margin: 0 0 0.5rem 0; /* Margin más pequeño */
+  font-style: italic;
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  padding: 0.375rem 0.5rem; /* Padding más compacto */
+  border-radius: var(--programas-radius-sm);
+  border-left: 3px solid var(--programas-primary);
+}
+
+.programas-selector-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem; /* Gap más pequeño entre detalles */
+  align-items: center;
+  margin-top: 0.5rem; /* Margin más pequeño */
+}
+
+.programas-selector-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem; /* Gap más pequeño */
+  font-size: 0.8rem; /* Texto más pequeño para más compacto */
+  color: #475569;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); /* Gradiente sutil */
+  padding: 0.375rem 0.75rem; /* Padding más pequeño */
+  border-radius: var(--programas-radius-md); /* Bordes más redondeados */
+  border: 1px solid #e2e8f0;
+  transition: var(--programas-transition-fast);
+  font-weight: 500; /* Texto más grueso */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Sombra sutil */
+}
+
+.programas-selector-detail-item:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  transform: translateY(-1px); /* Elevación sutil */
+  box-shadow: var(--programas-shadow-sm);
+}
+
+.programas-selector-costo {
+  background: var(--programas-gradient-success) !important;
+  color: white !important;
+  border-color: var(--programas-success) !important;
+  font-weight: 700 !important; /* Más grueso para el costo */
+  font-size: 0.875rem !important; /* Un poco más grande */
+  box-shadow: var(--programas-shadow-md) !important; /* Sombra más pronunciada */
+}
+
+.programas-selector-costo:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  transform: translateY(-2px) !important; /* Más elevación para costo */
+  box-shadow: var(--programas-shadow-lg) !important;
+}
+
+.programas-selector-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding-top: 0.25rem;
+}
+
+/* Costo total - diseño moderno mejorado y respeta contenedor padre */
+.programas-selector-costo-total {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #059669;
+  flex-shrink: 0; /* No se reduce, mantiene su tamaño */
+  box-sizing: border-box;
+  border-radius: 0 0 var(--programas-radius-xl) var(--programas-radius-xl); /* Bordes redondeados solo abajo */
+  box-shadow: 0 -2px 8px rgba(16, 185, 129, 0.2); /* Sombra hacia arriba */
+  position: relative;
+  margin: 0 1rem; /* Margin lateral para alinearse con la lista */
+  width: auto; /* Ancho automático */
+}
+
+.programas-selector-costo-total::before {
+  content: '💰';
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+.programas-selector-costo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  padding-left: 2.5rem; /* Espacio para el icono */
+}
+
+.programas-selector-costo-item span {
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.programas-selector-costo-item strong {
+  font-size: 1.5rem; /* Más grande para resaltar */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffffff, #f0fdf4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Botones de acción - REMOVED - ya no se usan */
+
+/* Modal */
+.programas-selector-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.programas-selector-modal-content {
+  background: white;
+  border-radius: var(--programas-radius-xl);
+  box-shadow: var(--programas-shadow-xl);
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: slideInUp 0.3s ease-out;
+}
+
+.programas-selector-modal-header {
+  background: var(--programas-gradient-primary);
+  color: white;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5); /* Línea separadora sutil */
+}
+
+/* Header interno de cada item de programa */
+.programas-selector-item .programas-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.5rem; /* Margin más pequeño */
+  padding-bottom: 0.375rem; /* Padding más pequeño */
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+}
+
+.programas-selector-item .programas-selector-header h5 {
+  color: #1e293b;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+  flex: 1;
+  line-height: 1.3;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.programas-selector-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.25rem;
+  transition: var(--programas-transition-fast);
+  backdrop-filter: blur(10px);
+}
+
+.programas-selector-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.programas-selector-modal-body {
+  padding: 2rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.programas-selector-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.programas-selector-modal-body::-webkit-scrollbar-thumb {
+  background: var(--programas-primary);
+  border-radius: 3px;
+}
+
+/* Formularios */
+.programas-selector-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.programas-selector-form-group label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.programas-selector-form-group input,
+.programas-selector-form-group select,
+.programas-selector-form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: var(--programas-radius-md);
+  font-size: 1rem;
+  transition: var(--programas-transition);
+  background: #fafafa;
+}
+
+.programas-selector-form-group input:focus,
+.programas-selector-form-group select:focus,
+.programas-selector-form-group textarea:focus {
+  outline: none;
+  border-color: var(--programas-primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(255, 123, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.programas-selector-form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.programas-selector-error {
+  border-color: var(--programas-danger) !important;
+  background: #fef2f2 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.programas-selector-error-message {
+  color: var(--programas-danger);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.programas-selector-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Vista previa */
+.programas-selector-preview {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 2px solid #e2e8f0;
+  border-radius: var(--programas-radius-lg);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.programas-selector-preview h5 {
+  color: var(--programas-primary);
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.programas-selector-preview-card {
+  background: white;
+  border-radius: var(--programas-radius-md);
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--programas-shadow-sm);
+}
+
+.programas-selector-preview-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.875rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.programas-selector-preview-item:last-child {
+  border-bottom: none;
+}
+
+.programas-selector-preview-item strong {
+  color: #374151;
+}
+
+/* Modal footer */
+.programas-selector-modal-footer {
+  background: #f8fafc;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Responsive Design - SIN SCROLL en todas las pantallas */
+@media (max-width: 768px) {
+  .programas-selector-container {
+    width: 100%; /* Usa todo el ancho del wizard-content */
+    height: auto; /* Altura automática para ver todo el contenido */
+    overflow: visible; /* Sin scroll para ver todo */
+  }
+
+  .programas-selector-header {
+    padding: 0.5rem 1rem 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .programas-selector-header .programas-selector-info {
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .programas-selector-number {
+    width: 2rem; /* Similar al FormularioDatosItinerario */
+    height: 2rem; /* Similar al FormularioDatosItinerario */
+    font-size: 1rem;
+  }
+
+  .programas-selector-title h3 {
+    font-size: 1.25rem;
+  }
+
+  .programas-selector-title p {
+    font-size: 0.8125rem;
+  }
+
+  .programas-selector-content {
+    height: auto; /* Altura automática para ver todo el contenido */
+    gap: 0.75rem; /* Gap más pequeño para mobile */
+  }
+
+  .programas-selector-section-header {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .programas-selector-section-header h4 {
+    text-align: center;
+  }
+
+  .programas-selector-progress-indicator {
+    justify-content: center;
+  }
+
+  .progress-badge {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .progress-percentage {
+    width: 20px;
+    height: 20px;
+    font-size: 0.6875rem;
+  }
+
+  .programas-selector-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .programas-selector-list {
+    padding: 0 0.75rem 0.75rem 0.75rem; /* Padding ajustado para mobile */
+    max-height: none; /* Sin límite de altura */
+    gap: 0.5rem; /* Gap más pequeño para mobile */
+    overflow: visible; /* Sin scroll */
+  }
+
+  .programas-selector-item {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0.75rem 1rem; /* Padding más pequeño para mobile */
+  }
+
+  .programas-selector-item .programas-selector-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .programas-selector-details {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .programas-selector-detail-item {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .programas-selector-actions {
+    justify-content: center; /* Centrar acciones en mobile */
+    padding-top: 0.5rem;
+  }
+
+  .programas-selector-costo-total {
+    margin: 0 0.75rem; /* Margin ajustado para mobile */
+    padding: 0.75rem 1rem; /* Padding más compacto para mobile */
+  }
+
+  .programas-selector-empty-state {
+    padding: 0.75rem; /* Padding más compacto para mobile */
+    min-height: 250px; /* Altura mínima más pequeña para mobile */
+  }
+
+  .programas-selector-empty-state .empty-state-icon {
+    font-size: 2.5rem; /* Más pequeño para mobile */
+  }
+
+  .programas-selector-empty-state .empty-state-title {
+    font-size: 1.125rem; /* Más pequeño para mobile */
+  }
+
+  .programas-selector-empty-state .empty-state-description {
+    font-size: 0.8125rem; /* Más pequeño para mobile */
+    max-width: 280px; /* Ancho máximo más pequeño */
+  }
+
+  .programas-selector-empty-state .empty-state-actions {
+    flex-direction: column;
+    gap: 0.5rem; /* Gap más pequeño para mobile */
+    width: 100%;
+    max-width: 260px; /* Ancho máximo más pequeño */
+  }
+
+  .programas-selector-empty-state .programas-selector-btn {
+    width: 100%;
+    padding: 0.625rem 1rem; /* Padding más pequeño */
+    font-size: 0.875rem; /* Texto más pequeño */
+    justify-content: center;
+  }
+
+  .empty-state-progress {
+    max-width: 200px; /* Más pequeño para mobile */
+  }
+
+  .progress-text {
+    font-size: 0.75rem; /* Más pequeño para mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .programas-selector-container {
+    width: 100%; /* Usa todo el ancho del wizard-content */
+    height: auto; /* Altura automática para ver todo el contenido */
+    overflow: visible; /* Sin scroll para ver todo */
+  }
+
+  .programas-selector-header {
+    padding: 0.5rem 0.75rem 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .programas-selector-header .programas-selector-info {
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .programas-selector-number {
+    width: 1.75rem; /* Similar al FormularioDatosItinerario */
+    height: 1.75rem; /* Similar al FormularioDatosItinerario */
+    font-size: 0.875rem;
+  }
+
+  .programas-selector-title h3 {
+    font-size: 1.125rem;
+  }
+
+  .programas-selector-title p {
+    font-size: 0.75rem;
+  }
+
+  .programas-selector-content {
+    gap: 0.5rem; /* Gap más pequeño para mobile pequeño */
+    height: auto; /* Altura automática para ver todo el contenido */
+  }
+
+  .programas-selector-section-header {
+    padding: 0.75rem;
+  }
+
+  .programas-selector-progress-indicator {
+    justify-content: center;
+  }
+
+  .progress-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    gap: 0.375rem;
+  }
+
+  .progress-percentage {
+    width: 18px;
+    height: 18px;
+    font-size: 0.625rem;
+  }
+
+  .programas-selector-list {
+    gap: 0.375rem; /* Gap mínimo para mobile pequeño */
+    padding: 0 0.5rem 0.5rem 0.5rem; /* Padding más compacto */
+    max-height: none; /* Sin límite de altura */
+    overflow: visible; /* Sin scroll */
+  }
+
+  .programas-selector-item {
+    padding: 0.5rem 0.75rem; /* Padding más compacto para mobile */
+  }
+
+  .programas-selector-item .programas-selector-header {
+    gap: 0.375rem; /* Gap mínimo para mobile pequeño */
+  }
+
+  .programas-selector-tipo-badge {
+    padding: 0.25rem 0.5rem; /* Badge más compacto */
+    font-size: 0.7rem;
+  }
+
+  .programas-selector-descripcion {
+    padding: 0.375rem 0.5rem; /* Descripción más compacta */
+    font-size: 0.8rem;
+  }
+
+  .programas-selector-detail-item {
+    padding: 0.25rem 0.5rem; /* Detalles más compactos */
+    font-size: 0.75rem;
+  }
+
+  .programas-selector-costo-total {
+    margin: 0 0.5rem; /* Margin más compacto para mobile */
+    padding: 0.75rem 1rem; /* Padding más compacto para mobile */
+  }
+
+  .programas-selector-empty-state {
+    padding: 0.5rem; /* Padding más compacto para mobile pequeño */
+    min-height: 200px; /* Altura mínima más pequeña para mobile pequeño */
+  }
+
+  .programas-selector-empty-state .empty-state-icon {
+    font-size: 2rem; /* Más pequeño para mobile pequeño */
+  }
+
+  .programas-selector-empty-state .empty-state-title {
+    font-size: 1rem; /* Más pequeño para mobile pequeño */
+  }
+
+  .programas-selector-empty-state .empty-state-description {
+    font-size: 0.75rem; /* Más pequeño para mobile pequeño */
+    max-width: 240px; /* Ancho máximo más pequeño */
+  }
+
+  .programas-selector-empty-state .empty-state-actions {
+    flex-direction: column;
+    gap: 0.375rem; /* Gap más pequeño para mobile pequeño */
+    width: 100%;
+    max-width: 200px; /* Ancho máximo más pequeño */
+  }
+
+  .programas-selector-empty-state .programas-selector-btn {
+    width: 100%;
+    padding: 0.5rem 0.75rem; /* Padding más pequeño */
+    font-size: 0.8125rem; /* Texto más pequeño */
+    justify-content: center;
+  }
+
+  .empty-state-progress {
+    max-width: 160px; /* Más pequeño para mobile pequeño */
+  }
+
+  .progress-text {
+    font-size: 0.6875rem; /* Más pequeño para mobile pequeño */
+  }
+}
+
+/* Scrollbar styling para la lista de programas */
+.programas-selector-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.programas-selector-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.programas-selector-list::-webkit-scrollbar-thumb {
+  background: var(--programas-primary);
+  border-radius: 4px;
+}
+
+.programas-selector-list::-webkit-scrollbar-thumb:hover {
+  background: #e55a00;
+}

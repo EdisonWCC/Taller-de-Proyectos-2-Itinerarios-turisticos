@@ -1,0 +1,567 @@
+/* ResumenFinal.css - Estilos específicos para el componente ResumenFinal */
+:root {
+  --resumen-final-primary: #ff7b00;
+  --resumen-final-success: #10b981;
+  --resumen-final-warning: #f59e0b;
+  --resumen-final-error: #ef4444;
+  --resumen-final-gray-50: #f9fafb;
+  --resumen-final-gray-100: #f3f4f6;
+  --resumen-final-gray-200: #e5e7eb;
+  --resumen-final-gray-300: #d1d5db;
+  --resumen-final-gray-400: #9ca3af;
+  --resumen-final-gray-500: #6b7280;
+  --resumen-final-gray-600: #4b5563;
+  --resumen-final-gray-700: #374151;
+  --resumen-final-gray-800: #1f2937;
+  --resumen-final-gray-900: #111827;
+  --resumen-final-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --resumen-final-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.resumen-final-container * {
+  box-sizing: border-box; /* Incluir padding y borders en el ancho total */
+  max-width: 100%; /* Nunca exceder el ancho del contenedor */
+}
+
+/* Contenedor principal del resumen final */
+.resumen-final-container {
+  width: 100%;
+  background: linear-gradient(135deg, var(--resumen-final-gray-50) 0%, #ffffff 100%);
+  border-radius: 12px;
+  box-shadow: var(--resumen-final-shadow);
+  border: 1px solid var(--resumen-final-gray-200);
+  overflow-x: hidden; /* Prevenir scroll horizontal */
+}
+
+/* Header del resumen final */
+.resumen-final-header {
+  background: linear-gradient(135deg, var(--resumen-final-primary) 0%, #ff8c42 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.resumen-final-header-expanded {
+  background: linear-gradient(135deg, var(--resumen-final-primary) 0%, #ff8c42 100%);
+}
+
+.resumen-final-step-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.resumen-final-step-number {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  backdrop-filter: blur(10px);
+}
+
+.resumen-final-step-title h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.resumen-final-step-title p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+/* Contenido del resumen final */
+.resumen-final-content {
+  padding: 2rem;
+  background: #ffffff;
+  overflow-x: hidden; /* Prevenir scroll horizontal */
+  max-width: 100%;
+}
+
+/* Grid de resumen */
+.resumen-final-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Items del resumen */
+.resumen-final-summary-item {
+  background: var(--resumen-final-gray-50);
+  border: 1px solid var(--resumen-final-gray-200);
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  max-width: 100%;
+  overflow-x: hidden; /* Prevenir scroll horizontal */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-summary-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--resumen-final-shadow);
+  border-color: var(--resumen-final-primary);
+}
+
+.resumen-final-summary-item h4 {
+  margin: 0 0 1rem 0;
+  color: var(--resumen-final-gray-800);
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--resumen-final-primary);
+  padding-bottom: 0.5rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-summary-item p {
+  margin: 0.5rem 0;
+  color: var(--resumen-final-gray-700);
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-summary-item strong {
+  color: var(--resumen-final-primary);
+  font-weight: 600;
+}
+
+/* Sección de turistas */
+.resumen-final-turistas-section {
+  max-height: none; /* Sin límite de altura */
+  overflow: visible; /* Mostrar todo el contenido */
+  border: 1px solid var(--resumen-final-gray-200);
+  border-radius: 8px;
+  background: white;
+  word-wrap: break-word; /* Ajustar texto largo */
+  overflow-wrap: break-word;
+}
+
+.resumen-final-turista-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--resumen-final-gray-100);
+  background: linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.05) 100%);
+  min-width: 0; /* Prevenir flex overflow */
+  overflow: hidden;
+}
+
+.resumen-final-turista-nombre {
+  font-weight: 600;
+  color: var(--resumen-final-success);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resumen-final-turista-dni {
+  font-size: 0.9rem;
+  color: var(--resumen-final-gray-600);
+  background: var(--resumen-final-gray-100);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  flex-shrink: 0; /* No se contrae */
+  white-space: nowrap;
+}
+
+.resumen-final-more-turistas {
+  padding: 1rem;
+  text-align: center;
+  color: var(--resumen-final-warning);
+  font-style: italic;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+  border-top: 1px solid var(--resumen-final-gray-200);
+}
+
+.resumen-final-no-turistas {
+  text-align: center;
+  color: var(--resumen-final-gray-500);
+  font-style: italic;
+  padding: 2rem;
+  background: var(--resumen-final-gray-100);
+  border-radius: 8px;
+  border: 2px dashed var(--resumen-final-gray-300);
+}
+
+/* Sección de programas */
+.resumen-final-programas-section {
+  max-height: none; /* Sin límite de altura */
+  overflow: visible; /* Mostrar todo el contenido */
+  overflow-x: hidden; /* Prevenir scroll horizontal */
+  border: 1px solid var(--resumen-final-gray-200);
+  border-radius: 8px;
+  background: white;
+  word-wrap: break-word; /* Ajustar texto largo */
+  overflow-wrap: break-word;
+  min-height: 80px; /* Altura mínima para que se vea la sección */
+}
+
+.resumen-final-programa-item {
+  padding: 1rem;
+  border-bottom: 1px solid var(--resumen-final-gray-100);
+  background: linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.05) 100%);
+  min-width: 0; /* Prevenir flex overflow */
+  overflow: hidden;
+}
+
+.resumen-final-programa-item:last-child {
+  border-bottom: none;
+}
+
+.resumen-final-programa-info {
+  display: grid;
+  grid-template-columns: 1fr; /* Cambiar a una sola columna para evitar overflow */
+  gap: 0.5rem;
+  align-items: center;
+  min-width: 0; /* Prevenir grid overflow */
+}
+
+.resumen-final-programa-nombre {
+  font-weight: 600;
+  color: var(--resumen-final-gray-800);
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resumen-final-programa-tipo {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  width: fit-content;
+  justify-self: start;
+}
+
+.resumen-final-programa-fecha {
+  font-size: 0.9rem;
+  color: var(--resumen-final-gray-600);
+  background: var(--resumen-final-gray-100);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  grid-column: 1 / -1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-programa-costo {
+  font-weight: 600;
+  color: var(--resumen-final-success);
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+  width: fit-content;
+  justify-self: start;
+}
+
+.resumen-final-costo-total {
+  background: linear-gradient(135deg, var(--resumen-final-success), #059669);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+}
+
+.resumen-final-no-programas {
+  text-align: center;
+  color: var(--resumen-final-gray-500);
+  font-style: italic;
+  padding: 2rem;
+  background: var(--resumen-final-gray-100);
+  border-radius: 8px;
+  border: 2px dashed var(--resumen-final-gray-300);
+}
+
+/* Sección de transportes */
+.resumen-final-transportes-section {
+  max-height: none; /* Sin límite de altura */
+  overflow: visible; /* Mostrar todo el contenido */
+  overflow-x: hidden; /* Prevenir scroll horizontal */
+  border: 1px solid var(--resumen-final-gray-200);
+  border-radius: 8px;
+  background: white;
+  word-wrap: break-word; /* Ajustar texto largo */
+  overflow-wrap: break-word;
+}
+
+.resumen-final-transporte-item {
+  padding: 1rem;
+  border-bottom: 1px solid var(--resumen-final-gray-100);
+  background: linear-gradient(90deg, transparent 0%, rgba(245, 158, 11, 0.05) 100%);
+  min-width: 0; /* Prevenir flex overflow */
+  overflow: hidden;
+}
+
+.resumen-final-transporte-item:last-child {
+  border-bottom: none;
+}
+
+.resumen-final-transporte-info {
+  display: grid;
+  grid-template-columns: 1fr; /* Una sola columna para evitar overflow */
+  gap: 0.5rem;
+  min-width: 0; /* Prevenir grid overflow */
+}
+
+.resumen-final-transporte-programa {
+  font-weight: 600;
+  color: var(--resumen-final-warning);
+  background: rgba(245, 158, 11, 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+  border-left: 3px solid var(--resumen-final-warning);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-transporte-empresa {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--resumen-final-gray-700);
+  background: var(--resumen-final-gray-100);
+  padding: 0.5rem;
+  border-radius: 6px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-transporte-horario {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--resumen-final-gray-700);
+  background: var(--resumen-final-gray-100);
+  padding: 0.5rem;
+  border-radius: 6px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-transporte-lugar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--resumen-final-gray-700);
+  background: var(--resumen-final-gray-100);
+  padding: 0.5rem;
+  border-radius: 6px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-no-transportes {
+  text-align: center;
+  color: var(--resumen-final-gray-500);
+  font-style: italic;
+  padding: 2rem;
+  background: var(--resumen-final-gray-100);
+  border-radius: 8px;
+  border: 2px dashed var(--resumen-final-gray-300);
+}
+
+/* Sección de Machu Picchu */
+.resumen-final-machu-section {
+  max-height: none; /* Sin límite de altura */
+  overflow: visible; /* Mostrar todo el contenido */
+  overflow-x: hidden; /* Prevenir scroll horizontal */
+  border: 1px solid var(--resumen-final-gray-200);
+  border-radius: 8px;
+  background: white;
+  word-wrap: break-word; /* Ajustar texto largo */
+  overflow-wrap: break-word;
+}
+
+.resumen-final-machu-item {
+  padding: 1rem;
+  border-bottom: 1px solid var(--resumen-final-gray-100);
+  background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.05) 100%);
+  min-width: 0; /* Prevenir flex overflow */
+  overflow: hidden;
+}
+
+.resumen-final-machu-item:last-child {
+  border-bottom: none;
+}
+
+.resumen-final-machu-info {
+  display: grid;
+  grid-template-columns: 1fr; /* Una sola columna para evitar overflow */
+  gap: 0.5rem;
+  min-width: 0; /* Prevenir grid overflow */
+}
+
+.resumen-final-machu-programa {
+  font-weight: 600;
+  color: var(--resumen-final-primary);
+  background: rgba(255, 123, 0, 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+  border-left: 3px solid var(--resumen-final-primary);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-machu-empresa {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--resumen-final-gray-700);
+  background: var(--resumen-final-gray-100);
+  padding: 0.5rem;
+  border-radius: 6px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-machu-horarios {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--resumen-final-gray-700);
+  background: var(--resumen-final-gray-100);
+  padding: 0.5rem;
+  border-radius: 6px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-machu-guia {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--resumen-final-gray-700);
+  background: var(--resumen-final-gray-100);
+  padding: 0.5rem;
+  border-radius: 6px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-machu-tiempo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--resumen-final-gray-700);
+  background: var(--resumen-final-gray-100);
+  padding: 0.5rem;
+  border-radius: 6px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.resumen-final-no-machu {
+  text-align: center;
+  color: var(--resumen-final-gray-500);
+  font-style: italic;
+  padding: 2rem;
+  background: var(--resumen-final-gray-100);
+  border-radius: 8px;
+  border: 2px dashed var(--resumen-final-gray-300);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .resumen-final-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .resumen-final-step-title h3 {
+    font-size: 1.25rem;
+  }
+
+  .resumen-final-content {
+    padding: 1.5rem;
+    overflow-x: hidden; /* Asegurar no scroll horizontal en tablet */
+  }
+
+  .resumen-final-summary-item {
+    padding: 1rem;
+    overflow-x: hidden; /* Prevenir scroll horizontal en tablet */
+  }
+}
+
+@media (max-width: 480px) {
+  .resumen-final-header {
+    padding: 1rem;
+  }
+
+  .resumen-final-step-info {
+    gap: 0.75rem;
+  }
+
+  .resumen-final-step-number {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+
+  .resumen-final-step-title h3 {
+    font-size: 1.1rem;
+  }
+
+  .resumen-final-step-title p {
+    font-size: 0.85rem;
+  }
+
+  .resumen-final-content {
+    padding: 1rem;
+    overflow-x: hidden; /* Asegurar no scroll horizontal en móvil */
+  }
+
+  .resumen-final-summary-item {
+    padding: 0.75rem;
+    overflow-x: hidden; /* Prevenir scroll horizontal en móvil */
+  }
+
+  .resumen-final-summary-item h4 {
+    font-size: 1rem;
+  }
+
+  /* Ajustar elementos flexibles para móvil */
+  .resumen-final-turista-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .resumen-final-turista-nombre {
+    width: 100%;
+  }
+
+  .resumen-final-turista-dni {
+    width: fit-content;
+  }
+}

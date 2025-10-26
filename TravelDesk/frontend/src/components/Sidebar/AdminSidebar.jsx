@@ -18,6 +18,7 @@ function AdminSidebar() {
           <li><Link to="/admin/roles">👥 Roles</Link></li>
           <li><Link to="/admin/registro">📝 Registro General</Link></li>
           <li><Link to="/admin/listar-turistas">📋 Listar Turistas</Link></li>
+          <li><Link to="/admin/crear-itinerario">🏖️ Crear Itinerario</Link></li>
         </ul>
       </nav>
 
