@@ -18,11 +18,24 @@ const GrupoSelector = ({ onNext, onBack, initialData = {} }) => {
     inputRef.current?.focus();
   }, []);
 
-  const gruposExistentes = [
-    { id: 1, nombre_grupo: 'Grupo Familiar López', descripcion: 'Viaje familiar a Europa', turistas_count: 4 },
-    { id: 2, nombre_grupo: 'Grupo Amigos Universidad', descripcion: 'Graduación y egresados', turistas_count: 12 },
-    { id: 3, nombre_grupo: 'Grupo Corporativo TechCorp', descripcion: 'Incentivo empleados', turistas_count: 8 }
-  ];
+  const [gruposExistentes, setGruposExistentes] = useState([]);
+
+  useEffect(() => {
+    const loadGrupos = async () => {
+      try {
+        const resp = await fetch('http://localhost:3000/api/grupos');
+        const data = await resp.json();
+        // Mapear a estructura local del componente
+        const mapeados = Array.isArray(data)
+          ? data.map(g => ({ id: g.id_grupo, nombre_grupo: g.nombre, descripcion: g.descripcion, turistas_count: g.turistas_count || 0 }))
+          : [];
+        setGruposExistentes(mapeados);
+      } catch (e) {
+        console.error('Error cargando grupos', e);
+      }
+    };
+    loadGrupos();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -53,20 +66,31 @@ const GrupoSelector = ({ onNext, onBack, initialData = {} }) => {
     if (!validateForm()) return;
     setIsLoading(true);
 
-    // Simular delay para mejor UX
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      const resp = await fetch('http://localhost:3000/api/grupos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: formData.nombre_grupo.trim(), descripcion: formData.descripcion.trim() })
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data?.ok) throw new Error(data?.error || 'Error al crear grupo');
 
-    onNext({ grupo: { ...formData, id: Date.now() } });
-    setIsLoading(false);
+      const grupo = { id: data.id_grupo, nombre_grupo: data.nombre, descripcion: data.descripcion };
+      onNext({ grupo });
+      // actualizar listado
+      setGruposExistentes(prev => [{ id: data.id_grupo, nombre_grupo: data.nombre, descripcion: data.descripcion }, ...prev]);
+    } catch (e) {
+      alert('Error al crear el grupo');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSelectGroup = (grupo) => {
     setIsLoading(true);
-    setTimeout(() => {
-      onNext({ grupo });
-      setShowSelectModal(false);
-      setIsLoading(false);
-    }, 500);
+    onNext({ grupo });
+    setShowSelectModal(false);
+    setIsLoading(false);
   };
 
   const getFieldIcon = (fieldName) => {

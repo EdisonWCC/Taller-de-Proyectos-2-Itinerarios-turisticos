@@ -54,13 +54,8 @@ export default function ItinerarioCreatePage() {
       ...prev,
       programas: data
     }));
-
-    // Si hay programas de Machu Picchu, ir al paso 6 (transporte), sino al paso 7 (resumen)
-    if (hasMachuPicchuPrograms) {
-      setCurrentStep(5);
-    } else {
-      setCurrentStep(7);
-    }
+    // Ir siempre a Transporte (paso 5)
+    setCurrentStep(5);
   };
 
   const handleProgramasBack = (data) => {
@@ -117,13 +112,8 @@ export default function ItinerarioCreatePage() {
           ...prev,
           programas: data
         }));
-
-        // Si hay programas de Machu Picchu, ir al paso 6 (transporte), sino al paso 7 (resumen)
-        if (hasMachuPicchuPrograms) {
-          setCurrentStep(5);
-        } else {
-          setCurrentStep(7);
-        }
+        // Ir siempre a Transporte (paso 5)
+        setCurrentStep(5);
       } else {
         console.log('ItinerarioCreatePage - Validación del paso 4 falló');
         // Mostrar mensaje de error o mantener en el mismo paso
@@ -142,12 +132,8 @@ export default function ItinerarioCreatePage() {
         }));
       }
 
-      // Si hay programas de Machu Picchu, ir al paso 6, sino al paso 7 (resumen)
-      if (hasMachuPicchuPrograms) {
-        setCurrentStep(6);
-      } else {
-        setCurrentStep(7);
-      }
+      // Ir siempre al paso 6; si hay Machu Picchu, se mostrará ese paso; si no, será el Resumen
+      setCurrentStep(6);
       return;
     }
 
@@ -253,14 +239,19 @@ export default function ItinerarioCreatePage() {
 
   const handleFinalSubmit = async (finalData) => {
     try {
-      // TODO: Implementar API call para crear el itinerario completo
-      console.log('Creando itinerario con datos:', {
-        ...formData,
-        ...finalData
-      });
-
-      // Aquí iría la llamada a la API:
       // POST /api/itinerarios con todos los datos
+      const isEventObject = finalData && (finalData.nativeEvent || finalData.preventDefault);
+      const safeExtra = isEventObject ? {} : (finalData || {});
+      const payload = { ...formData, ...safeExtra };
+      const resp = await fetch('http://localhost:3000/api/itinerarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data?.ok) {
+        throw new Error(data?.error || 'Error al crear itinerario');
+      }
 
       // Mostrar alerta de éxito mejorada
       const itinerarioInfo = `📋 ${formData.grupo?.nombre_grupo || 'Itinerario'}\n` +
@@ -268,7 +259,7 @@ export default function ItinerarioCreatePage() {
                            `🎯 ${formData.programas?.length || 0} actividades\n` +
                            `🚌 ${formData.transportes?.length || 0} transportes\n` +
                            `${formData.detallesMachu?.length > 0 ? `🏔️ ${formData.detallesMachu?.length} detalles Machu Picchu\n` : ''}` +
-                           `✅ ¡Itinerario creado exitosamente!`;
+                           `✅ ¡Itinerario creado exitosamente! (ID ${data.id_itinerario})`;
 
       alert(itinerarioInfo);
 
@@ -386,7 +377,7 @@ export default function ItinerarioCreatePage() {
               Siguiente →
             </button>
           ) : (
-            <button className="btn btn-success" onClick={handleFinalSubmit}>
+            <button className="btn btn-success" onClick={() => handleFinalSubmit(formData)}>
               ✅ Crear Itinerario
             </button>
           )}

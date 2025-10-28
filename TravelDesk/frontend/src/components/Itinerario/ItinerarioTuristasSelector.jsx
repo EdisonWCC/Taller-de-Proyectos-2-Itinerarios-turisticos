@@ -27,55 +27,32 @@ const ItinerarioTuristasSelector = forwardRef(({ initialData = [], itinerarioDat
     const loadData = async () => {
       setLoading(true);
       try {
-        // TODO: Implementar API endpoints
-        // GET /api/turistas (solo activos)
-        // GET /api/grupos
-
-        // Por ahora datos de ejemplo - admin debe implementar API
-        setTimeout(() => {
-          // Simular datos de turistas
-          setTuristasDisponibles([
-            {
-              id_turista: 1,
-              nombre: 'Juan',
-              apellido: 'Pérez',
-              dni: '12345678',
-              pasaporte: 'P123456',
-              nacionalidad: 'Perú',
-              fecha_nacimiento: '1990-01-01',
-              genero: 'M'
-            },
-            {
-              id_turista: 2,
-              nombre: 'María',
-              apellido: 'González',
-              dni: '87654321',
-              pasaporte: 'P654321',
-              nacionalidad: 'México',
-              fecha_nacimiento: '1985-05-15',
-              genero: 'F'
-            },
-            {
-              id_turista: 3,
-              nombre: 'Carlos',
-              apellido: 'Rodríguez',
-              dni: '11223344',
-              pasaporte: 'P112233',
-              nacionalidad: 'España',
-              fecha_nacimiento: '1992-03-20',
-              genero: 'M'
-            }
-          ]);
-
-          // Simular grupos
-          setGrupos([
-            { id_grupo: 1, nombre: 'Grupo Familiar Perú 2024', descripcion: 'Viaje familiar' },
-            { id_grupo: 2, nombre: 'Estudiantes Europa', descripcion: 'Grupo de estudiantes' }
-          ]);
-
-          setLoading(false);
-        }, 1000);
-
+        const [respTuristas, respGrupos] = await Promise.all([
+          fetch('http://localhost:3000/api/turistas'),
+          fetch('http://localhost:3000/api/grupos')
+        ]);
+        const [turistasData, gruposData] = await Promise.all([
+          respTuristas.json(),
+          respGrupos.json()
+        ]);
+        const turistasMap = Array.isArray(turistasData)
+          ? turistasData.map(t => ({
+              id_turista: t.id || t.id_turista,
+              nombre: t.nombre,
+              apellido: t.apellido,
+              dni: t.dni,
+              pasaporte: t.pasaporte,
+              nacionalidad: t.nacionalidad,
+              fecha_nacimiento: t.fecha_nacimiento,
+              genero: t.genero
+            }))
+          : [];
+        const gruposMap = Array.isArray(gruposData)
+          ? gruposData.map(g => ({ id_grupo: g.id_grupo, nombre: g.nombre, descripcion: g.descripcion }))
+          : [];
+        setTuristasDisponibles(turistasMap);
+        setGrupos(gruposMap);
+        setLoading(false);
       } catch (error) {
         console.error('Error cargando datos:', error);
         setErrors({ general: 'Error al cargar los datos' });
@@ -97,25 +74,29 @@ const ItinerarioTuristasSelector = forwardRef(({ initialData = [], itinerarioDat
   });
 
   // Agregar turistas de un grupo
-  const handleAddGrupo = () => {
+  const handleAddGrupo = async () => {
     if (!selectedGrupo) return;
-
-    const grupo = grupos.find(g => g.id_grupo === parseInt(selectedGrupo));
-    if (!grupo) return;
-
-    // TODO: En API real, obtener turistas del grupo
-    // GET /api/grupos/{id_grupo}/turistas
-
-    // Por ahora simular que el grupo tiene algunos turistas
-    const turistasDelGrupo = turistasDisponibles.slice(0, 2); // Simulación
-
-    // Agregar turistas que no estén ya seleccionados
-    const nuevosTuristas = turistasDelGrupo.filter(t =>
-      !turistasSeleccionados.find(selected => selected.id_turista === t.id_turista)
-    );
-
-    setTuristasSeleccionados(prev => [...prev, ...nuevosTuristas]);
-    setSelectedGrupo('');
+    try {
+      const resp = await fetch(`http://localhost:3000/api/grupos/${selectedGrupo}/turistas`);
+      const data = await resp.json();
+      const turistasDelGrupo = Array.isArray(data)
+        ? data.map(t => ({
+            id_turista: t.id_turista || t.id,
+            nombre: t.nombre,
+            apellido: t.apellido,
+            dni: t.dni,
+            pasaporte: t.pasaporte,
+            nacionalidad: t.nacionalidad,
+            fecha_nacimiento: t.fecha_nacimiento,
+            genero: t.genero
+          }))
+        : [];
+      const nuevosTuristas = turistasDelGrupo.filter(t => !turistasSeleccionados.find(s => s.id_turista === t.id_turista));
+      setTuristasSeleccionados(prev => [...prev, ...nuevosTuristas]);
+      setSelectedGrupo('');
+    } catch (e) {
+      alert('Error obteniendo turistas del grupo');
+    }
   };
 
   // Agregar turista individual

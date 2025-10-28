@@ -25,6 +25,200 @@ app.get("/", (req, res) => {
   res.send("🚀 Backend TravelDesk funcionando!");
 });
 
+// Listar grupos
+app.get("/api/grupos", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id_grupo, nombre, descripcion FROM grupos ORDER BY id_grupo DESC"
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Error al obtener grupos:", err.message);
+    res.status(500).json({ ok: false, error: "Error al obtener grupos" });
+  }
+});
+
+// Crear grupo
+app.post("/api/grupos", async (req, res) => {
+  const { nombre, descripcion } = req.body || {};
+  if (!nombre) return res.status(400).json({ ok: false, error: "Nombre requerido" });
+  try {
+    const [r] = await pool.query(
+      "INSERT INTO grupos (nombre, descripcion) VALUES (?, ?)",
+      [nombre, descripcion || null]
+    );
+    res.json({ ok: true, id_grupo: r.insertId, nombre, descripcion: descripcion || null });
+  } catch (err) {
+    console.error("❌ Error al crear grupo:", err.message);
+    res.status(500).json({ ok: false, error: "Error al crear grupo" });
+  }
+});
+
+// Estados de presupuesto
+app.get("/api/estados-presupuesto", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id_estado, nombre_estado FROM estados_presupuesto ORDER BY id_estado"
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Error al obtener estados de presupuesto:", err.message);
+    res.status(500).json({ ok: false, error: "Error al obtener estados de presupuesto" });
+  }
+});
+
+// Transportes
+app.get("/api/transportes", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id_transporte, empresa, tipo, capacidad, contacto FROM transportes ORDER BY id_transporte DESC"
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Error al obtener transportes:", err.message);
+    res.status(500).json({ ok: false, error: "Error al obtener transportes" });
+  }
+});
+
+// Programas
+app.get("/api/programas", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT id_programa, nombre, descripcion, tipo, duracion, costo FROM programas ORDER BY id_programa DESC"
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Error al obtener programas:", err.message);
+    res.status(500).json({ ok: false, error: "Error al obtener programas" });
+  }
+});
+
+// Turistas de un grupo (turistas que ya participaron en itinerarios de ese grupo)
+app.get("/api/grupos/:id/turistas", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query(
+      `SELECT DISTINCT t.*
+       FROM itinerarios i
+       JOIN itinerario_turistas it ON it.id_itinerario = i.id_itinerario
+       JOIN turistas t ON t.id_turista = it.id_turista
+       WHERE i.id_grupo = ?`,
+      [id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ Error al obtener turistas del grupo:", err.message);
+    res.status(500).json({ ok: false, error: "Error al obtener turistas del grupo" });
+  }
+});
+
+// Crear itinerario completo con todas sus relaciones (transaccional)
+app.post("/api/itinerarios", async (req, res) => {
+  const payload = req.body || {};
+  const {
+    grupo,
+    datosItinerario,
+    turistas = [],
+    programas = [],
+    transportes = [],
+    detallesMachu = []
+  } = payload;
+
+  if (!datosItinerario?.fecha_inicio || !datosItinerario?.fecha_fin || !datosItinerario?.estado_presupuesto_id) {
+    return res.status(400).json({ ok: false, error: "Datos del itinerario incompletos" });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
+
+    // 1) Grupo (crear si no trae id)
+    let id_grupo = null;
+    if (grupo?.id_grupo || grupo?.id) {
+      id_grupo = grupo.id_grupo || grupo.id;
+    } else if (grupo?.nombre_grupo) {
+      const [g] = await conn.query(
+        `INSERT INTO grupos (nombre, descripcion) VALUES (?, ?)`,
+        [grupo.nombre_grupo, grupo.descripcion || null]
+      );
+      id_grupo = g.insertId;
+    }
+
+    // 2) Itinerario
+    const [it] = await conn.query(
+      `INSERT INTO itinerarios (id_grupo, fecha_inicio, fecha_fin, estado_presupuesto_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, NOW(), NOW())`,
+      [id_grupo || null, datosItinerario.fecha_inicio, datosItinerario.fecha_fin, datosItinerario.estado_presupuesto_id]
+    );
+    const id_itinerario = it.insertId;
+
+    // 3) Turistas
+    if (Array.isArray(turistas) && turistas.length > 0) {
+      const values = turistas.filter(t => t?.id_turista).map(t => [id_itinerario, t.id_turista]);
+      if (values.length > 0) {
+        await conn.query(`INSERT INTO itinerario_turistas (id_itinerario, id_turista) VALUES ?`, [values]);
+      }
+    }
+
+    // 4) Programas base + itinerario_programas (mapear IDs temporales)
+    const ipIdMap = new Map();
+    for (const itp of programas || []) {
+      const info = itp.programa_info || {};
+      let id_programa = info.id_programa;
+      // Si viene un id_programa, validar existencia; si no existe, crearlo
+      if (id_programa) {
+        const [chk] = await conn.query(`SELECT id_programa FROM programas WHERE id_programa = ?`, [id_programa]);
+        if (!Array.isArray(chk) || chk.length === 0) {
+          id_programa = undefined; // forzar creación
+        }
+      }
+      if (!id_programa) {
+        const [p] = await conn.query(
+          `INSERT INTO programas (nombre, descripcion, tipo, duracion, costo) VALUES (?, ?, ?, ?, ?)`,
+          [info.nombre, info.descripcion || null, info.tipo, parseInt(info.duracion || 0) || 0, parseFloat(info.costo || 0) || 0]
+        );
+        id_programa = p.insertId;
+      }
+      const [ip] = await conn.query(
+        `INSERT INTO itinerario_programas (id_itinerario, id_programa, fecha, hora_inicio, hora_fin) VALUES (?, ?, ?, ?, ?)`,
+        [id_itinerario, id_programa, itp.fecha, itp.hora_inicio, itp.hora_fin]
+      );
+      if (itp.id_itinerario_programa) ipIdMap.set(String(itp.id_itinerario_programa), ip.insertId);
+    }
+
+    // 5) Detalle transportes
+    for (const d of transportes || []) {
+      const realIp = ipIdMap.get(String(d.id_itinerario_programa));
+      if (!realIp || !d.id_transporte) continue;
+      await conn.query(
+        `INSERT INTO detalle_transporte_itinerario (id_itinerario_programa, id_transporte, horario_recojo, lugar_recojo) VALUES (?, ?, ?, ?)`,
+        [realIp, d.id_transporte, d.horario_recojo, d.lugar_recojo]
+      );
+    }
+
+    // 6) Detalle Machu Picchu
+    for (const m of detallesMachu || []) {
+      const realIp = ipIdMap.get(String(m.id_itinerario_programa));
+      if (!realIp) continue;
+      await conn.query(
+        `INSERT INTO detalle_machu_itinerario (id_itinerario_programa, empresa_tren, horario_tren_ida, horario_tren_retor, nombre_guia, ruta, tiempo_visita)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [realIp, m.empresa_tren, m.horario_tren_ida, m.horario_tren_retor, m.nombre_guia, m.ruta, m.tiempo_visita]
+      );
+    }
+
+    await conn.commit();
+    res.json({ ok: true, id_itinerario });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error("❌ Error creando itinerario:", err.message);
+    res.status(500).json({ ok: false, error: "Error al crear itinerario" });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 // Endpoint de registro
 app.post("/api/registro", async (req, res) => {
   const { nombre, apellido, email, usuario, contrasena, fecha_nac, genero } = req.body;

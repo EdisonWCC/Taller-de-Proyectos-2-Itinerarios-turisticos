@@ -24,45 +24,10 @@ const TransporteDetalle = forwardRef(({ initialData = [], itinerarioData = null,
     const loadData = async () => {
       setLoading(true);
       try {
-        // TODO: Implementar API endpoints
-        // GET /api/transportes (todos los transportes disponibles)
-
-        // Por ahora datos de ejemplo - admin debe implementar API
-        setTimeout(() => {
-          setTransportesDisponibles([
-            {
-              id_transporte: 1,
-              empresa: 'Transportes Cruz del Sur',
-              tipo: 'bus',
-              capacidad: 45,
-              contacto: 'contacto@cruzdelsur.com.pe'
-            },
-            {
-              id_transporte: 2,
-              empresa: 'Taxi Express Lima',
-              tipo: 'auto',
-              capacidad: 4,
-              contacto: 'reservas@taxiexpress.com'
-            },
-            {
-              id_transporte: 3,
-              empresa: 'Peru Rail',
-              tipo: 'tren',
-              capacidad: 60,
-              contacto: 'info@perurail.com'
-            },
-            {
-              id_transporte: 4,
-              empresa: 'Minivan Tours',
-              tipo: 'minivan',
-              capacidad: 15,
-              contacto: 'bookings@minivantours.pe'
-            }
-          ]);
-
-          setLoading(false);
-        }, 1000);
-
+        const resp = await fetch('http://localhost:3000/api/transportes');
+        const data = await resp.json();
+        setTransportesDisponibles(Array.isArray(data) ? data : []);
+        setLoading(false);
       } catch (error) {
         console.error('Error cargando transportes:', error);
         setErrors({ general: 'Error al cargar los transportes' });

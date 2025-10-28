@@ -10,15 +10,20 @@ const FormularioDatosItinerario = forwardRef(({ initialData = {}, grupoSeleccion
 
   const [errors, setErrors] = useState({});
 
-  // Datos de ejemplo para estados de presupuesto (esto vendría de la API en el futuro)
-  const [estadosPresupuesto] = useState([
-    { id_estado: 1, nombre_estado: 'En Planificación' },
-    { id_estado: 2, nombre_estado: 'Presupuesto Enviado' },
-    { id_estado: 3, nombre_estado: 'Presupuesto Aprobado' },
-    { id_estado: 4, nombre_estado: 'En Ejecución' },
-    { id_estado: 5, nombre_estado: 'Completado' },
-    { id_estado: 6, nombre_estado: 'Cancelado' }
-  ]);
+  const [estadosPresupuesto, setEstadosPresupuesto] = useState([]);
+
+  useEffect(() => {
+    const loadEstados = async () => {
+      try {
+        const resp = await fetch('http://localhost:3000/api/estados-presupuesto');
+        const data = await resp.json();
+        if (Array.isArray(data)) setEstadosPresupuesto(data);
+      } catch (e) {
+        console.error('Error cargando estados de presupuesto', e);
+      }
+    };
+    loadEstados();
+  }, []);
 
   // Actualizar el campo grupo cuando cambie el grupoSeleccionado
   useEffect(() => {

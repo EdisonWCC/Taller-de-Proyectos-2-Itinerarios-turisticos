@@ -18,32 +18,23 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
     'machupicchu'
   ];
 
-  // Sincronizar con datos iniciales del componente padre
+  // Sincronizar con datos iniciales del componente padre (solo si local está vacío)
   useEffect(() => {
     console.log('ItinerarioProgramasSelector - initialData recibido:', initialData);
-    if (initialData && initialData.length > 0) {
+    if (programasSeleccionados.length === 0 && Array.isArray(initialData) && initialData.length > 0) {
       setProgramasSeleccionados(initialData);
-      // Notificar al padre que los programas han cambiado
-      if (onProgramasChange) {
-        onProgramasChange(initialData);
-      }
     }
-  }, [initialData, onProgramasChange]);
+  }, [initialData]);
 
   // Cargar programas de la API real
   useEffect(() => {
     const loadProgramas = async () => {
       setLoading(true);
       try {
-        // TODO: GET /api/programas
-        // const response = await fetch('/api/programas');
-        // const data = await response.json();
-        // setProgramasDisponibles(data);
-
-        // Por ahora vacío - el admin debe implementar la API
-        setProgramasDisponibles([]);
+        const response = await fetch('http://localhost:3000/api/programas');
+        const data = await response.json();
+        setProgramasDisponibles(Array.isArray(data) ? data : []);
         setLoading(false);
-
       } catch (error) {
         console.error('Error cargando programas:', error);
         setErrors({ general: 'Error al cargar los programas' });
@@ -174,11 +165,7 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
 
     console.log('ItinerarioProgramasSelector - nuevosProgramas:', nuevosProgramas);
 
-    // Notificar al padre que los programas han cambiado
-    if (onProgramasChange) {
-      onProgramasChange(nuevosProgramas);
-      console.log('ItinerarioProgramasSelector - Notificación enviada al padre');
-    }
+    // La notificación al padre se realiza en el useEffect que observa programasSeleccionados
 
     setShowAddModal(false);
     setNuevoProgramaForm({
@@ -251,7 +238,7 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
     if (onProgramasChange) {
       onProgramasChange(programasSeleccionados);
     }
-  }, [programasSeleccionados, onProgramasChange]);
+  }, [programasSeleccionados]);
 
   // Exponer métodos para el componente padre
   useImperativeHandle(ref, () => ({
