@@ -1,12 +1,20 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "../../styles/Admin/AdminSidebar.css"; // tu CSS
+import { FiChevronDown, FiChevronRight } from "react-icons/fi";
+import "../../styles/Admin/AdminSidebar.css";
 
 function AdminSidebar() {
   const navigate = useNavigate();
+  const [itinerariosOpen, setItinerariosOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("user");
     navigate("/");
+  };
+
+  const toggleItinerarios = (e) => {
+    e.preventDefault();
+    setItinerariosOpen(!itinerariosOpen);
   };
 
   return (
@@ -17,8 +25,19 @@ function AdminSidebar() {
           <li><Link to="/admin">🏠 Dashboard</Link></li>
           <li><Link to="/admin/roles">👥 Roles</Link></li>
           <li><Link to="/admin/registro">📝 Registro General</Link></li>
-          <li><Link to="/admin/listar-turistas">📋 Listar Turistas</Link></li>
-          <li><Link to="/admin/crear-itinerario">🏖️ Crear Itinerario</Link></li>
+          <li><Link to="/admin/listar-turistas">👥 Listar Turistas</Link></li>
+          
+          {/* Sección de Itinerarios */}
+          <li className="sidebar-dropdown">
+            <a href="#" onClick={toggleItinerarios} className="dropdown-toggle">
+              🗓️ Itinerarios
+              {itinerariosOpen ? <FiChevronDown className="dropdown-icon" /> : <FiChevronRight className="dropdown-icon" />}
+            </a>
+            <ul className={`dropdown-menu ${itinerariosOpen ? 'show' : ''}`}>
+              <li><Link to="/admin/crear-itinerario" className="dropdown-item">➕ Crear Nuevo</Link></li>
+              <li><Link to="/admin/itinerarios" className="dropdown-item">📋 Listar Itinerarios</Link></li>
+            </ul>
+          </li>
         </ul>
       </nav>
 
