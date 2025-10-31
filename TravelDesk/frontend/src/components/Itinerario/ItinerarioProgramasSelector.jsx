@@ -1,10 +1,12 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { FaEdit, FaTrash, FaCheck, FaTimes } from 'react-icons/fa';
 import '../../styles/Admin/Itinerario/ItinerarioProgramasSelector.css';
 
-const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = [], itinerarioData = null, onProgramasChange }, ref) => {
+const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = [], itinerarioData = null, onProgramasChange, isReadOnly = false }, ref) => {
   console.log('ItinerarioProgramasSelector - props recibidas:', { onNext: !!onNext, onBack: !!onBack, initialData, itinerarioData, onProgramasChange: !!onProgramasChange });
   const [programasSeleccionados, setProgramasSeleccionados] = useState(initialData);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingProgramaId, setEditingProgramaId] = useState(null);
   const [errors, setErrors] = useState({});
 
   // Programas vendrán de la API real - por ahora estado vacío
@@ -47,6 +49,7 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
 
   // Formulario simple con campos reales de la BD
   const [nuevoProgramaForm, setNuevoProgramaForm] = useState({
+    id: '',
     id_programa: '',
     nombre: '',
     descripcion: '',
@@ -57,6 +60,23 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
     hora_inicio: '',
     hora_fin: ''
   });
+  
+  // Inicializar el formulario con valores vacíos
+  const resetForm = () => {
+    setNuevoProgramaForm({
+      id: '',
+      id_programa: '',
+      nombre: '',
+      descripcion: '',
+      tipo: '',
+      duracion: '',
+      costo: '',
+      fecha: '',
+      hora_inicio: '',
+      hora_fin: ''
+    });
+    setEditingProgramaId(null);
+  };
 
   // Validar fecha dentro del rango
   const isFechaValida = (fecha) => {
@@ -68,10 +88,6 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
   };
 
   const handleAddPrograma = () => {
-    console.log('ItinerarioProgramasSelector - handleAddPrograma ejecutándose');
-    console.log('ItinerarioProgramasSelector - nuevoProgramaForm:', nuevoProgramaForm);
-    console.log('ItinerarioProgramasSelector - itinerarioData:', itinerarioData);
-
     const errors = {};
 
     // Solo campos reales de la BD
@@ -183,13 +199,30 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
     console.log('ItinerarioProgramasSelector - Modal cerrado y formulario reseteado');
   };
 
-  const handleRemovePrograma = (id) => {
-    const nuevosProgramas = programasSeleccionados.filter(p => p.id_itinerario_programa !== id);
-    setProgramasSeleccionados(nuevosProgramas);
+  const handleEditPrograma = (programa) => {
+    setNuevoProgramaForm({
+      id: programa.id,
+      id_programa: programa.programa_info.id,
+      nombre: programa.programa_info.nombre,
+      descripcion: programa.programa_info.descripcion || '',
+      tipo: programa.programa_info.tipo,
+      duracion: programa.programa_info.duracion,
+      costo: programa.programa_info.costo,
+      fecha: programa.fecha,
+      hora_inicio: programa.hora_inicio,
+      hora_fin: programa.hora_fin
+    });
+    setEditingProgramaId(programa.id);
+    setShowAddModal(true);
+  };
 
-    // Notificar al padre que los programas han cambiado
-    if (onProgramasChange) {
-      onProgramasChange(nuevosProgramas);
+  const handleRemovePrograma = (id) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este programa?')) {
+      setProgramasSeleccionados(prev => {
+        const updated = prev.filter(programa => programa.id !== id);
+        if (onProgramasChange) onProgramasChange(updated);
+        return updated;
+      });
     }
   };
 
@@ -373,6 +406,13 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
                     </div>
                     <div className="programas-selector-actions">
                       <button
+                        className="programas-selector-btn programas-selector-btn-edit programas-selector-btn-sm"
+                        onClick={() => handleEditPrograma(item)}
+                        title="Editar"
+                      >
+                        📝
+                      </button>
+                      <button
                         className="programas-selector-btn programas-selector-btn-danger programas-selector-btn-sm"
                         onClick={() => handleRemovePrograma(item.id_itinerario_programa)}
                         title="Eliminar"
@@ -400,7 +440,7 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
         <div className="programas-selector-modal-overlay">
           <div className="programas-selector-modal-content">
             <div className="programas-selector-modal-header">
-              <h3>➕ Agregar Programa</h3>
+              <h3>{editingProgramaId ? 'Editar Programa' : '➕ Agregar Programa'}</h3>
               <button
                 className="programas-selector-modal-close"
                 onClick={() => {

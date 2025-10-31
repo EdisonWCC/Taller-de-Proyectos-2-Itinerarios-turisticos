@@ -1,151 +1,154 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import GrupoSelector from '../Itinerario/GrupoSelector';
 import FormularioDatosItinerario from '../Itinerario/FormularioDatosItinerario';
 import ItinerarioProgramasSelector from '../Itinerario/ItinerarioProgramasSelector';
+import ItinerarioTuristasSelector from '../Itinerario/ItinerarioTuristasSelector';
 import TransporteDetalle from '../Itinerario/TransporteDetalle';
 import DetalleMachuForm from '../Itinerario/DetalleMachuForm';
-import ResumenFinal from '../Itinerario/ResumenFinal';
 import '../../styles/Admin/ListarItinerarios/EditarItinerario.css';
-
-// Datos de prueba
-const mockItinerario = {
-  id: 1,
-  grupo: {
-    id: 1,
-    nombre_grupo: 'Grupo de Prueba',
-    cantidad_personas: 5
-  },
-  fecha_inicio: '2025-11-01',
-  fecha_fin: '2025-11-10',
-  estado_presupuesto_id: 1,
-  programas: [
-    {
-      id: 1,
-      fecha: '2025-11-02',
-      hora_inicio: '09:00',
-      hora_fin: '13:00',
-      programa_info: {
-        id: 1,
-        nombre: 'City Tour Cusco',
-        tipo: 'tour',
-        descripcion: 'Recorrido por los principales atractivos de Cusco'
-      }
-    }
-  ],
-  transportes: [
-    {
-      id: 1,
-      tipo: 'bus',
-      descripcion: 'Bus turístico',
-      fecha: '2025-11-02',
-      hora_salida: '08:00',
-      hora_llegada: '09:00'
-    }
-  ],
-  detallesMachu: []
-};
 
 const EditarItinerario = () => {
   const { id } = useParams();
+  const { state } = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [currentStep, setCurrentStep] = useState(1);
-  
-  // Refs para los componentes del formulario
-  const datosItinerarioRef = useRef(null);
-  const programasSelectorRef = useRef(null);
-  const transporteDetalleRef = useRef(null);
-  const machuDetalleRef = useRef(null);
-  
-  // Estado del formulario
+  const [currentStep, setCurrentStep] = useState(0);
+  const [editMode, setEditMode] = useState(false);
+
+  // Estado para manejar los datos del formulario
   const [formData, setFormData] = useState({
-    grupo: null,
+    grupo: {
+      nombre_grupo: '',
+      descripcion: ''
+    },
     datosItinerario: {
       fecha_inicio: '',
       fecha_fin: '',
       estado_presupuesto_id: 1
     },
+    turistas: [],
     programas: [],
     transportes: [],
     detallesMachu: []
   });
 
-  // Cargar datos de prueba
-  useEffect(() => {
-    setLoading(true);
-    // Simular carga de datos
-    const timer = setTimeout(() => {
-      setFormData({
-        grupo: mockItinerario.grupo,
-        datosItinerario: {
-          fecha_inicio: mockItinerario.fecha_inicio,
-          fecha_fin: mockItinerario.fecha_fin,
-          estado_presupuesto_id: mockItinerario.estado_presupuesto_id
-        },
-        programas: mockItinerario.programas,
-        transportes: mockItinerario.transportes,
-        detallesMachu: mockItinerario.detallesMachu
-      });
-      setLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [id]);
-
-  // Manejar cambios en los datos del formulario
-  const updateFormData = (step, data) => {
+  // Determinar si hay programas de Machu Picchu
+  const hasMachuPicchuPrograms = formData.programas?.some(programa => 
+    programa.programa_info?.tipo?.toLowerCase().includes('machu') ||
+    programa.programa_info?.nombre?.toLowerCase().includes('machu')
+  ) || false;
+  
+  // Manejar cambios en los detalles de Machu Picchu (memoizado con useCallback)
+  const handleDetallesMachuChange = useCallback((detalles) => {
     setFormData(prev => ({
       ...prev,
-      [step]: data
+      detallesMachu: detalles
     }));
-  };
+  }, []); // Dependencias vacías ya que no necesitamos que se vuelva a crear
+  
+  // En modo edición, siempre mostramos el paso de Machu Picchu
+  const showMachuPicchuStep = editMode || hasMachuPicchuPrograms;
 
-  // Navegación entre pasos
-  const nextStep = () => {
-    if (validateCurrentStep()) {
-      setCurrentStep(prev => prev + 1);
+  // Función para manejar la finalización de cada paso
+  const handleStepComplete = (step, data) => {
+    setFormData(prev => ({
+      ...prev,
+      ...(step === 0 && { grupo: data }),
+      ...(step === 1 && { datosItinerario: data }),
+      ...(step === 2 && { turistas: data }),
+      ...(step === 3 && { programas: data }),
+      ...(step === 4 && { transportes: data }),
+      ...(step === 5 && { detallesMachu: data })
+    }));
+
+    if (step < 5) {
+      setCurrentStep(step + 1);
+    } else {
+      // Todos los pasos completados
+      handleSubmit();
     }
   };
 
-  const prevStep = () => {
-    setCurrentStep(prev => prev - 1);
+  // Cargar datos del estado de navegación
+  useEffect(() => {
+    loadItinerarioData();
+  }, [id, state, navigate]);
+
+  // Función para extraer detalles de Machu Picchu de los programas
+  const extraerDetallesMachu = (programas) => {
+    if (!Array.isArray(programas)) return [];
+    
+    return programas
+      .filter(programa => 
+        programa.programa_info?.tipo === 'machupicchu' || 
+        programa.programa_info?.nombre?.toLowerCase().includes('machu')
+      )
+      .map(programa => ({
+        id_itinerario_programa: programa.id,
+        ...(programa.detalles_machupicchu || {})
+      }));
   };
 
-  // Validar el paso actual
-  const validateCurrentStep = () => {
-    switch (currentStep) {
-      case 1: // Datos del itinerario
-        return datosItinerarioRef.current?.validate() || false;
-      case 2: // Programas
-        return programasSelectorRef.current?.validate() || false;
-      // Agregar validaciones para otros pasos si es necesario
-      default:
-        return true;
-    }
-  };
-
-  // Simular guardado de cambios
-  const handleSave = () => {
-    // Simular tiempo de guardado
+  // Función para cargar los datos del itinerario
+  const loadItinerarioData = async () => {
     setLoading(true);
-    setTimeout(() => {
-      console.log('Datos a guardar:', {
-        ...formData.datosItinerario,
-        id_grupo: formData.grupo?.id,
-        programas: formData.programas,
-        transportes: formData.transportes,
-        detallesMachu: formData.detallesMachu
-      });
+    try {
+      if (state?.itinerario) {
+        const data = state.itinerario;
+        const transportes = Array.isArray(data.transportes) ? data.transportes : [];
+        const programas = Array.isArray(data.programas) ? data.programas : [];
+        
+        // Extraer detalles de Machu Picchu de los programas
+        const detallesMachu = extraerDetallesMachu(programas);
       
-      toast.success('Cambios guardados correctamente (simulado)');
+        setFormData({
+          grupo: data.grupo || null,
+          datosItinerario: {
+            fecha_inicio: data.fecha_inicio || '',
+            fecha_fin: data.fecha_fin || '',
+            estado_presupuesto_id: data.estado_presupuesto_id || 1
+          },
+          turistas: data.turistas || [],
+          programas: programas,
+          transportes: transportes,
+          detallesMachu: detallesMachu
+        });
+      } else {
+        toast.error('No se encontraron datos del itinerario');
+        navigate('/admin/itinerarios');
+      }
+    } catch (error) {
+      console.error('Error cargando el itinerario:', error);
+      toast.error('Error al cargar el itinerario');
+      navigate('/admin/itinerarios');
+    } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para guardar los cambios
+  const handleSubmit = async () => {
+    setLoading(true);
+    
+    try {
+      // Aquí iría la lógica para enviar los datos a la API
+      console.log('Datos a guardar:', formData);
       
-      // Opcional: Redirigir después de guardar
-      // navigate('/admin/itinerarios');
-    }, 1000);
+      // Simulamos un retraso de red
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.success('Itinerario guardado correctamente');
+      // Redirigir a la lista de itinerarios del administrador después de guardar
+      navigate('/admin/itinerarios');
+    } catch (error) {
+      console.error('Error al guardar el itinerario:', error);
+      toast.error('Error al guardar el itinerario');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Renderizar el paso actual
@@ -154,44 +157,67 @@ const EditarItinerario = () => {
       return <div className="editar-itinerario-loading">Cargando itinerario...</div>;
     }
 
+    // Pasar la propiedad editMode a los componentes hijos
+    const commonProps = {
+      isReadOnly: !editMode
+    };
+
     switch (currentStep) {
-      case 1:
+      case 0: // Selección de grupo
+        return (
+          <GrupoSelector
+            initialData={{
+              nombre_grupo: formData.grupo?.nombre_grupo || '',
+              descripcion: formData.grupo?.descripcion || ''
+            }}
+            onNext={(data) => handleStepComplete(0, { ...formData.grupo, ...data })}
+            isReadOnly={!editMode}
+          />
+        );
+      case 1: // Selección de  itinerario
         return (
           <FormularioDatosItinerario
-            ref={datosItinerarioRef}
             initialData={formData.datosItinerario}
             grupoSeleccionado={formData.grupo}
-            onDataChange={(data) => updateFormData('datosItinerario', data)}
+            onNext={(data) => handleStepComplete(1, data)}
+            onDataChange={(data) => setFormData(prev => ({ ...prev, datosItinerario: data }))}
+            isReadOnly={!editMode}
           />
         );
-      case 2:
+      case 2: // Datos del turistas
+        return (
+         <ItinerarioTuristasSelector
+          grupoId={formData.grupo?.id}
+          initialTuristas={formData.turistas}
+          onTuristasChange={(turistas) => setFormData(prev => ({ ...prev, turistas }))}
+          isReadOnly={!editMode}
+        />
+        );
+      case 3: // Programas
         return (
           <ItinerarioProgramasSelector
-            initialProgramas={formData.programas}
-            onProgramasChange={(programas) => updateFormData('programas', programas)}
+            initialData={formData.programas || []}
+            onProgramasChange={(programas) => setFormData(prev => ({ ...prev, programas }))}
+            isReadOnly={!editMode}
           />
         );
-      case 3:
+      case 4: // Transporte
         return (
-          <TransporteDetalle
-            ref={transporteDetalleRef}
-            initialTransportes={formData.transportes}
-            onTransportesChange={(transportes) => updateFormData('transportes', transportes)}
-          />
+            <TransporteDetalle
+              initialData={formData.transportes || []}
+              programasData={formData.programas || []}
+              onTransportesChange={(transportes) => setFormData(prev => ({ ...prev, transportes }))}
+              isReadOnly={!editMode}
+            />
         );
-      case 4:
+     case 5: // Machu Picchu (siempre visible en modo edición)
         return (
           <DetalleMachuForm
-            ref={machuDetalleRef}
-            initialDetalles={formData.detallesMachu}
-            onDetallesChange={(detalles) => updateFormData('detallesMachu', detalles)}
-          />
-        );
-      case 5:
-        return (
-          <ResumenFinal
-            formData={formData}
-            onConfirm={handleSave}
+            initialData={formData.detallesMachu || []}
+            programasData={formData.programas || []}
+            onDetallesChange={handleDetallesMachuChange}
+            isReadOnly={!editMode}
+            showEmptyState={!hasMachuPicchuPrograms}
           />
         );
       default:
@@ -199,15 +225,36 @@ const EditarItinerario = () => {
     }
   };
 
-  // Determinar si hay programas de Machu Picchu
-  const hasMachuPicchuPrograms = formData.programas.some(
-    programa => programa.programa_info?.tipo === 'machupicchu'
-  );
+  // Función para ir al siguiente paso
+  const nextStep = () => {
+    if (currentStep < maxStep) {
+      setCurrentStep(prevStep => prevStep + 1);
+    }
+  };
 
-  // Calcular el paso máximo basado en si hay programas de Machu Picchu
-  const maxStep = hasMachuPicchuPrograms ? 5 : 4;
+  // Función para ir al paso anterior
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prevStep => prevStep - 1);
+    }
+  };
 
-  // Determinar si el botón de guardar debe estar habilitado
+  // Función para activar el modo edición
+  const handleEditClick = () => {
+    setEditMode(true);
+  };
+
+  // Función para cancelar la edición
+  const handleCancelEdit = () => {
+    setEditMode(false);
+    // Recargar los datos originales si es necesario
+    loadItinerarioData();
+  };
+
+  // Calcular el paso máximo - ahora son 6 pasos (0-5)
+  const maxStep = 5; // 0: Grupo, 1: Datos, 2: Turistas, 3: Programas, 4: Transporte, 5: Machu Picchu
+
+  // Determinar si el botón de guardar debe estar habilitado (solo en el último paso)
   const isSaveButtonDisabled = currentStep < maxStep;
 
   return (
@@ -215,68 +262,92 @@ const EditarItinerario = () => {
       <div className="editar-itinerario-header">
         <h1>Editar Itinerario #{id}</h1>
         <div className="editar-itinerario-actions">
-          <button 
-            className="btn btn-secondary"
-            onClick={() => navigate('/admin/itinerarios')}
-          >
-            Cancelar
-          </button>
-          <button 
-            className={`btn btn-primary ${isSaveButtonDisabled ? 'btn-disabled' : ''}`}
-            onClick={handleSave}
-            disabled={isSaveButtonDisabled}
-          >
-            Guardar Cambios
-          </button>
+          {!editMode ? (
+            <>
+              <button 
+                className="btn btn-secondary"
+                onClick={() => navigate('/admin/itinerarios')}
+              >
+                Volver
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={handleEditClick}
+              >
+                Editar Itinerario
+              </button>
+            </>
+          ) : (
+            <>
+              <button 
+                className="btn btn-secondary"
+                onClick={handleCancelEdit}
+                disabled={loading}
+              >
+                Cancelar Edición
+              </button>
+              <button 
+                className={`btn btn-primary ${isSaveButtonDisabled ? 'btn-disabled' : ''}`}
+                onClick={handleSubmit}
+                disabled={isSaveButtonDisabled || loading}
+              >
+                {loading ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
       {/* Barra de progreso */}
-      <div className="editar-itinerario-progress">
-        {[1, 2, 3, 4, 5].map((step) => {
-          if (step === 5 && !hasMachuPicchuPrograms) return null;
-          
-          return (
-            <div 
-              key={step}
-              className={`progress-step ${currentStep === step ? 'active' : ''} ${currentStep > step ? 'completed' : ''}`}
-              onClick={() => currentStep > step && setCurrentStep(step)}
-            >
-              <div className="step-number">{step}</div>
-              <div className="step-label">
-                {step === 1 && 'Datos'}
-                {step === 2 && 'Programas'}
-                {step === 3 && 'Transporte'}
-                {step === 4 && (hasMachuPicchuPrograms ? 'Machu Picchu' : 'Resumen')}
-                {step === 5 && 'Resumen'}
-              </div>
-            </div>
-          );
-        })}
+     <div className="editar-itinerario-progress">
+  {[0, 1, 2, 3, 4, 5].map((step) => (
+    <div 
+      key={step}
+      className={`progress-step ${currentStep === step ? 'active' : ''} ${currentStep > step ? 'completed' : ''} ${step === 5 && !hasMachuPicchuPrograms ? 'disabled-step' : ''}`}
+      onClick={() => currentStep > step && setCurrentStep(step)}
+      title={step === 5 && !hasMachuPicchuPrograms ? 'No hay programas de Machu Picchu configurados' : ''}
+    >
+      <div className="step-number">{step + 1}</div>
+      <div className="step-label">
+        {step === 0 && 'Grupo'}
+        {step === 1 && 'Datos'}
+        {step === 2 && 'Turistas'}
+        {step === 3 && 'Programas'}
+        {step === 4 && 'Transporte'}
+        {step === 5 && 'Machu Picchu'}
       </div>
+    </div>
+  ))}
+</div>
 
       {/* Contenido del paso actual */}
       <div className="editar-itinerario-content">
         {renderStep()}
       </div>
 
-      {/* Navegación */}
-      <div className="editar-itinerario-navigation">
-        {currentStep > 1 && (
-          <button className="btn btn-outline" onClick={prevStep}>
-            Anterior
-          </button>
-        )}
-        {currentStep < maxStep ? (
-          <button className="btn btn-primary" onClick={nextStep}>
-            Siguiente
-          </button>
-        ) : (
-          <button className="btn btn-success" onClick={handleSave}>
-            Guardar Cambios
-          </button>
-        )}
-      </div>
+      {/* Navegación - Solo visible en modo edición */}
+      {editMode && (
+        <div className="editar-itinerario-navigation">
+          {currentStep > 1 && (
+            <button 
+              className="btn btn-outline" 
+              onClick={prevStep}
+              disabled={loading}
+            >
+              Anterior
+            </button>
+          )}
+          {currentStep < maxStep && (
+            <button 
+              className="btn btn-primary" 
+              onClick={nextStep}
+              disabled={loading}
+            >
+              Siguiente
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

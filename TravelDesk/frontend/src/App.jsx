@@ -30,7 +30,7 @@ function App() {
           <Route path="roles" element={<RolesAdmin />} />
           <Route path="listar-turistas" element={<ListarTuristas />} />
           <Route path="itinerarios" element={<LListarItinerario />} />
-          <Route path="itinerarios/editar/:id" element={<EditarItinerario />} />
+          <Route path="editar-itinerario/:id" element={<EditarItinerario />} />
           <Route path="crear-itinerario" element={<ItinerarioCreatePage />} />
         </Route>
 

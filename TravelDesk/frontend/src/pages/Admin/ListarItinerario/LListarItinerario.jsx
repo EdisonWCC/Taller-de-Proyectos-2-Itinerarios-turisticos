@@ -3,28 +3,309 @@ import { Link } from 'react-router-dom';
 import { FiEdit2, FiPlus, FiEye, FiTrash2 } from 'react-icons/fi';
 import '../../../styles/Admin/ListarItinerarios/ListarItinerarios.css';
 
-// Datos de ejemplo
+// Datos de ejemplo siguiendo la estructura del flujo de creación
 const mockItinerarios = [
   {
     id: 1,
-    grupo: { nombre_grupo: 'Grupo Familiar' },
-    fecha_inicio: '2025-11-15',
-    fecha_fin: '2025-11-22',
-    estado_presupuesto: 'pendiente'
-  },
-  {
-    id: 2,
-    grupo: { nombre_grupo: 'Grupo de Amigos' },
-    fecha_inicio: '2025-12-01',
-    fecha_fin: '2025-12-10',
-    estado_presupuesto: 'aprobado'
-  },
-  {
-    id: 3,
-    grupo: { nombre_grupo: 'Viaje de Negocios' },
-    fecha_inicio: '2025-12-15',
-    fecha_fin: '2025-12-20',
-    estado_presupuesto: 'en_revision'
+    grupo: {
+      id_grupo: 1,
+      nombre_grupo: 'Aventura Cusco Nov 2025',
+      descripcion: 'Grupo familiar visitando Cusco y Machu Picchu',
+      cantidad_personas: 6,
+      fecha_creacion: '2025-10-25',
+      estado: 'activo',
+      contacto_emergencia: {
+        nombre: 'Carlos Martínez',
+        telefono: '+51 987654321',
+        parentesco: 'Padre de familia'
+      }
+    },
+    fecha_inicio: '2025-11-20',
+    fecha_fin: '2025-11-25',
+    estado_presupuesto_id: 2, // 1=pendiente, 2=en_revision, 3=aprobado
+    total_presupuesto: 4500.00,
+    moneda: 'USD',
+    programas: [
+      {
+        id: 1,
+        id_programa: 1,
+        fecha: '2025-11-20',
+        hora_inicio: '12:00',
+        hora_fin: '13:30',
+        notas: 'Vuelo LATAM 2045 - Confirmar horario de llegada',
+        programa_info: {
+          id: 1,
+          nombre: 'Traslado Aeropuerto - Hotel',
+          tipo: 'traslado',
+          descripcion: 'Recogida en el aeropuerto y traslado al hotel',
+          duracion: 1.5,
+          precio_persona: 25.00
+        },
+        estado: 'pendiente'
+      },
+      {
+        id: 2,
+        id_programa: 2,
+        fecha: '2025-11-21',
+        hora_inicio: '09:00',
+        hora_fin: '17:00',
+        notas: 'Incluye almuerzo buffet',
+        programa_info: {
+          id: 2,
+          nombre: 'City Tour Cusco',
+          tipo: 'tour',
+          descripcion: 'Recorrido por los principales atractivos de Cusco',
+          duracion: 8,
+          precio_persona: 120.00
+        },
+        estado: 'confirmado'
+      },
+      {
+        id: 2,
+        fecha: '2025-11-16',
+        hora_inicio: '09:00',
+        hora_fin: '17:00',
+        programa_info: {
+          id: 2,
+          nombre: 'City Tour Cusco',
+          tipo: 'tour',
+          descripcion: 'Recorrido por los principales atractivos de Cusco',
+          duracion: 8,
+          precio_persona: 120.00
+        },
+        notas: 'Incluye almuerzo buffet en restaurante local',
+        guia_asignado: 'Juan Pérez',
+        estado: 'confirmado',
+        lugares_visita: [
+          'Catedral de Cusco',
+          'Qoricancha',
+          'Sacsayhuamán',
+          'Qenqo',
+          'Puca Pucará',
+          'Tambomachay'
+        ]
+      },
+      {
+        id: 3,
+        fecha: '2025-11-17',
+        hora_inicio: '04:30',
+        hora_fin: '20:00',
+        programa_info: {
+          id: 3,
+          nombre: 'Tour al Valle Sagrado',
+          tipo: 'tour',
+          descripcion: 'Visita a los pueblos y sitios arqueológicos del Valle Sagrado',
+          duracion: 15.5,
+          precio_persona: 180.00
+        },
+        notas: 'Incluye almuerzo buffet en Urubamba. Llevar ropa abrigadora y bloqueador solar.',
+        guia_asignado: 'Carlos Huamán',
+        estado: 'confirmado',
+        lugares_visita: [
+          'Pisac',
+          'Mercado de Pisac',
+          'Ollantaytambo',
+          'Chinchero'
+        ]
+      },
+      {
+        id: 4,
+        id_programa: 4,
+        fecha: '2025-11-18',
+        hora_inicio: '05:00',
+        hora_fin: '19:00',
+        programa_info: {
+          id: 4,
+          nombre: 'Machu Picchu Full Day',
+          tipo: 'machupicchu',  // Cambiado de 'tour' a 'machupicchu'
+          descripcion: 'Visita a la ciudadela inca de Machu Picchu',
+          duracion: 14,
+          precio_persona: 350.00,
+          incluye: [
+            'Tren Expedition ida y vuelta',
+            'Bus a Machu Picchu',
+            'Guía profesional bilingüe',
+            'Almuerzo en Aguas Calientes',
+            'Entrada a Machu Picchu'
+          ],
+          recomendaciones: [
+            'Llevar pasaporte original',
+            'Usar zapatos cómodos',
+            'Llevar bloqueador solar y gorra',
+            'Llevar dinero en efectivo'
+          ]
+        },
+        notas: 'Tren Expedition 6:10 AM. Llevar pasaporte original. Incluye almuerzo en Aguas Calientes.',
+        guia_asignado: 'Ana Quispe',
+        estado: 'confirmado',
+        lugares_visita: [
+          'Estación de Ollantaytambo',
+          'Aguas Calientes',
+          'Machu Picchu',
+          'Montaña Huayna Picchu (opcional)'
+        ],
+        detalles_machupicchu: {
+          id_itinerario_programa: 4,  // Necesario para la relación con el programa
+          nombre_guia: 'Ana Quispe',
+          empresa_tren: 'PeruRail',
+          ruta: 'Circuito 2',
+          horario_tren_ida: '06:10',
+          horario_tren_retor: '18:20',
+          tiempo_visita: '4 horas'
+        }
+      },
+      {
+        id: 5,
+        fecha: '2025-11-19',
+        hora_inicio: '09:00',
+        hora_fin: '15:00',
+        programa_info: {
+          id: 5,
+          nombre: 'Tour Maras y Moray',
+          tipo: 'tour',
+          descripcion: 'Visita a las salineras de Maras y los andenes circulares de Moray',
+          duracion: 6,
+          precio_persona: 95.00
+        },
+        notas: 'Tarde libre después del almuerzo para compras en Cusco',
+        guia_asignado: 'Luis Mendoza',
+        estado: 'confirmado'
+      },
+      {
+        id: 6,
+        fecha: '2025-11-20',
+        hora_inicio: '10:00',
+        hora_fin: '11:00',
+        programa_info: {
+          id: 6,
+          nombre: 'Traslado Hotel - Aeropuerto',
+          tipo: 'traslado',
+          descripcion: 'Traslado al aeropuerto para vuelo de regreso',
+          duracion: 1,
+          precio_persona: 25.00
+        },
+        notas: 'Vuelo LATAM 2046 - Presentarse 3 horas antes',
+        estado: 'pendiente'
+      }
+    ],
+    transportes: [
+      {
+        id_detalle_transporte: 1,
+        id_itinerario_programa: 1,  // Coincide con el ID del programa de traslado
+        id_transporte: 1,
+        horario_recojo: "12:00",
+        lugar_recojo: "Aeropuerto Internacional Alejandro Velasco Astete",
+        programa_info: {
+          id_itinerario_programa: 1,
+          nombre: "Traslado Aeropuerto - Hotel",
+          fecha: "2025-11-20",
+          hora_inicio: "12:00",
+          hora_fin: "13:30"
+        },
+        transporte_info: {
+          id_transporte: 1,
+          tipo: "van",
+          descripcion: "Van de 12 asientos con aire acondicionado",
+          empresa: "Transportes Cusco",
+          fecha: "2025-11-20",
+          hora_salida: "12:00",
+          hora_llegada: "13:30",
+          origen: "Aeropuerto Internacional Alejandro Velasco Astete",
+          destino: "Hotel en Cusco",
+          conductor: "Juan Pérez",
+          telefono_conductor: "+51 987654321",
+          placa: "ABC-123",
+          capacidad: 12,
+          estado: "confirmado"
+        }
+      },
+      {
+        id_detalle_transporte: 2,
+        id_itinerario_programa: 2,  // Coincide con el ID del City Tour
+        id_transporte: 2,
+        horario_recojo: "08:30",
+        lugar_recojo: "Hotel en Cusco",
+        programa_info: {
+          id_itinerario_programa: 2,
+          nombre: "City Tour Cusco",
+          fecha: "2025-11-21",
+          hora_inicio: "09:00",
+          hora_fin: "17:00"
+        },
+        transporte_info: {
+          id_transporte: 2,
+          tipo: "bus",
+          descripcion: "Bus turístico 20 asientos",
+          empresa: "Cusco Tours",
+          fecha: "2025-11-21",
+          hora_salida: "08:30",
+          hora_llegada: "17:30",
+          origen: "Hotel en Cusco",
+          destino: "Centro Histórico de Cusco",
+          conductor: "Carlos Rodríguez",
+          telefono_conductor: "+51 987654322",
+          placa: "DEF-456",
+          capacidad: 20,
+          estado: "pendiente"
+        }
+      }
+    ],
+    turistas: [
+      {
+        id_turista: 1,
+        nombre: 'Carlos',
+        apellido: 'Martínez',
+        dni: '12345678',
+        nacionalidad: 'Peruano',
+        fecha_nacimiento: '1980-05-15',
+        genero: 'Masculino'
+      },
+      {
+        id_turista: 2,
+        nombre: 'Ana',
+        apellido: 'Martínez',
+        dni: '23456789',
+        nacionalidad: 'Peruana',
+        fecha_nacimiento: '1982-08-22',
+        genero: 'Femenino'
+      },
+      {
+        id_turista: 3,
+        nombre: 'Diego',
+        apellido: 'Martínez',
+        dni: '34567890',
+        nacionalidad: 'Peruano',
+        fecha_nacimiento: '2010-03-10',
+        genero: 'Masculino'
+      },
+      {
+        id_turista: 4,
+        nombre: 'Sofía',
+        apellido: 'Martínez',
+        dni: '45678901',
+        nacionalidad: 'Peruana',
+        fecha_nacimiento: '2012-07-18',
+        genero: 'Femenino'
+      },
+      {
+        id_turista: 5,
+        nombre: 'Roberto',
+        apellido: 'Gómez',
+        dni: '56789012',
+        nacionalidad: 'Español',
+        fecha_nacimiento: '1975-11-30',
+        genero: 'Masculino'
+      },
+      {
+        id_turista: 6,
+        nombre: 'Laura',
+        apellido: 'Gómez',
+        dni: '67890123',
+        nacionalidad: 'Española',
+        fecha_nacimiento: '1978-04-25',
+        genero: 'Femenino'
+      }
+    ]
   }
 ];
 
@@ -39,13 +320,15 @@ const LListarItinerario = () => {
 
   // Filtrar itinerarios por término de búsqueda
   const filteredItinerarios = itinerarios.filter(itinerario => {
+    if (!searchTerm) return true; // Si no hay término de búsqueda, mostrar todos
+    
     const searchLower = searchTerm.toLowerCase();
     return (
-      itinerario.id.toString().includes(searchLower) ||
-      (itinerario.grupo?.nombre_grupo?.toLowerCase().includes(searchLower) || '') ||
-      itinerario.fecha_inicio?.includes(searchLower) ||
-      itinerario.fecha_fin?.includes(searchLower) ||
-      itinerario.estado_presupuesto?.toLowerCase().includes(searchLower)
+      (itinerario.id?.toString() || '').toLowerCase().includes(searchLower) ||
+      (itinerario.grupo?.nombre_grupo?.toLowerCase() || '').includes(searchLower) ||
+      (itinerario.fecha_inicio || '').includes(searchLower) ||
+      (itinerario.fecha_fin || '').includes(searchLower) ||
+      (itinerario.estado_presupuesto?.toLowerCase() || '').includes(searchLower)
     );
   });
 
@@ -154,9 +437,10 @@ const LListarItinerario = () => {
                       <FiEye />
                     </Link>
                     <Link 
-                      to={`/admin/itinerarios/editar/${itinerario.id}`} 
+                      to={`/admin/editar-itinerario/${itinerario.id}`} 
                       className="btn-icon btn-edit"
                       title="Editar"
+                      state={{ itinerario: itinerario }}
                     >
                       <FiEdit2 />
                     </Link>

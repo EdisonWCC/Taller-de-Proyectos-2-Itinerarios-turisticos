@@ -1,7 +1,13 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import '../../styles/Admin/Itinerario/DetalleMachuForm.css';
 
-const DetalleMachuForm = forwardRef(({ initialData = [], programasData = [] }, ref) => {
+const DetalleMachuForm = forwardRef(({ 
+  initialData = [], 
+  programasData = [], 
+  onDetallesChange,
+  isReadOnly = false,
+  showEmptyState = false
+}, ref) => {
   const [detallesMachu, setDetallesMachu] = useState(initialData);
   const [errors, setErrors] = useState({});
 
@@ -16,20 +22,26 @@ const DetalleMachuForm = forwardRef(({ initialData = [], programasData = [] }, r
     tiempo_visita: ''
   });
 
-  // Verificar si hay programas de tipo machupicchu
+  // Verificar si hay programas de tipo machupicchu (con búsqueda flexible)
   const hasMachuPicchuPrograms = programasData.some(programa =>
-    programa.programa_info?.tipo === 'machupicchu'
+    programa.programa_info?.tipo?.toLowerCase().includes('machu') ||
+    programa.programa_info?.nombre?.toLowerCase().includes('machu')
   );
 
-  // Obtener programas de Machu Picchu disponibles
+  // Obtener programas de Machu Picchu disponibles (con búsqueda flexible)
   const machuPicchuPrograms = programasData.filter(programa =>
-    programa.programa_info?.tipo === 'machupicchu'
+    programa.programa_info?.tipo?.toLowerCase().includes('machu') ||
+    programa.programa_info?.nombre?.toLowerCase().includes('machu')
   );
 
-  console.log('DetalleMachuForm - programasData recibido:', programasData);
-  console.log('DetalleMachuForm - hasMachuPicchuPrograms:', hasMachuPicchuPrograms);
-  console.log('DetalleMachuForm - machuPicchuPrograms:', machuPicchuPrograms);
+  // Notificar al padre de los cambios en los detalles
+  useEffect(() => {
+    if (onDetallesChange) {
+      onDetallesChange(detallesMachu);
+    }
+  }, [detallesMachu, onDetallesChange]);
 
+ 
   // Reset form
   const resetForm = () => {
     setFormData({
@@ -168,16 +180,26 @@ const DetalleMachuForm = forwardRef(({ initialData = [], programasData = [] }, r
       <div className="detalle-machu-step-content">
         <div className="detalle-machu-step-description">
           <p>Completa la información específica para las visitas a Machu Picchu en tu itinerario.</p>
-          <div className="detalle-machu-machu-programs-info">
-            <strong>📋 Programas de Machu Picchu detectados:</strong> {machuPicchuPrograms.length}
-            <div className="detalle-machu-programs-list">
-              {machuPicchuPrograms.map(programa => (
-                <div key={programa.id_itinerario_programa} className="detalle-machu-program-chip">
-                  {programa.programa_info.nombre} - {programa.fecha}
-                </div>
-              ))}
+          {showEmptyState && !hasMachuPicchuPrograms ? (
+            <div className="detalle-machu-empty-state">
+              <div className="detalle-machu-empty-state-icon">🏔️</div>
+              <h4>No hay programas de Machu Picchu configurados</h4>
+              <p>Puedes agregar un programa de Machu Picchu en el paso de "Programas" o configurar los detalles manualmente aquí.</p>
             </div>
-          </div>
+          ) : (
+            <div className="detalle-machu-machu-programs-info">
+              <strong>📋 Programas de Machu Picchu detectados:</strong> {machuPicchuPrograms.length}
+              {machuPicchuPrograms.length > 0 && (
+                <div className="detalle-machu-programs-list">
+                  {machuPicchuPrograms.map(programa => (
+                    <div key={programa.id_itinerario_programa} className="detalle-machu-program-chip">
+                      {programa.programa_info?.nombre} - {programa.fecha}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Layout de 2 columnas */}
@@ -318,53 +340,63 @@ const DetalleMachuForm = forwardRef(({ initialData = [], programasData = [] }, r
               {detallesMachu.length === 0 ? (
                 <div className="detalle-machu-empty-state">
                   <p>No hay detalles de Machu Picchu guardados.</p>
-                  <p className="detalle-machu-empty-state-subtitle">Completa el formulario arriba para agregar información específica de Machu Picchu.</p>
+                  {!hasMachuPicchuPrograms ? (
+                    <p className="detalle-machu-empty-state-subtitle">
+                      Agrega un programa de Machu Picchu en el paso de "Programas" o completa el formulario manualmente.
+                    </p>
+                  ) : (
+                    <p className="detalle-machu-empty-state-subtitle">
+                      Completa el formulario para agregar información específica de Machu Picchu.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="detalle-machu-detalles-list">
-                  {detallesMachu.map(detalle => (
-                    <div key={detalle.id_itinerario_programa} className="detalle-machu-detalle-item">
-                      <div className="detalle-machu-detalle-header">
-                        <h5>{detalle.programa_info.nombre}</h5>
-                        <span className="detalle-machu-detalle-date">{detalle.programa_info.fecha}</span>
+                  {detallesMachu.map(detalle => {
+                    // Buscar el programa correspondiente para mostrar su información
+                    const programa = programasData.find(p => p.id === detalle.id_itinerario_programa);
+                    return (
+                      <div key={detalle.id_itinerario_programa} className="detalle-machu-detalle-item">
+                        <div className="detalle-machu-detalle-header">
+                          <h5>{programa?.programa_info?.nombre || 'Programa sin nombre'}</h5>
+                          <span className="detalle-machu-detalle-date">{programa?.fecha || 'Sin fecha'}</span>
+                        </div>
+                        <div className="detalle-machu-detalle-content">
+                          <div className="detalle-machu-detalle-row">
+                            <span className="detalle-machu-detalle-label">🚆 Empresa de Tren:</span>
+                            <span className="detalle-machu-detalle-value">{detalle.empresa_tren}</span>
+                          </div>
+                          <div className="detalle-machu-detalle-row">
+                            <span className="detalle-machu-detalle-label">🕐 Horarios:</span>
+                            <span className="detalle-machu-detalle-value">
+                              Ida: {detalle.horario_tren_ida} | Retorno: {detalle.horario_tren_retor}
+                            </span>
+                          </div>
+                          <div className="detalle-machu-detalle-row">
+                            <span className="detalle-machu-detalle-label">👨‍🏫 Guía:</span>
+                            <span className="detalle-machu-detalle-value">{detalle.nombre_guia}</span>
+                          </div>
+                          <div className="detalle-machu-detalle-row">
+                            <span className="detalle-machu-detalle-label">🗺️ Ruta:</span>
+                            <span className="detalle-machu-detalle-value">{detalle.ruta}</span>
+                          </div>
+                          <div className="detalle-machu-detalle-row">
+                            <span className="detalle-machu-detalle-label">⏱️ Tiempo de Visita:</span>
+                            <span className="detalle-machu-detalle-value">{detalle.tiempo_visita}</span>
+                          </div>
+                        </div>
+                        <div className="detalle-machu-detalle-actions">
+                          <button
+                            className="detalle-machu-btn detalle-machu-btn-danger detalle-machu-btn-sm"
+                            onClick={() => handleRemoveDetalle(detalle.id_itinerario_programa)}
+                            title="Eliminar detalle"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </div>
-
-                      <div className="detalle-machu-detalle-content">
-                        <div className="detalle-machu-detalle-row">
-                          <span className="detalle-machu-detalle-label">🚆 Empresa de Tren:</span>
-                          <span className="detalle-machu-detalle-value">{detalle.empresa_tren}</span>
-                        </div>
-                        <div className="detalle-machu-detalle-row">
-                          <span className="detalle-machu-detalle-label">🕐 Horarios:</span>
-                          <span className="detalle-machu-detalle-value">
-                            Ida: {detalle.horario_tren_ida} | Retorno: {detalle.horario_tren_retor}
-                          </span>
-                        </div>
-                        <div className="detalle-machu-detalle-row">
-                          <span className="detalle-machu-detalle-label">👨‍🏫 Guía:</span>
-                          <span className="detalle-machu-detalle-value">{detalle.nombre_guia}</span>
-                        </div>
-                        <div className="detalle-machu-detalle-row">
-                          <span className="detalle-machu-detalle-label">🗺️ Ruta:</span>
-                          <span className="detalle-machu-detalle-value">{detalle.ruta}</span>
-                        </div>
-                        <div className="detalle-machu-detalle-row">
-                          <span className="detalle-machu-detalle-label">⏱️ Tiempo de Visita:</span>
-                          <span className="detalle-machu-detalle-value">{detalle.tiempo_visita}</span>
-                        </div>
-                      </div>
-
-                      <div className="detalle-machu-detalle-actions">
-                        <button
-                          className="detalle-machu-btn detalle-machu-btn-danger detalle-machu-btn-sm"
-                          onClick={() => handleRemoveDetalle(detalle.id_itinerario_programa)}
-                          title="Eliminar detalle"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

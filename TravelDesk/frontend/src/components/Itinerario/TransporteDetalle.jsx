@@ -300,15 +300,15 @@ const TransporteDetalle = forwardRef(({ initialData = [], itinerarioData = null,
                     <tr key={transporte.id_detalle_transporte}>
                       <td>
                         <div className="transporte-detalle-programa-info">
-                          <strong>{transporte.programa_info.nombre}</strong>
-                          <small>📅 {transporte.programa_info.fecha}</small>
-                          <small>🕐 {transporte.programa_info.hora_inicio} - {transporte.programa_info.hora_fin}</small>
+                          <strong>{transporte.programa_info?.nombre || 'Programa no disponible'}</strong>
+                          <small>📅 {transporte.programa_info?.fecha || 'Sin fecha'}</small>
+                          <small>🕐 {transporte.programa_info?.hora_inicio || '--:--'} - {transporte.programa_info?.hora_fin || '--:--'}</small>
                         </div>
                       </td>
                       <td>
                         <div className="transporte-detalle-transporte-info">
-                          <strong>{transporte.transporte_info.empresa}</strong>
-                          <small>🚗 {transporte.transporte_info.tipo} (Cap: {transporte.transporte_info.capacidad})</small>
+                          <strong>{transporte.transporte_info?.empresa || 'Sin empresa'}</strong>
+                          <small>🚗 {transporte.transporte_info?.tipo || 'Sin tipo'} (Cap: {transporte.transporte_info?.capacidad || '--'})</small>
                         </div>
                       </td>
                       <td>{transporte.horario_recojo}</td>
