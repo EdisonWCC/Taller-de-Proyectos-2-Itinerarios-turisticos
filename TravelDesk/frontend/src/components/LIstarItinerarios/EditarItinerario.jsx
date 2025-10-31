@@ -167,7 +167,6 @@ const EditarItinerario = () => {
       case 2:
         return (
           <ItinerarioProgramasSelector
-            ref={programasSelectorRef}
             initialProgramas={formData.programas}
             onProgramasChange={(programas) => updateFormData('programas', programas)}
           />
