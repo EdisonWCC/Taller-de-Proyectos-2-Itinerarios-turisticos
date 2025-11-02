@@ -1,8 +1,8 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import '../../styles/Admin/Itinerario/ItinerarioTuristasSelector.css';
 
-const ItinerarioTuristasSelector = forwardRef(({ initialData = [], itinerarioData = null }, ref) => {
-  const [turistasSeleccionados, setTuristasSeleccionados] = useState(initialData);
+const ItinerarioTuristasSelector = forwardRef(({ initialData = [], initialTuristas = [], onTuristasChange, itinerarioData = null, grupoId = null }, ref) => {
+  const [turistasSeleccionados, setTuristasSeleccionados] = useState(initialData && initialData.length > 0 ? initialData : initialTuristas);
   const [turistasDisponibles, setTuristasDisponibles] = useState([]);
   const [grupos, setGrupos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +21,11 @@ const ItinerarioTuristasSelector = forwardRef(({ initialData = [], itinerarioDat
       percentage: turistasDisponibles.length > 0 ? (turistasSeleccionados.length / turistasDisponibles.length) * 100 : 0
     })
   }));
+
+  // Notificar cambios al padre (depend only on local state to avoid loops)
+  useEffect(() => {
+    if (onTuristasChange) onTuristasChange(turistasSeleccionados);
+  }, [turistasSeleccionados]);
 
   // Cargar datos de la API real
   useEffect(() => {

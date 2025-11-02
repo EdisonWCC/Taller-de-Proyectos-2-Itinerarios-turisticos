@@ -191,8 +191,8 @@ const DetalleMachuForm = forwardRef(({
               <strong>📋 Programas de Machu Picchu detectados:</strong> {machuPicchuPrograms.length}
               {machuPicchuPrograms.length > 0 && (
                 <div className="detalle-machu-programs-list">
-                  {machuPicchuPrograms.map(programa => (
-                    <div key={programa.id_itinerario_programa} className="detalle-machu-program-chip">
+                  {machuPicchuPrograms.map((programa, idx) => (
+                    <div key={programa.id_itinerario_programa || programa.id || idx} className="detalle-machu-program-chip">
                       {programa.programa_info?.nombre} - {programa.fecha}
                     </div>
                   ))}
@@ -222,8 +222,8 @@ const DetalleMachuForm = forwardRef(({
                         className={errors.id_itinerario_programa ? 'detalle-machu-error' : ''}
                       >
                         <option value="">Seleccionar programa...</option>
-                        {machuPicchuPrograms.map(programa => (
-                          <option key={programa.id_itinerario_programa} value={programa.id_itinerario_programa}>
+                        {machuPicchuPrograms.map((programa, idx) => (
+                          <option key={programa.id_itinerario_programa || programa.id || idx} value={programa.id_itinerario_programa}>
                             {programa.programa_info.nombre} - {programa.fecha} ({programa.hora_inicio}-{programa.hora_fin})
                           </option>
                         ))}
@@ -352,11 +352,11 @@ const DetalleMachuForm = forwardRef(({
                 </div>
               ) : (
                 <div className="detalle-machu-detalles-list">
-                  {detallesMachu.map(detalle => {
+                  {detallesMachu.map((detalle, idx) => {
                     // Buscar el programa correspondiente para mostrar su información
                     const programa = programasData.find(p => p.id === detalle.id_itinerario_programa);
                     return (
-                      <div key={detalle.id_itinerario_programa} className="detalle-machu-detalle-item">
+                      <div key={detalle.id_itinerario_programa || idx} className="detalle-machu-detalle-item">
                         <div className="detalle-machu-detalle-header">
                           <h5>{programa?.programa_info?.nombre || 'Programa sin nombre'}</h5>
                           <span className="detalle-machu-detalle-date">{programa?.fecha || 'Sin fecha'}</span>

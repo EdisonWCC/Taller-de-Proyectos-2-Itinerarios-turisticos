@@ -1,7 +1,9 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+
 import '../../styles/Admin/Itinerario/FormularioDatosItinerario.css';
 
-const FormularioDatosItinerario = forwardRef(({ initialData = {}, grupoSeleccionado = null }, ref) => {
+const FormularioDatosItinerario = forwardRef(({ initialData = {}, grupoSeleccionado = null, onDataChange }, ref) => {
+
   const [formData, setFormData] = useState({
     fecha_inicio: initialData.fecha_inicio || '',
     fecha_fin: initialData.fecha_fin || '',
@@ -25,15 +27,23 @@ const FormularioDatosItinerario = forwardRef(({ initialData = {}, grupoSeleccion
     loadEstados();
   }, []);
 
-  // Actualizar el campo grupo cuando cambie el grupoSeleccionado
+  // Actualizar el campo grupo cuando cambie el grupoSeleccionado (solo si cambia el id)
   useEffect(() => {
     if (grupoSeleccionado) {
-      setFormData(prev => ({
-        ...prev,
-        id_grupo: grupoSeleccionado.id
-      }));
+      const nextId = grupoSeleccionado.id_grupo || grupoSeleccionado.id;
+      setFormData(prev => {
+        if (prev.id_grupo === nextId) return prev;
+        return { ...prev, id_grupo: nextId };
+      });
     }
   }, [grupoSeleccionado]);
+
+  // Notificar cambios al padre cuando cambie formData
+  useEffect(() => {
+    if (typeof onDataChange === 'function') {
+      onDataChange(formData);
+    }
+  }, [formData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -238,7 +248,7 @@ const FormularioDatosItinerario = forwardRef(({ initialData = {}, grupoSeleccion
                     type="text"
                     id="grupo_asignado"
                     name="grupo_asignado"
-                    value={grupoSeleccionado ? `${grupoSeleccionado.nombre_grupo} (ID: ${grupoSeleccionado.id})` : 'No asignado'}
+                    value={grupoSeleccionado ? `${grupoSeleccionado.nombre_grupo} (ID: ${grupoSeleccionado.id_grupo || grupoSeleccionado.id})` : 'No asignado'}
                     readOnly
                     className="formulario-datos-form-input formulario-datos-readonly-field"
                     title="Grupo seleccionado en el paso anterior"
@@ -301,7 +311,7 @@ const FormularioDatosItinerario = forwardRef(({ initialData = {}, grupoSeleccion
                     <div className="formulario-datos-preview-label">Grupo Asignado</div>
                     <div className="formulario-datos-preview-value">
                       {grupoSeleccionado
-                        ? `${grupoSeleccionado.nombre_grupo} (ID: ${grupoSeleccionado.id})`
+                        ? `${grupoSeleccionado.nombre_grupo} (ID: ${grupoSeleccionado.id_grupo || grupoSeleccionado.id})`
                         : 'No asignado'
                       }
                     </div>

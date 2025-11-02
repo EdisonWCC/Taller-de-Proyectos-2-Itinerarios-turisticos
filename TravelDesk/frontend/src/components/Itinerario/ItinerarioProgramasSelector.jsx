@@ -379,8 +379,8 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
           ) : (
             <>
               <div className="programas-selector-list">
-                {programasSeleccionados.map((item) => (
-                  <div key={item.id_itinerario_programa} className="programas-selector-item">
+                {programasSeleccionados.map((item, idx) => (
+                  <div key={item.id_itinerario_programa || item.id || idx} className="programas-selector-item">
                     <div className="programas-selector-info">
                       <div className="programas-selector-header">
                         <h5>{item.programa_info.nombre}</h5>
@@ -414,7 +414,7 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
                       </button>
                       <button
                         className="programas-selector-btn programas-selector-btn-danger programas-selector-btn-sm"
-                        onClick={() => handleRemovePrograma(item.id_itinerario_programa)}
+                        onClick={() => handleRemovePrograma(item.id_itinerario_programa || item.id)}
                         title="Eliminar"
                       >
                         🗑️

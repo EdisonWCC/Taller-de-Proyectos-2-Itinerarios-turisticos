@@ -8,6 +8,7 @@ const GrupoSelector = ({ onNext, onBack, initialData = {} }) => {
   });
 
   const [showSelectModal, setShowSelectModal] = useState(false);
+  const [selectedGrupoId, setSelectedGrupoId] = useState(null);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
@@ -17,6 +18,14 @@ const GrupoSelector = ({ onNext, onBack, initialData = {} }) => {
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Si viene un grupo asignado al itinerario, habilitar actualización directa
+  useEffect(() => {
+    const idInit = initialData?.id_grupo || initialData?.id;
+    if (idInit) {
+      setSelectedGrupoId(idInit);
+    }
+  }, [initialData]);
 
   const [gruposExistentes, setGruposExistentes] = useState([]);
 
@@ -79,6 +88,8 @@ const GrupoSelector = ({ onNext, onBack, initialData = {} }) => {
       onNext({ grupo });
       // actualizar listado
       setGruposExistentes(prev => [{ id: data.id_grupo, nombre_grupo: data.nombre, descripcion: data.descripcion }, ...prev]);
+      setSelectedGrupoId(data.id_grupo);
+      setFormData({ nombre_grupo: data.nombre, descripcion: data.descripcion });
     } catch (e) {
       alert('Error al crear el grupo');
     } finally {
@@ -86,8 +97,48 @@ const GrupoSelector = ({ onNext, onBack, initialData = {} }) => {
     }
   };
 
+  const handleUpdateGroup = async () => {
+    if (!selectedGrupoId) return;
+    if (!validateForm()) return;
+    setIsLoading(true);
+    try {
+      const resp = await fetch(`http://localhost:3000/api/grupos/${selectedGrupoId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: formData.nombre_grupo.trim(), descripcion: formData.descripcion.trim() })
+      });
+      if (resp.status === 404) {
+        // Fallback: crear nuevo grupo si el actual no existe
+        const respCreate = await fetch('http://localhost:3000/api/grupos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre: formData.nombre_grupo.trim(), descripcion: formData.descripcion.trim() })
+        });
+        const dataCreate = await respCreate.json();
+        if (!respCreate.ok || dataCreate?.ok === false) throw new Error(dataCreate?.error || 'Error al crear grupo');
+        const nuevo = { id: dataCreate.id_grupo, nombre_grupo: dataCreate.nombre, descripcion: dataCreate.descripcion };
+        setSelectedGrupoId(nuevo.id);
+        setGruposExistentes(prev => [{ id: nuevo.id, nombre_grupo: nuevo.nombre_grupo, descripcion: nuevo.descripcion }, ...prev]);
+        onNext({ grupo: nuevo });
+        return;
+      }
+      const data = await resp.json();
+      if (!resp.ok || data?.ok === false) throw new Error(data?.error || 'Error al actualizar grupo');
+
+      const updated = { id: data.id_grupo || selectedGrupoId, nombre_grupo: data.nombre || formData.nombre_grupo, descripcion: data.descripcion || formData.descripcion };
+      setGruposExistentes(prev => prev.map(g => g.id === updated.id ? updated : g));
+      onNext({ grupo: updated });
+    } catch (e) {
+      alert('Error al actualizar el grupo');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSelectGroup = (grupo) => {
     setIsLoading(true);
+    setSelectedGrupoId(grupo.id);
+    setFormData({ nombre_grupo: grupo.nombre_grupo, descripcion: grupo.descripcion });
     onNext({ grupo });
     setShowSelectModal(false);
     setIsLoading(false);
@@ -222,6 +273,16 @@ const GrupoSelector = ({ onNext, onBack, initialData = {} }) => {
                 </>
               )}
             </button>
+            <button
+              className="grupo-selector__btn grupo-selector__btn--secondary"
+              onClick={handleUpdateGroup}
+              disabled={isLoading || !selectedGrupoId || !formData.nombre_grupo.trim() || !formData.descripcion.trim()}
+              type="button"
+              title={!selectedGrupoId ? 'Selecciona un grupo existente para actualizar' : 'Actualizar grupo existente'}
+            >
+              {isLoading ? 'Actualizando...' : '✏️ Actualizar Grupo'}
+            </button>
+            
           </div>
 
           {(formData.nombre_grupo || formData.descripcion) && (

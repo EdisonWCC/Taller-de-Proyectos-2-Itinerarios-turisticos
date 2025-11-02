@@ -1,7 +1,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import '../../styles/Admin/Itinerario/TransporteDetalle.css';
 
-const TransporteDetalle = forwardRef(({ initialData = [], itinerarioData = null, programasData = [] }, ref) => {
+const TransporteDetalle = forwardRef(({ initialData = [], itinerarioData = null, programasData = [], onTransportesChange }, ref) => {
   console.log('TransporteDetalle - programasData recibido:', programasData);
   console.log('TransporteDetalle - programasData length:', programasData?.length || 0);
   const [transportesAsignados, setTransportesAsignados] = useState(initialData);
@@ -215,6 +215,13 @@ const TransporteDetalle = forwardRef(({ initialData = [], itinerarioData = null,
     isValid: () => true
   }));
 
+  // Notificar al padre cuando cambie la lista local
+  useEffect(() => {
+    if (typeof onTransportesChange === 'function') {
+      onTransportesChange(transportesAsignados);
+    }
+  }, [transportesAsignados]);
+
   return (
     <div className="transporte-detalle-container">
       <div className="transporte-detalle-header expanded transporte">
@@ -367,8 +374,8 @@ const TransporteDetalle = forwardRef(({ initialData = [], itinerarioData = null,
                     className={errors.id_itinerario_programa ? 'error' : ''}
                   >
                     <option value="">Seleccionar actividad...</option>
-                    {programasData.map(programa => (
-                      <option key={programa.id_itinerario_programa} value={programa.id_itinerario_programa}>
+                    {programasData.map((programa, idx) => (
+                      <option key={programa.id_itinerario_programa || programa.id || idx} value={programa.id_itinerario_programa}>
                         {programa.programa_info.nombre} - {programa.fecha}
                       </option>
                     ))}
@@ -385,8 +392,8 @@ const TransporteDetalle = forwardRef(({ initialData = [], itinerarioData = null,
                     className={errors.id_transporte ? 'error' : ''}
                   >
                     <option value="">Seleccionar transporte...</option>
-                    {transportesDisponibles.map(transporte => (
-                      <option key={transporte.id_transporte} value={transporte.id_transporte}>
+                    {transportesDisponibles.map((transporte, idx) => (
+                      <option key={transporte.id_transporte || idx} value={transporte.id_transporte}>
                         {transporte.empresa} ({transporte.tipo} - Cap: {transporte.capacidad})
                       </option>
                     ))}

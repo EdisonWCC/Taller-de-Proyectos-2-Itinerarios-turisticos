@@ -96,30 +96,42 @@ const EditarItinerario = () => {
   const loadItinerarioData = async () => {
     setLoading(true);
     try {
-      if (state?.itinerario) {
-        const data = state.itinerario;
-        const transportes = Array.isArray(data.transportes) ? data.transportes : [];
-        const programas = Array.isArray(data.programas) ? data.programas : [];
-        
-        // Extraer detalles de Machu Picchu de los programas
-        const detallesMachu = extraerDetallesMachu(programas);
-      
-        setFormData({
-          grupo: data.grupo || null,
-          datosItinerario: {
-            fecha_inicio: data.fecha_inicio || '',
-            fecha_fin: data.fecha_fin || '',
-            estado_presupuesto_id: data.estado_presupuesto_id || 1
-          },
-          turistas: data.turistas || [],
-          programas: programas,
-          transportes: transportes,
-          detallesMachu: detallesMachu
-        });
-      } else {
-        toast.error('No se encontraron datos del itinerario');
-        navigate('/admin/itinerarios');
+      let data = state?.itinerario;
+      if (!data) {
+        const res = await fetch(`http://localhost:3000/api/itinerarios/${id}`);
+        if (!res.ok) throw new Error('No se pudo cargar el itinerario');
+        data = await res.json();
       }
+
+      const transportes = Array.isArray(data.transportes) ? data.transportes : [];
+      const programas = Array.isArray(data.programas) ? data.programas : [];
+      const detallesMachu = extraerDetallesMachu(programas);
+
+      const toInputDate = (val) => {
+        if (!val) return '';
+        try {
+          const d = new Date(val);
+          if (isNaN(d.getTime())) return String(val).slice(0, 10);
+          const tz = d.getTimezoneOffset();
+          const local = new Date(d.getTime() - tz * 60000);
+          return local.toISOString().slice(0, 10);
+        } catch {
+          return String(val).slice(0, 10);
+        }
+      };
+
+      setFormData({
+        grupo: data.grupo || null,
+        datosItinerario: {
+          fecha_inicio: toInputDate(data.fecha_inicio),
+          fecha_fin: toInputDate(data.fecha_fin),
+          estado_presupuesto_id: data.estado_presupuesto_id || 1
+        },
+        turistas: data.turistas || [],
+        programas: programas,
+        transportes: transportes,
+        detallesMachu: detallesMachu
+      });
     } catch (error) {
       console.error('Error cargando el itinerario:', error);
       toast.error('Error al cargar el itinerario');
@@ -134,14 +146,54 @@ const EditarItinerario = () => {
     setLoading(true);
     
     try {
-      // Aquí iría la lógica para enviar los datos a la API
-      console.log('Datos a guardar:', formData);
-      
-      // Simulamos un retraso de red
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const payload = {
+        grupo: formData.grupo?.id_grupo || formData.grupo?.id ? { id_grupo: formData.grupo.id_grupo || formData.grupo.id } : null,
+        datosItinerario: {
+          fecha_inicio: formData.datosItinerario.fecha_inicio,
+          fecha_fin: formData.datosItinerario.fecha_fin,
+          estado_presupuesto_id: formData.datosItinerario.estado_presupuesto_id
+        },
+        turistas: Array.isArray(formData.turistas) ? formData.turistas.map(t => ({ id_turista: t.id_turista || t.id })) : [],
+        programas: Array.isArray(formData.programas) ? formData.programas.map(p => ({
+          id_itinerario_programa: p.id || p.id_itinerario_programa,
+          fecha: p.fecha,
+          hora_inicio: p.hora_inicio,
+          hora_fin: p.hora_fin,
+          programa_info: {
+            id_programa: p.programa_info?.id_programa || p.programa_info?.id,
+            nombre: p.programa_info?.nombre,
+            tipo: p.programa_info?.tipo,
+            descripcion: p.programa_info?.descripcion,
+            duracion: p.programa_info?.duracion,
+            costo: p.programa_info?.precio_persona || p.programa_info?.costo
+          }
+        })) : [],
+        transportes: Array.isArray(formData.transportes) ? formData.transportes.map(t => ({
+          id_itinerario_programa: t.id_itinerario_programa || t.programa_info?.id_itinerario_programa || t.programa_info?.id,
+          id_transporte: t.id_transporte || t.transporte_info?.id_transporte,
+          horario_recojo: t.horario_recojo || t.programa_info?.hora_inicio,
+          lugar_recojo: t.lugar_recojo
+        })) : [],
+        detallesMachu: Array.isArray(formData.detallesMachu) ? formData.detallesMachu.map(m => ({
+          id_itinerario_programa: m.id_itinerario_programa || m.id,
+          empresa_tren: m.empresa_tren,
+          horario_tren_ida: m.horario_tren_ida,
+          horario_tren_retor: m.horario_tren_retor,
+          nombre_guia: m.nombre_guia,
+          ruta: m.ruta,
+          tiempo_visita: m.tiempo_visita
+        })) : []
+      };
+
+      const res = await fetch(`http://localhost:3000/api/itinerarios/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok || data?.ok === false) throw new Error(data?.error || 'Error al guardar');
+
       toast.success('Itinerario guardado correctamente');
-      // Redirigir a la lista de itinerarios del administrador después de guardar
       navigate('/admin/itinerarios');
     } catch (error) {
       console.error('Error al guardar el itinerario:', error);
@@ -167,10 +219,11 @@ const EditarItinerario = () => {
         return (
           <GrupoSelector
             initialData={{
+              id: formData.grupo?.id_grupo || formData.grupo?.id,
               nombre_grupo: formData.grupo?.nombre_grupo || '',
               descripcion: formData.grupo?.descripcion || ''
             }}
-            onNext={(data) => handleStepComplete(0, { ...formData.grupo, ...data })}
+            onNext={(data) => handleStepComplete(0, data?.grupo ? data.grupo : { ...formData.grupo, ...data })}
             isReadOnly={!editMode}
           />
         );
@@ -254,8 +307,8 @@ const EditarItinerario = () => {
   // Calcular el paso máximo - ahora son 6 pasos (0-5)
   const maxStep = 5; // 0: Grupo, 1: Datos, 2: Turistas, 3: Programas, 4: Transporte, 5: Machu Picchu
 
-  // Determinar si el botón de guardar debe estar habilitado (solo en el último paso)
-  const isSaveButtonDisabled = currentStep < maxStep;
+  // Permitir guardar desde cualquier paso cuando está en modo edición
+  const isSaveButtonDisabled = false;
 
   return (
     <div className="editar-itinerario-container">

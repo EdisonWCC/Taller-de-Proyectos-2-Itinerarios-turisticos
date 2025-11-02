@@ -54,6 +54,26 @@ app.post("/api/grupos", async (req, res) => {
   }
 });
 
+// Actualizar grupo
+app.put("/api/grupos/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nombre, descripcion } = req.body || {};
+  if (!nombre) return res.status(400).json({ ok: false, error: "Nombre requerido" });
+  try {
+    const [result] = await pool.query(
+      "UPDATE grupos SET nombre = ?, descripcion = ? WHERE id_grupo = ?",
+      [nombre, descripcion || null, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ ok: false, error: "Grupo no encontrado" });
+    }
+    res.json({ ok: true, id_grupo: Number(id), nombre, descripcion: descripcion || null });
+  } catch (err) {
+    console.error("❌ Error al actualizar grupo:", err.message);
+    res.status(500).json({ ok: false, error: "Error al actualizar grupo" });
+  }
+});
+
 // Estados de presupuesto
 app.get("/api/estados-presupuesto", async (req, res) => {
   try {
@@ -565,6 +585,392 @@ app.post("/api/usuarios/registro-completo", async (req, res) => {
     }
     console.error("❌ Error en registro-completo:", err.message);
     return res.status(500).json({ ok: false, error: "Error en el servidor" });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+// Listado de itinerarios con relaciones anidadas (grupos, programas, transportes y turistas)
+app.get("/api/itinerarios", async (req, res) => {
+  try {
+    const [base] = await pool.query(
+      `SELECT 
+         i.id_itinerario AS id,
+         i.id_grupo,
+         i.fecha_inicio,
+         i.fecha_fin,
+         i.estado_presupuesto_id,
+         e.nombre_estado AS estado_presupuesto,
+         g.nombre AS grupo_nombre,
+         g.descripcion AS grupo_descripcion
+       FROM itinerarios i
+       LEFT JOIN grupos g ON g.id_grupo = i.id_grupo
+       LEFT JOIN estados_presupuesto e ON e.id_estado = i.estado_presupuesto_id
+       ORDER BY i.id_itinerario DESC`
+    );
+
+    if (!Array.isArray(base) || base.length === 0) return res.json([]);
+
+    const ids = base.map(r => r.id);
+
+    // Programas + info + detalle Machu
+    const [prog] = await pool.query(
+      `SELECT 
+         ip.id_itinerario,
+         ip.id_itinerario_programa,
+         ip.fecha,
+         ip.hora_inicio,
+         ip.hora_fin,
+         p.id_programa,
+         p.nombre,
+         p.tipo,
+         p.descripcion,
+         p.duracion,
+         p.costo,
+         dm.empresa_tren,
+         dm.horario_tren_ida,
+         dm.horario_tren_retor,
+         dm.nombre_guia,
+         dm.ruta,
+         dm.tiempo_visita
+       FROM itinerario_programas ip
+       JOIN programas p ON p.id_programa = ip.id_programa
+       LEFT JOIN detalle_machu_itinerario dm ON dm.id_itinerario_programa = ip.id_itinerario_programa
+       WHERE ip.id_itinerario IN (?)`, [ids]
+    );
+
+    // Transportes
+    const [transp] = await pool.query(
+      `SELECT 
+         ip.id_itinerario,
+         dti.id_detalle_transporte,
+         dti.id_itinerario_programa,
+         dti.id_transporte,
+         dti.horario_recojo,
+         dti.lugar_recojo,
+         t.empresa,
+         t.tipo,
+         t.capacidad,
+         t.contacto
+       FROM detalle_transporte_itinerario dti
+       JOIN itinerario_programas ip ON ip.id_itinerario_programa = dti.id_itinerario_programa
+       JOIN transportes t ON t.id_transporte = dti.id_transporte
+       WHERE ip.id_itinerario IN (?)`, [ids]
+    );
+
+    // Turistas
+    const [turs] = await pool.query(
+      `SELECT it.id_itinerario, t.*
+       FROM itinerario_turistas it
+       JOIN turistas t ON t.id_turista = it.id_turista
+       WHERE it.id_itinerario IN (?)`, [ids]
+    );
+
+    // Armar respuesta
+    const byId = new Map();
+    base.forEach(r => {
+      byId.set(r.id, {
+        id: r.id,
+        grupo: r.id_grupo ? { id_grupo: r.id_grupo, nombre_grupo: r.grupo_nombre, descripcion: r.grupo_descripcion } : null,
+        fecha_inicio: r.fecha_inicio,
+        fecha_fin: r.fecha_fin,
+        estado_presupuesto_id: r.estado_presupuesto_id,
+        estado_presupuesto: r.estado_presupuesto,
+        programas: [],
+        transportes: [],
+        turistas: []
+      });
+    });
+
+    for (const p of prog) {
+      const it = byId.get(p.id_itinerario);
+      if (!it) continue;
+      const item = {
+        id: p.id_itinerario_programa,
+        fecha: p.fecha,
+        hora_inicio: p.hora_inicio,
+        hora_fin: p.hora_fin,
+        programa_info: {
+          id_programa: p.id_programa,
+          nombre: p.nombre,
+          tipo: p.tipo,
+          descripcion: p.descripcion,
+          duracion: p.duracion,
+          costo: p.costo
+        }
+      };
+      if (p.empresa_tren || p.horario_tren_ida || p.horario_tren_retor || p.nombre_guia || p.ruta || p.tiempo_visita) {
+        item.detalles_machupicchu = {
+          id_itinerario_programa: p.id_itinerario_programa,
+          empresa_tren: p.empresa_tren,
+          horario_tren_ida: p.horario_tren_ida,
+          horario_tren_retor: p.horario_tren_retor,
+          nombre_guia: p.nombre_guia,
+          ruta: p.ruta,
+          tiempo_visita: p.tiempo_visita
+        };
+      }
+      it.programas.push(item);
+    }
+
+    for (const tr of transp) {
+      const it = byId.get(tr.id_itinerario);
+      if (!it) continue;
+      it.transportes.push({
+        id_detalle_transporte: tr.id_detalle_transporte,
+        id_itinerario_programa: tr.id_itinerario_programa,
+        id_transporte: tr.id_transporte,
+        horario_recojo: tr.horario_recojo,
+        lugar_recojo: tr.lugar_recojo,
+        transporte_info: {
+          id_transporte: tr.id_transporte,
+          empresa: tr.empresa,
+          tipo: tr.tipo,
+          capacidad: tr.capacidad,
+          contacto: tr.contacto
+        }
+      });
+    }
+
+    for (const t of turs) {
+      const it = byId.get(t.id_itinerario);
+      if (!it) continue;
+      const { id_itinerario, ...rest } = t;
+      it.turistas.push(rest);
+    }
+
+    res.json(Array.from(byId.values()));
+  } catch (err) {
+    console.error("❌ Error al listar itinerarios:", err.message);
+    res.status(500).json({ ok: false, error: "Error al listar itinerarios" });
+  }
+});
+
+// Obtener 1 itinerario por id con relaciones
+app.get("/api/itinerarios/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query(
+      `SELECT 
+         i.id_itinerario AS id,
+         i.id_grupo,
+         i.fecha_inicio,
+         i.fecha_fin,
+         i.estado_presupuesto_id,
+         e.nombre_estado AS estado_presupuesto,
+         g.nombre AS grupo_nombre,
+         g.descripcion AS grupo_descripcion
+       FROM itinerarios i
+       LEFT JOIN grupos g ON g.id_grupo = i.id_grupo
+       LEFT JOIN estados_presupuesto e ON e.id_estado = i.estado_presupuesto_id
+       WHERE i.id_itinerario = ?`, [id]
+    );
+    if (rows.length === 0) return res.status(404).json({ ok: false, error: "Itinerario no encontrado" });
+
+    const base = rows[0];
+    const resp = {
+      id: base.id,
+      grupo: base.id_grupo ? { id_grupo: base.id_grupo, nombre_grupo: base.grupo_nombre, descripcion: base.grupo_descripcion } : null,
+      fecha_inicio: base.fecha_inicio,
+      fecha_fin: base.fecha_fin,
+      estado_presupuesto_id: base.estado_presupuesto_id,
+      estado_presupuesto: base.estado_presupuesto,
+      programas: [],
+      transportes: [],
+      turistas: []
+    };
+
+    const [prog] = await pool.query(
+      `SELECT 
+         ip.id_itinerario_programa,
+         ip.fecha,
+         ip.hora_inicio,
+         ip.hora_fin,
+         p.id_programa,
+         p.nombre,
+         p.tipo,
+         p.descripcion,
+         p.duracion,
+         p.costo,
+         dm.empresa_tren,
+         dm.horario_tren_ida,
+         dm.horario_tren_retor,
+         dm.nombre_guia,
+         dm.ruta,
+         dm.tiempo_visita
+       FROM itinerario_programas ip
+       JOIN programas p ON p.id_programa = ip.id_programa
+       LEFT JOIN detalle_machu_itinerario dm ON dm.id_itinerario_programa = ip.id_itinerario_programa
+       WHERE ip.id_itinerario = ?`, [id]
+    );
+    for (const p of prog) {
+      const item = {
+        id: p.id_itinerario_programa,
+        fecha: p.fecha,
+        hora_inicio: p.hora_inicio,
+        hora_fin: p.hora_fin,
+        programa_info: {
+          id_programa: p.id_programa,
+          nombre: p.nombre,
+          tipo: p.tipo,
+          descripcion: p.descripcion,
+          duracion: p.duracion,
+          costo: p.costo
+        }
+      };
+      if (p.empresa_tren || p.horario_tren_ida || p.horario_tren_retor || p.nombre_guia || p.ruta || p.tiempo_visita) {
+        item.detalles_machupicchu = {
+          id_itinerario_programa: p.id_itinerario_programa,
+          empresa_tren: p.empresa_tren,
+          horario_tren_ida: p.horario_tren_ida,
+          horario_tren_retor: p.horario_tren_retor,
+          nombre_guia: p.nombre_guia,
+          ruta: p.ruta,
+          tiempo_visita: p.tiempo_visita
+        };
+      }
+      resp.programas.push(item);
+    }
+
+    const [transp] = await pool.query(
+      `SELECT 
+         dti.id_detalle_transporte,
+         dti.id_itinerario_programa,
+         dti.id_transporte,
+         dti.horario_recojo,
+         dti.lugar_recojo,
+         t.empresa,
+         t.tipo,
+         t.capacidad,
+         t.contacto
+       FROM detalle_transporte_itinerario dti
+       JOIN itinerario_programas ip ON ip.id_itinerario_programa = dti.id_itinerario_programa
+       JOIN transportes t ON t.id_transporte = dti.id_transporte
+       WHERE ip.id_itinerario = ?`, [id]
+    );
+    for (const tr of transp) {
+      resp.transportes.push({
+        id_detalle_transporte: tr.id_detalle_transporte,
+        id_itinerario_programa: tr.id_itinerario_programa,
+        id_transporte: tr.id_transporte,
+        horario_recojo: tr.horario_recojo,
+        lugar_recojo: tr.lugar_recojo,
+        transporte_info: {
+          id_transporte: tr.id_transporte,
+          empresa: tr.empresa,
+          tipo: tr.tipo,
+          capacidad: tr.capacidad,
+          contacto: tr.contacto
+        }
+      });
+    }
+
+    const [turs] = await pool.query(
+      `SELECT t.*
+       FROM itinerario_turistas it
+       JOIN turistas t ON t.id_turista = it.id_turista
+       WHERE it.id_itinerario = ?`, [id]
+    );
+    resp.turistas = turs;
+
+    res.json(resp);
+  } catch (err) {
+    console.error("❌ Error al obtener itinerario:", err.message);
+    res.status(500).json({ ok: false, error: "Error al obtener itinerario" });
+  }
+});
+
+// Actualizar itinerario y reemplazar relaciones (transaccional)
+app.put("/api/itinerarios/:id", async (req, res) => {
+  const { id } = req.params;
+  const payload = req.body || {};
+  const {
+    grupo,
+    datosItinerario,
+    turistas = [],
+    programas = [],
+    transportes = [],
+    detallesMachu = []
+  } = payload;
+
+  if (!datosItinerario?.fecha_inicio || !datosItinerario?.fecha_fin || !datosItinerario?.estado_presupuesto_id) {
+    return res.status(400).json({ ok: false, error: "Datos del itinerario incompletos" });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
+
+    // Actualizar datos base
+    let id_grupo = null;
+    if (grupo?.id_grupo || grupo?.id) id_grupo = grupo.id_grupo || grupo.id;
+    await conn.query(
+      `UPDATE itinerarios 
+       SET id_grupo = ?, fecha_inicio = ?, fecha_fin = ?, estado_presupuesto_id = ?, updated_at = NOW()
+       WHERE id_itinerario = ?`,
+      [id_grupo || null, datosItinerario.fecha_inicio, datosItinerario.fecha_fin, datosItinerario.estado_presupuesto_id, id]
+    );
+
+    // Limpiar relaciones existentes
+    await conn.query(`DELETE dmi FROM detalle_machu_itinerario dmi JOIN itinerario_programas ip ON ip.id_itinerario_programa = dmi.id_itinerario_programa WHERE ip.id_itinerario = ?`, [id]);
+    await conn.query(`DELETE dti FROM detalle_transporte_itinerario dti JOIN itinerario_programas ip ON ip.id_itinerario_programa = dti.id_itinerario_programa WHERE ip.id_itinerario = ?`, [id]);
+    await conn.query(`DELETE FROM itinerario_turistas WHERE id_itinerario = ?`, [id]);
+    await conn.query(`DELETE FROM itinerario_programas WHERE id_itinerario = ?`, [id]);
+
+    // Reinsertar relaciones
+    if (Array.isArray(turistas) && turistas.length > 0) {
+      const values = turistas.filter(t => t?.id_turista).map(t => [id, t.id_turista]);
+      if (values.length > 0) await conn.query(`INSERT INTO itinerario_turistas (id_itinerario, id_turista) VALUES ?`, [values]);
+    }
+
+    const ipIdMap = new Map();
+    for (const itp of programas || []) {
+      const info = itp.programa_info || {};
+      let id_programa = info.id_programa;
+      if (id_programa) {
+        const [chk] = await conn.query(`SELECT id_programa FROM programas WHERE id_programa = ?`, [id_programa]);
+        if (!Array.isArray(chk) || chk.length === 0) id_programa = undefined;
+      }
+      if (!id_programa) {
+        const [p] = await conn.query(
+          `INSERT INTO programas (nombre, descripcion, tipo, duracion, costo) VALUES (?, ?, ?, ?, ?)`,
+          [info.nombre, info.descripcion || null, info.tipo, parseInt(info.duracion || 0) || 0, parseFloat(info.costo || 0) || 0]
+        );
+        id_programa = p.insertId;
+      }
+      const [ip] = await conn.query(
+        `INSERT INTO itinerario_programas (id_itinerario, id_programa, fecha, hora_inicio, hora_fin) VALUES (?, ?, ?, ?, ?)`,
+        [id, id_programa, itp.fecha, itp.hora_inicio, itp.hora_fin]
+      );
+      if (itp.id_itinerario_programa) ipIdMap.set(String(itp.id_itinerario_programa), ip.insertId);
+    }
+
+    for (const d of transportes || []) {
+      const realIp = ipIdMap.get(String(d.id_itinerario_programa));
+      if (!realIp || !d.id_transporte) continue;
+      await conn.query(
+        `INSERT INTO detalle_transporte_itinerario (id_itinerario_programa, id_transporte, horario_recojo, lugar_recojo) VALUES (?, ?, ?, ?)`,
+        [realIp, d.id_transporte, d.horario_recojo, d.lugar_recojo]
+      );
+    }
+
+    for (const m of detallesMachu || []) {
+      const realIp = ipIdMap.get(String(m.id_itinerario_programa));
+      if (!realIp) continue;
+      await conn.query(
+        `INSERT INTO detalle_machu_itinerario (id_itinerario_programa, empresa_tren, horario_tren_ida, horario_tren_retor, nombre_guia, ruta, tiempo_visita)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [realIp, m.empresa_tren, m.horario_tren_ida, m.horario_tren_retor, m.nombre_guia, m.ruta, m.tiempo_visita]
+      );
+    }
+
+    await conn.commit();
+    res.json({ ok: true });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error("❌ Error actualizando itinerario:", err.message);
+    res.status(500).json({ ok: false, error: "Error al actualizar itinerario" });
   } finally {
     if (conn) conn.release();
   }
