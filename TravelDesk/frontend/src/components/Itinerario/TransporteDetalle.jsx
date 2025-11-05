@@ -76,7 +76,8 @@ const TransporteDetalle = forwardRef(({ initialData = [], itinerarioData = null,
 
   // Obtener nombre del programa por id_itinerario_programa
   const getProgramaInfo = (idItinerarioPrograma) => {
-    const programa = programasData.find(p => p.id_itinerario_programa === parseInt(idItinerarioPrograma));
+    const target = parseInt(idItinerarioPrograma);
+    const programa = programasData.find(p => (p.id_itinerario_programa || p.id) === target);
     if (programa) {
       return {
         nombre: programa.programa_info.nombre,
@@ -369,16 +370,19 @@ const TransporteDetalle = forwardRef(({ initialData = [], itinerarioData = null,
                   <label>Actividad/Programa *</label>
                   <select
                     name="id_itinerario_programa"
-                    value={formData.id_itinerario_programa}
+                    value={String(formData.id_itinerario_programa || '')}
                     onChange={handleInputChange}
                     className={errors.id_itinerario_programa ? 'error' : ''}
                   >
                     <option value="">Seleccionar actividad...</option>
-                    {programasData.map((programa, idx) => (
-                      <option key={programa.id_itinerario_programa || programa.id || idx} value={programa.id_itinerario_programa}>
-                        {programa.programa_info.nombre} - {programa.fecha}
-                      </option>
-                    ))}
+                    {programasData.map((programa, idx) => {
+                      const pid = programa.id_itinerario_programa || programa.id;
+                      return (
+                        <option key={pid || idx} value={String(pid)}>
+                          {programa.programa_info.nombre} - {programa.fecha}
+                        </option>
+                      );
+                    })}
                   </select>
                   {errors.id_itinerario_programa && <span className="error-message">{errors.id_itinerario_programa}</span>}
                 </div>

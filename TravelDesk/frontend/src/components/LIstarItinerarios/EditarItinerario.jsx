@@ -250,8 +250,12 @@ const EditarItinerario = () => {
         return (
           <ItinerarioProgramasSelector
             initialData={formData.programas || []}
-            onProgramasChange={(programas) => setFormData(prev => ({ ...prev, programas }))}
+            onProgramasChange={(programas) => {
+              console.log('EditarItinerario - onProgramasChange received', programas);
+              setFormData(prev => ({ ...prev, programas }));
+            }}
             isReadOnly={!editMode}
+            itinerarioId={id}
           />
         );
       case 4: // Transporte

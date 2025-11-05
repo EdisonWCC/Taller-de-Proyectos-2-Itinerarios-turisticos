@@ -2,7 +2,7 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'rea
 import { FaEdit, FaTrash, FaCheck, FaTimes } from 'react-icons/fa';
 import '../../styles/Admin/Itinerario/ItinerarioProgramasSelector.css';
 
-const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = [], itinerarioData = null, onProgramasChange, isReadOnly = false }, ref) => {
+const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = [], itinerarioData = null, onProgramasChange, isReadOnly = false, itinerarioId = null }, ref) => {
   console.log('ItinerarioProgramasSelector - props recibidas:', { onNext: !!onNext, onBack: !!onBack, initialData, itinerarioData, onProgramasChange: !!onProgramasChange });
   const [programasSeleccionados, setProgramasSeleccionados] = useState(initialData);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -76,6 +76,34 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
       hora_fin: ''
     });
     setEditingProgramaId(null);
+  };
+
+  // Normalizadores para inputs HTML (fuera de useEffect para uso en todo el componente)
+  const toDateOnly = (s) => {
+    if (!s) return '';
+    if (typeof s === 'string') {
+      if (s.includes('T')) return s.split('T')[0];
+      return s.length >= 10 ? s.slice(0, 10) : s;
+    }
+    try {
+      const d = new Date(s);
+      if (isNaN(d)) return '';
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    } catch {
+      return '';
+    }
+  };
+
+  const toTimeHM = (s) => {
+    if (!s) return '';
+    if (typeof s === 'string') {
+      if (s.length >= 5) return s.slice(0, 5);
+      return s;
+    }
+    return '';
   };
 
   // Validar fecha dentro del rango
@@ -199,27 +227,160 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
     console.log('ItinerarioProgramasSelector - Modal cerrado y formulario reseteado');
   };
 
-  const handleEditPrograma = (programa) => {
+  const handleUpdatePrograma = async () => {
+    console.log('ItinerarioProgramasSelector - handleUpdatePrograma START', { editingProgramaId, nuevoProgramaForm, programasSeleccionados });
+    const errors = {};
+
+    if (!nuevoProgramaForm.nombre.trim()) {
+      errors.nombre = 'El nombre es requerido';
+    }
+    if (!nuevoProgramaForm.tipo) {
+      errors.tipo = 'Selecciona el tipo';
+    }
+    if (!nuevoProgramaForm.duracion || parseFloat(nuevoProgramaForm.duracion) <= 0) {
+      errors.duracion = 'La duración debe ser mayor a 0';
+    }
+    if (!nuevoProgramaForm.costo || parseFloat(nuevoProgramaForm.costo) <= 0) {
+      errors.costo = 'El costo debe ser mayor a 0';
+    }
+    if (!nuevoProgramaForm.fecha) {
+      errors.fecha = 'La fecha es requerida';
+    } else if (!isFechaValida(nuevoProgramaForm.fecha)) {
+      errors.fecha = `Fecha fuera del rango del itinerario`;
+    }
+    if (!nuevoProgramaForm.hora_inicio) {
+      errors.hora_inicio = 'Hora de inicio requerida';
+    }
+    if (!nuevoProgramaForm.hora_fin) {
+      errors.hora_fin = 'Hora de fin requerida';
+    }
+    if (nuevoProgramaForm.hora_inicio && nuevoProgramaForm.hora_fin) {
+      if (nuevoProgramaForm.hora_inicio >= nuevoProgramaForm.hora_fin) {
+        errors.hora_fin = 'Hora de fin debe ser posterior';
+      }
+    }
+
+    setErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      console.log('ItinerarioProgramasSelector - Validación falló en UPDATE', errors);
+    }
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    // Verificar conflictos de horarios ignorando el mismo ítem que se edita
+    const conflicto = programasSeleccionados.find(p => {
+      const pid = p.id_itinerario_programa || p.id;
+      if (String(pid) === String(editingProgramaId)) return false;
+      return (
+        p.fecha === nuevoProgramaForm.fecha &&
+        ((nuevoProgramaForm.hora_inicio >= p.hora_inicio && nuevoProgramaForm.hora_inicio < p.hora_fin) ||
+          (nuevoProgramaForm.hora_fin > p.hora_inicio && nuevoProgramaForm.hora_fin <= p.hora_fin))
+      );
+    });
+    if (conflicto) {
+      console.log('ItinerarioProgramasSelector - Conflicto detectado en UPDATE', conflicto);
+      setErrors({ general: 'Conflicto de horarios en esa fecha' });
+      return;
+    }
+
+    const nuevos = programasSeleccionados.map(p => {
+      const pid = p.id_itinerario_programa || p.id;
+      if (String(pid) !== String(editingProgramaId)) return p;
+      return {
+        ...p,
+        fecha: nuevoProgramaForm.fecha,
+        hora_inicio: nuevoProgramaForm.hora_inicio,
+        hora_fin: nuevoProgramaForm.hora_fin,
+        programa_info: {
+          ...(p.programa_info || {}),
+          id_programa: nuevoProgramaForm.id_programa || p.programa_info?.id_programa || p.programa_info?.id,
+          nombre: nuevoProgramaForm.nombre,
+          descripcion: nuevoProgramaForm.descripcion || '',
+          tipo: nuevoProgramaForm.tipo,
+          duracion: parseInt(nuevoProgramaForm.duracion),
+          costo: parseFloat(nuevoProgramaForm.costo)
+        }
+      };
+    });
+    console.log('ItinerarioProgramasSelector - Programas actualizados (local)', nuevos);
+    setProgramasSeleccionados(nuevos);
+    if (onProgramasChange) {
+      console.log('ItinerarioProgramasSelector - Notificando cambio al padre');
+      onProgramasChange(nuevos);
+    }
+
+    // Persistir inmediatamente con PATCH si tenemos itinerarioId e id de item
+    if (itinerarioId && editingProgramaId) {
+      try {
+        const body = {
+          fecha: nuevoProgramaForm.fecha,
+          hora_inicio: nuevoProgramaForm.hora_inicio,
+          hora_fin: nuevoProgramaForm.hora_fin,
+          programa_info: {
+            nombre: nuevoProgramaForm.nombre,
+            descripcion: nuevoProgramaForm.descripcion || '',
+            tipo: nuevoProgramaForm.tipo,
+            duracion: parseInt(nuevoProgramaForm.duracion),
+            costo: parseFloat(nuevoProgramaForm.costo)
+          }
+        };
+        console.log('ItinerarioProgramasSelector - PATCH request body', body);
+        const res = await fetch(`http://localhost:3000/api/itinerarios/${itinerarioId}/programas/${editingProgramaId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data?.ok === false) {
+          console.error('ItinerarioProgramasSelector - PATCH error', data);
+        } else {
+          console.log('ItinerarioProgramasSelector - PATCH ok');
+        }
+      } catch (e) {
+        console.error('ItinerarioProgramasSelector - PATCH exception', e);
+      }
+    }
+
+    setShowAddModal(false);
     setNuevoProgramaForm({
-      id: programa.id,
-      id_programa: programa.programa_info.id,
+      id_programa: '',
+      nombre: '',
+      descripcion: '',
+      tipo: '',
+      duracion: '',
+      costo: '',
+      fecha: '',
+      hora_inicio: '',
+      hora_fin: ''
+    });
+    setErrors({});
+    setEditingProgramaId(null);
+  };
+
+  const handleEditPrograma = (programa) => {
+    console.log('ItinerarioProgramasSelector - handleEditPrograma', programa);
+    setNuevoProgramaForm({
+      id: programa.id_itinerario_programa || programa.id,
+      id_programa: programa.programa_info.id_programa || programa.programa_info.id,
       nombre: programa.programa_info.nombre,
       descripcion: programa.programa_info.descripcion || '',
       tipo: programa.programa_info.tipo,
       duracion: programa.programa_info.duracion,
       costo: programa.programa_info.costo,
-      fecha: programa.fecha,
-      hora_inicio: programa.hora_inicio,
-      hora_fin: programa.hora_fin
+      fecha: toDateOnly(programa.fecha),
+      hora_inicio: toTimeHM(programa.hora_inicio),
+      hora_fin: toTimeHM(programa.hora_fin)
     });
-    setEditingProgramaId(programa.id);
+    setEditingProgramaId(programa.id_itinerario_programa || programa.id);
+    console.log('ItinerarioProgramasSelector - editingProgramaId set', programa.id_itinerario_programa || programa.id);
     setShowAddModal(true);
   };
 
   const handleRemovePrograma = (id) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este programa?')) {
       setProgramasSeleccionados(prev => {
-        const updated = prev.filter(programa => programa.id !== id);
+        const updated = prev.filter(programa => (programa.id_itinerario_programa || programa.id) !== id);
         if (onProgramasChange) onProgramasChange(updated);
         return updated;
       });
@@ -345,7 +506,7 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
             {/* Solo botón de agregar programa */}
             <button
               className="programas-selector-btn programas-selector-btn-primary programas-selector-btn-add"
-              onClick={() => setShowAddModal(true)}
+              onClick={() => { setEditingProgramaId(null); setShowAddModal(true); }}
             >
               ➕ Agregar Programa
             </button>
@@ -440,7 +601,7 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
         <div className="programas-selector-modal-overlay">
           <div className="programas-selector-modal-content">
             <div className="programas-selector-modal-header">
-              <h3>{editingProgramaId ? 'Editar Programa' : '➕ Agregar Programa'}</h3>
+              <h3>{editingProgramaId !== null ? 'Editar Programa' : '➕ Agregar Programa'}</h3>
               <button
                 className="programas-selector-modal-close"
                 onClick={() => {
@@ -457,6 +618,7 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
                     hora_fin: ''
                   });
                   setErrors({});
+                  setEditingProgramaId(null);
                 }}
               >
                 ✕
@@ -610,6 +772,7 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
                     hora_fin: ''
                   });
                   setErrors({});
+                  setEditingProgramaId(null);
                 }}
               >
                 Cancelar
@@ -617,11 +780,16 @@ const ItinerarioProgramasSelector = forwardRef(({ onNext, onBack, initialData = 
               <button
                 className="programas-selector-btn programas-selector-btn-primary"
                 onClick={() => {
-                  console.log('ItinerarioProgramasSelector - Botón Agregar clickeado');
-                  handleAddPrograma();
+                  if (editingProgramaId !== null) {
+                    console.log('ItinerarioProgramasSelector - Botón Guardar clickeado');
+                    handleUpdatePrograma();
+                  } else {
+                    console.log('ItinerarioProgramasSelector - Botón Agregar clickeado');
+                    handleAddPrograma();
+                  }
                 }}
               >
-                ✅ Agregar
+                {editingProgramaId !== null ? '✅ Guardar' : '✅ Agregar'}
               </button>
             </div>
           </div>

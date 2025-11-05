@@ -211,10 +211,11 @@ app.post("/api/itinerarios", async (req, res) => {
     for (const d of transportes || []) {
       const realIp = ipIdMap.get(String(d.id_itinerario_programa));
       if (!realIp || !d.id_transporte) continue;
-      await conn.query(
+      const [insDTI] = await conn.query(
         `INSERT INTO detalle_transporte_itinerario (id_itinerario_programa, id_transporte, horario_recojo, lugar_recojo) VALUES (?, ?, ?, ?)`,
         [realIp, d.id_transporte, d.horario_recojo, d.lugar_recojo]
       );
+      console.log("INSERT detalle_transporte_itinerario rows:", insDTI?.affectedRows);
     }
 
     // 6) Detalle Machu Picchu
@@ -880,6 +881,85 @@ app.get("/api/itinerarios/:id", async (req, res) => {
   }
 });
 
+// Actualizar un único programa de un itinerario (sin reconstruir todas las relaciones)
+app.patch("/api/itinerarios/:id/programas/:ipId", async (req, res) => {
+  const { id, ipId } = req.params;
+  const {
+    fecha,
+    hora_inicio,
+    hora_fin,
+    programa_info = {}
+  } = req.body || {};
+
+  let conn;
+  try {
+    console.log("PATCH /api/itinerarios/%s/programas/%s - body:", id, ipId, req.body);
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
+
+    // Verificar que el item pertenece al itinerario
+    const [rows] = await conn.query(
+      `SELECT ip.id_itinerario_programa, ip.id_itinerario, ip.id_programa
+       FROM itinerario_programas ip
+       WHERE ip.id_itinerario_programa = ?`,
+      [ipId]
+    );
+    if (!Array.isArray(rows) || rows.length === 0) {
+      await conn.rollback();
+      return res.status(404).json({ ok: false, error: "Programa del itinerario no encontrado" });
+    }
+    const current = rows[0];
+    if (String(current.id_itinerario) !== String(id)) {
+      await conn.rollback();
+      return res.status(400).json({ ok: false, error: "El programa no pertenece a este itinerario" });
+    }
+
+    // Actualizar campos del itinerario_programas si fueron provistos
+    const updates = [];
+    const params = [];
+    if (typeof fecha !== 'undefined') { updates.push('fecha = ?'); params.push(fecha); }
+    if (typeof hora_inicio !== 'undefined') { updates.push('hora_inicio = ?'); params.push(hora_inicio); }
+    if (typeof hora_fin !== 'undefined') { updates.push('hora_fin = ?'); params.push(hora_fin); }
+    if (updates.length > 0) {
+      params.push(ipId);
+      const [upRes] = await conn.query(
+        `UPDATE itinerario_programas SET ${updates.join(', ')} WHERE id_itinerario_programa = ?`,
+        params
+      );
+      console.log("itinerario_programas UPDATE affectedRows:", upRes?.affectedRows);
+    }
+
+    // Actualizar datos del programa vinculado si se enviaron
+    if (programa_info && Object.keys(programa_info).length > 0) {
+      const pUpdates = [];
+      const pParams = [];
+      if (typeof programa_info.nombre !== 'undefined') { pUpdates.push('nombre = ?'); pParams.push(programa_info.nombre); }
+      if (typeof programa_info.descripcion !== 'undefined') { pUpdates.push('descripcion = ?'); pParams.push(programa_info.descripcion); }
+      if (typeof programa_info.tipo !== 'undefined') { pUpdates.push('tipo = ?'); pParams.push(programa_info.tipo); }
+      if (typeof programa_info.duracion !== 'undefined') { pUpdates.push('duracion = ?'); pParams.push(parseInt(programa_info.duracion || 0) || 0); }
+      if (typeof programa_info.costo !== 'undefined') { pUpdates.push('costo = ?'); pParams.push(parseFloat(programa_info.costo || 0) || 0); }
+      if (pUpdates.length > 0) {
+        pParams.push(current.id_programa);
+        const [pRes] = await conn.query(
+          `UPDATE programas SET ${pUpdates.join(', ')} WHERE id_programa = ?`,
+          pParams
+        );
+        console.log("programas UPDATE affectedRows:", pRes?.affectedRows);
+      }
+    }
+
+    await conn.commit();
+    console.log("PATCH commit ok for ipId=", ipId);
+    return res.json({ ok: true });
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error("❌ Error actualizando programa del itinerario:", err.message);
+    return res.status(500).json({ ok: false, error: "Error al actualizar el programa" });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 // Actualizar itinerario y reemplazar relaciones (transaccional)
 app.put("/api/itinerarios/:id", async (req, res) => {
   const { id } = req.params;
@@ -899,6 +979,12 @@ app.put("/api/itinerarios/:id", async (req, res) => {
 
   let conn;
   try {
+    console.log("PUT /api/itinerarios/%s - payload sizes:", id, {
+      turistas: Array.isArray(turistas) ? turistas.length : 0,
+      programas: Array.isArray(programas) ? programas.length : 0,
+      transportes: Array.isArray(transportes) ? transportes.length : 0,
+      detallesMachu: Array.isArray(detallesMachu) ? detallesMachu.length : 0,
+    });
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
@@ -913,15 +999,19 @@ app.put("/api/itinerarios/:id", async (req, res) => {
     );
 
     // Limpiar relaciones existentes
-    await conn.query(`DELETE dmi FROM detalle_machu_itinerario dmi JOIN itinerario_programas ip ON ip.id_itinerario_programa = dmi.id_itinerario_programa WHERE ip.id_itinerario = ?`, [id]);
-    await conn.query(`DELETE dti FROM detalle_transporte_itinerario dti JOIN itinerario_programas ip ON ip.id_itinerario_programa = dti.id_itinerario_programa WHERE ip.id_itinerario = ?`, [id]);
-    await conn.query(`DELETE FROM itinerario_turistas WHERE id_itinerario = ?`, [id]);
-    await conn.query(`DELETE FROM itinerario_programas WHERE id_itinerario = ?`, [id]);
+    const [delMachu] = await conn.query(`DELETE dmi FROM detalle_machu_itinerario dmi JOIN itinerario_programas ip ON ip.id_itinerario_programa = dmi.id_itinerario_programa WHERE ip.id_itinerario = ?`, [id]);
+    const [delTrans] = await conn.query(`DELETE dti FROM detalle_transporte_itinerario dti JOIN itinerario_programas ip ON ip.id_itinerario_programa = dti.id_itinerario_programa WHERE ip.id_itinerario = ?`, [id]);
+    const [delTurs] = await conn.query(`DELETE FROM itinerario_turistas WHERE id_itinerario = ?`, [id]);
+    const [delProg] = await conn.query(`DELETE FROM itinerario_programas WHERE id_itinerario = ?`, [id]);
+    console.log("DELETE counts:", { delMachu: delMachu?.affectedRows, delTrans: delTrans?.affectedRows, delTurs: delTurs?.affectedRows, delProg: delProg?.affectedRows });
 
     // Reinsertar relaciones
     if (Array.isArray(turistas) && turistas.length > 0) {
       const values = turistas.filter(t => t?.id_turista).map(t => [id, t.id_turista]);
-      if (values.length > 0) await conn.query(`INSERT INTO itinerario_turistas (id_itinerario, id_turista) VALUES ?`, [values]);
+      if (values.length > 0) {
+        const [insT] = await conn.query(`INSERT INTO itinerario_turistas (id_itinerario, id_turista) VALUES ?`, [values]);
+        console.log("INSERT itinerario_turistas rows:", insT?.affectedRows);
+      }
     }
 
     const ipIdMap = new Map();
@@ -958,14 +1048,16 @@ app.put("/api/itinerarios/:id", async (req, res) => {
     for (const m of detallesMachu || []) {
       const realIp = ipIdMap.get(String(m.id_itinerario_programa));
       if (!realIp) continue;
-      await conn.query(
+      const [insDMI] = await conn.query(
         `INSERT INTO detalle_machu_itinerario (id_itinerario_programa, empresa_tren, horario_tren_ida, horario_tren_retor, nombre_guia, ruta, tiempo_visita)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [realIp, m.empresa_tren, m.horario_tren_ida, m.horario_tren_retor, m.nombre_guia, m.ruta, m.tiempo_visita]
       );
+      console.log("INSERT detalle_machu_itinerario rows:", insDMI?.affectedRows);
     }
 
     await conn.commit();
+    console.log("PUT commit ok for itinerario id=", id);
     res.json({ ok: true });
   } catch (err) {
     if (conn) await conn.rollback();

@@ -22,6 +22,50 @@ const DetalleMachuForm = forwardRef(({
     tiempo_visita: ''
   });
 
+  // Sincronizar cuando cambie el initialData desde el padre
+  useEffect(() => {
+    setDetallesMachu(Array.isArray(initialData) ? initialData : []);
+  }, [initialData]);
+
+  // Prefill automático al seleccionar un programa si ya existe detalle guardado
+  useEffect(() => {
+    if (!formData.id_itinerario_programa) return;
+    const pid = parseInt(formData.id_itinerario_programa);
+    if (!pid) return;
+    const existente = detallesMachu.find(d => d.id_itinerario_programa === pid);
+    if (!existente) return;
+    const needsUpdate = (
+      formData.empresa_tren !== (existente.empresa_tren || '') ||
+      formData.horario_tren_ida !== (existente.horario_tren_ida || '') ||
+      formData.horario_tren_retor !== (existente.horario_tren_retor || '') ||
+      formData.nombre_guia !== (existente.nombre_guia || '') ||
+      formData.ruta !== (existente.ruta || '') ||
+      formData.tiempo_visita !== (existente.tiempo_visita || '')
+    );
+    if (needsUpdate) {
+      setFormData(prev => ({
+        ...prev,
+        id_itinerario_programa: String(pid),
+        empresa_tren: existente.empresa_tren || '',
+        horario_tren_ida: existente.horario_tren_ida || '',
+        horario_tren_retor: existente.horario_tren_retor || '',
+        nombre_guia: existente.nombre_guia || '',
+        ruta: existente.ruta || '',
+        tiempo_visita: existente.tiempo_visita || ''
+      }));
+    }
+  }, [formData.id_itinerario_programa, detallesMachu]);
+
+  // Si hay detalles existentes y no hay selección, preseleccionar el primero para prefill inmediato
+  useEffect(() => {
+    if (!formData.id_itinerario_programa && Array.isArray(detallesMachu) && detallesMachu.length > 0) {
+      const first = detallesMachu[0];
+      if (first?.id_itinerario_programa) {
+        setFormData(prev => ({ ...prev, id_itinerario_programa: String(first.id_itinerario_programa) }));
+      }
+    }
+  }, [detallesMachu]);
+
   // Verificar si hay programas de tipo machupicchu (con búsqueda flexible)
   const hasMachuPicchuPrograms = programasData.some(programa =>
     programa.programa_info?.tipo?.toLowerCase().includes('machu') ||
@@ -103,7 +147,7 @@ const DetalleMachuForm = forwardRef(({
     if (!validateForm()) return;
 
     const programaInfo = machuPicchuPrograms.find(p =>
-      p.id_itinerario_programa === parseInt(formData.id_itinerario_programa)
+      (p.id_itinerario_programa || p.id) === parseInt(formData.id_itinerario_programa)
     );
 
     if (!programaInfo) return;
@@ -217,16 +261,19 @@ const DetalleMachuForm = forwardRef(({
                       <label>Programa de Machu Picchu *</label>
                       <select
                         name="id_itinerario_programa"
-                        value={formData.id_itinerario_programa}
+                        value={String(formData.id_itinerario_programa || '')}
                         onChange={handleInputChange}
                         className={errors.id_itinerario_programa ? 'detalle-machu-error' : ''}
                       >
                         <option value="">Seleccionar programa...</option>
-                        {machuPicchuPrograms.map((programa, idx) => (
-                          <option key={programa.id_itinerario_programa || programa.id || idx} value={programa.id_itinerario_programa}>
-                            {programa.programa_info.nombre} - {programa.fecha} ({programa.hora_inicio}-{programa.hora_fin})
-                          </option>
-                        ))}
+                        {machuPicchuPrograms.map((programa, idx) => {
+                          const pid = programa.id_itinerario_programa || programa.id;
+                          return (
+                            <option key={pid || idx} value={String(pid)}>
+                              {programa.programa_info.nombre} - {programa.fecha} ({programa.hora_inicio}-{programa.hora_fin})
+                            </option>
+                          );
+                        })}
                       </select>
                       {errors.id_itinerario_programa && <span className="detalle-machu-error-message">{errors.id_itinerario_programa}</span>}
                     </div>
@@ -353,10 +400,26 @@ const DetalleMachuForm = forwardRef(({
               ) : (
                 <div className="detalle-machu-detalles-list">
                   {detallesMachu.map((detalle, idx) => {
-                    // Buscar el programa correspondiente para mostrar su información
-                    const programa = programasData.find(p => p.id === detalle.id_itinerario_programa);
+                    // Buscar el programa correspondiente para mostrar su información (id flexible)
+                    const programa = programasData.find(p => (p.id_itinerario_programa || p.id) === detalle.id_itinerario_programa);
                     return (
-                      <div key={detalle.id_itinerario_programa || idx} className="detalle-machu-detalle-item">
+                      <div
+                        key={detalle.id_itinerario_programa || idx}
+                        className="detalle-machu-detalle-item"
+                        onClick={() => {
+                          setFormData({
+                            id_itinerario_programa: String(detalle.id_itinerario_programa || ''),
+                            empresa_tren: detalle.empresa_tren || '',
+                            horario_tren_ida: detalle.horario_tren_ida || '',
+                            horario_tren_retor: detalle.horario_tren_retor || '',
+                            nombre_guia: detalle.nombre_guia || '',
+                            ruta: detalle.ruta || '',
+                            tiempo_visita: detalle.tiempo_visita || ''
+                          });
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        title="Click para editar este detalle"
+                      >
                         <div className="detalle-machu-detalle-header">
                           <h5>{programa?.programa_info?.nombre || 'Programa sin nombre'}</h5>
                           <span className="detalle-machu-detalle-date">{programa?.fecha || 'Sin fecha'}</span>
