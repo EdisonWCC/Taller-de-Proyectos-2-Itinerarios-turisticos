@@ -31,9 +31,11 @@ export default function ItinerarioCreatePage() {
 
   // Calcular dinámicamente si hay programas de Machu Picchu
   const hasMachuPicchuPrograms = useMemo(() => {
-    return formData.programas.some(programa =>
-      programa.programa_info?.tipo === 'machupicchu'
-    );
+    return formData.programas.some(programa => {
+      const tipo = programa.programa_info?.tipo?.toLowerCase() || '';
+      const nombre = programa.programa_info?.nombre?.toLowerCase() || '';
+      return tipo.includes('machu') || nombre.includes('machu');
+    });
   }, [formData.programas]);
 
   const updateFormData = (step, data) => {

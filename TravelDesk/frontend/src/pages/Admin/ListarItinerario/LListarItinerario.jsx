@@ -140,11 +140,24 @@ const LListarItinerario = () => {
     );
   };
 
-  // Función de ejemplo para eliminar (sin backend)
-  const handleDelete = (id) => {
-    console.log('Eliminar itinerario:', id);
-    // En una implementación real, aquí iría la llamada a la API
-    alert(`Se eliminaría el itinerario ${id} en una implementación real`);
+  // Eliminar itinerario (solo si no tiene turistas)
+  const handleDelete = async (id) => {
+    if (!id) return;
+    const ok = window.confirm(`¿Eliminar el itinerario #${id}? Esta acción no se puede deshacer.`);
+    if (!ok) return;
+    try {
+      const res = await fetch(`http://localhost:3000/api/itinerarios/${id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.ok === false) {
+        alert(data?.error || 'No se pudo eliminar el itinerario');
+        return;
+      }
+      // Actualizar lista en memoria
+      setItinerarios(prev => prev.filter(it => it.id !== id));
+    } catch (e) {
+      console.error('Error al eliminar itinerario', e);
+      alert('Error al eliminar el itinerario');
+    }
   };
 
   if (loading) {
@@ -325,9 +338,10 @@ const LListarItinerario = () => {
                   </Link>
                   <button 
                     className="btn-icon btn-delete"
-                    title="Eliminar (próximamente)"
+                    title={(itinerario.turistas?.length || 0) > 0 ? 'No se puede eliminar: tiene turistas asociados' : 'Eliminar'}
                     type="button"
-                    disabled
+                    disabled={(itinerario.turistas?.length || 0) > 0}
+                    onClick={() => handleDelete(itinerario.id)}
                   >
                     <FiTrash2 size={16} />
                   </button>

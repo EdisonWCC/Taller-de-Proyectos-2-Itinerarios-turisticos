@@ -881,6 +881,47 @@ app.get("/api/itinerarios/:id", async (req, res) => {
   }
 });
 
+// Eliminar itinerario solo si no tiene turistas asociados
+app.delete("/api/itinerarios/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Verificar si tiene turistas asociados
+    const [chk] = await pool.query(
+      `SELECT COUNT(*) AS cnt FROM itinerario_turistas WHERE id_itinerario = ?`,
+      [id]
+    );
+    const cnt = Array.isArray(chk) && chk[0]?.cnt ? Number(chk[0].cnt) : 0;
+    if (cnt > 0) {
+      return res.status(400).json({ ok: false, error: "No se puede eliminar: el itinerario tiene turistas asociados" });
+    }
+
+    // Eliminar relaciones dependientes
+    await pool.query(
+      `DELETE dmi FROM detalle_machu_itinerario dmi
+       JOIN itinerario_programas ip ON ip.id_itinerario_programa = dmi.id_itinerario_programa
+       WHERE ip.id_itinerario = ?`,
+      [id]
+    );
+    await pool.query(
+      `DELETE dti FROM detalle_transporte_itinerario dti
+       JOIN itinerario_programas ip ON ip.id_itinerario_programa = dti.id_itinerario_programa
+       WHERE ip.id_itinerario = ?`,
+      [id]
+    );
+    await pool.query(`DELETE FROM itinerario_programas WHERE id_itinerario = ?`, [id]);
+
+    // Borrar el itinerario
+    const [delIt] = await pool.query(`DELETE FROM itinerarios WHERE id_itinerario = ?`, [id]);
+    if (!delIt?.affectedRows) {
+      return res.status(404).json({ ok: false, error: "Itinerario no encontrado" });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("❌ Error al eliminar itinerario:", err.message);
+    res.status(500).json({ ok: false, error: "Error al eliminar itinerario" });
+  }
+});
+
 // Actualizar un único programa de un itinerario (sin reconstruir todas las relaciones)
 app.patch("/api/itinerarios/:id/programas/:ipId", async (req, res) => {
   const { id, ipId } = req.params;

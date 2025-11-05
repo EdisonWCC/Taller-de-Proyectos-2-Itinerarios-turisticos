@@ -6,6 +6,21 @@ const ResumenFinal = ({ data: propData, onSubmit }) => {
   const location = useLocation();
   // Use data from location.state if available, otherwise use propData
   const data = location.state?.itinerario || propData || {};
+  const detallesMachuDerived = Array.isArray(data.programas)
+    ? data.programas
+        .filter(p => (p.programa_info?.tipo?.toLowerCase() || '').includes('machu') || (p.programa_info?.nombre?.toLowerCase() || '').includes('machu'))
+        .map(p => ({
+          id_itinerario_programa: p.id || p.id_itinerario_programa,
+          empresa_tren: p.detalles_machupicchu?.empresa_tren || '',
+          horario_tren_ida: p.detalles_machupicchu?.horario_tren_ida || '',
+          horario_tren_retor: p.detalles_machupicchu?.horario_tren_retor || '',
+          nombre_guia: p.detalles_machupicchu?.nombre_guia || '',
+          ruta: p.detalles_machupicchu?.ruta || '',
+          tiempo_visita: p.detalles_machupicchu?.tiempo_visita || '',
+          programa_info: p.programa_info
+        }))
+    : [];
+  const detallesMachuList = Array.isArray(data.detallesMachu) && data.detallesMachu.length > 0 ? data.detallesMachu : detallesMachuDerived;
   const handleFinalSubmit = () => {
     console.log('Crear itinerario con datos:', data);
     if (!data) {
@@ -69,7 +84,7 @@ const ResumenFinal = ({ data: propData, onSubmit }) => {
             {data.programas && data.programas.length > 0 ? (
               <div className="resumen-final-programas-section">
                 {data.programas.map((item, index) => (
-                  <div key={item.id_itinerario_programa} className="resumen-final-programa-item">
+                  <div key={item.id_itinerario_programa || item.id || index} className="resumen-final-programa-item">
                     <div className="resumen-final-programa-info">
                       <span className="resumen-final-programa-nombre">{item.programa_info.nombre}</span>
                       <span className="resumen-final-programa-tipo">🏷️ {item.programa_info.tipo}</span>
@@ -116,10 +131,10 @@ const ResumenFinal = ({ data: propData, onSubmit }) => {
           </div>
 
           <div className="resumen-final-summary-item">
-            <h4>🏔️ Detalles Machu Picchu ({data.detallesMachu?.length || 0})</h4>
-            {data.detallesMachu && data.detallesMachu.length > 0 ? (
+            <h4>🏔️ Detalles Machu Picchu ({detallesMachuList?.length || 0})</h4>
+            {detallesMachuList && detallesMachuList.length > 0 ? (
               <div className="resumen-final-machu-section">
-                {data.detallesMachu.map((detalle, index) => (
+                {detallesMachuList.map((detalle, index) => (
                   <div key={detalle.id_itinerario_programa} className="resumen-final-machu-item">
                     <div className="resumen-final-machu-info">
                       <span className="resumen-final-machu-programa">{detalle.programa_info.nombre}</span>
