@@ -8,6 +8,7 @@ import ListarTuristas from './pages/Admin/ListarTuristas.jsx';
 import ItinerarioCreatePage from './pages/Admin/Itinerario/ItinerarioCreatePage.jsx';
 import LListarItinerario from './pages/Admin/ListarItinerario/LListarItinerario.jsx';
 import EditarItinerario from './components/LIstarItinerarios/EditarItinerario.jsx';
+import ResumenFinal from './components/Itinerario/ResumenFinal.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import './App.css';
@@ -30,6 +31,7 @@ function App() {
           <Route path="roles" element={<RolesAdmin />} />
           <Route path="listar-turistas" element={<ListarTuristas />} />
           <Route path="itinerarios" element={<LListarItinerario />} />
+          <Route path="itinerarios/:id/resumen" element={<ResumenFinal />} />
           <Route path="editar-itinerario/:id" element={<EditarItinerario />} />
           <Route path="crear-itinerario" element={<ItinerarioCreatePage />} />
         </Route>

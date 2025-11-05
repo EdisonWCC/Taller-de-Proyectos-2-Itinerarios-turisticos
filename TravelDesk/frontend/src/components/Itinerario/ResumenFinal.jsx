@@ -1,14 +1,22 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import '../../styles/Admin/Itinerario/ResumenFinal.css';
 
-const ResumenFinal = ({ data, onSubmit }) => {
+const ResumenFinal = ({ data: propData, onSubmit }) => {
+  const location = useLocation();
+  // Use data from location.state if available, otherwise use propData
+  const data = location.state?.itinerario || propData || {};
   const handleFinalSubmit = () => {
     console.log('Crear itinerario con datos:', data);
-    if (onSubmit) {
-      onSubmit(data);
-    } else {
-      alert(`¡Itinerario creado exitosamente para el grupo "${data.grupo?.nombre_grupo}"!`);
-    }
+    if (!data) {
+    return <div>No se encontraron datos del itinerario</div>;
+  }
+
+  if (onSubmit) {
+    onSubmit(data);
+  } else if (data.grupo?.nombre_grupo) {
+    alert(`¡Itinerario creado exitosamente para el grupo "${data.grupo.nombre_grupo}"!`);
+  }
   };
 
   return (
@@ -33,8 +41,8 @@ const ResumenFinal = ({ data, onSubmit }) => {
 
           <div className="resumen-final-summary-item">
             <h4>📋 Datos del Itinerario</h4>
-            <p><strong>Fechas:</strong> {data.datosItinerario?.fecha_inicio} al {data.datosItinerario?.fecha_fin}</p>
-            <p><strong>Estado del Presupuesto:</strong> ID {data.datosItinerario?.estado_presupuesto_id}</p>
+            <p><strong>Fechas:</strong> {data.fecha_inicio || 'No especificada'} al {data.fecha_fin || 'No especificada'}</p>
+            <p><strong>Estado del Presupuesto:</strong> {data.estado_presupuesto || 'No especificado'}</p>
           </div>
 
           <div className="resumen-final-summary-item">
@@ -83,13 +91,21 @@ const ResumenFinal = ({ data, onSubmit }) => {
             <h4>🚌 Transportes Asignados ({data.transportes?.length || 0})</h4>
             {data.transportes && data.transportes.length > 0 ? (
               <div className="resumen-final-transportes-section">
-                {data.transportes.map((transporte, index) => (
+                {data.transportes.map((transporte) => (
                   <div key={transporte.id_detalle_transporte} className="resumen-final-transporte-item">
                     <div className="resumen-final-transporte-info">
-                      <span className="resumen-final-transporte-programa">{transporte.programa_info.nombre}</span>
-                      <span className="resumen-final-transporte-empresa">🚗 {transporte.transporte_info.empresa}</span>
-                      <span className="resumen-final-transporte-horario">🕐 {transporte.horario_recojo}</span>
-                      <span className="resumen-final-transporte-lugar">📍 {transporte.lugar_recojo}</span>
+                      <span className="resumen-final-transporte-programa">
+                        {transporte.programa_info?.nombre || 'Programa no especificado'}
+                      </span>
+                      <span className="resumen-final-transporte-empresa">
+                        🚗 {transporte.transporte_info?.empresa || 'Empresa no especificada'}
+                      </span>
+                      <span className="resumen-final-transporte-horario">
+                        🕐 {transporte.horario_recojo || 'Sin horario especificado'}
+                      </span>
+                      <span className="resumen-final-transporte-lugar">
+                        📍 {transporte.lugar_recojo || 'Lugar no especificado'}
+                      </span>
                     </div>
                   </div>
                 ))}

@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
-
 import { Link } from 'react-router-dom';
-import { FiEdit2, FiPlus, FiEye, FiTrash2 } from 'react-icons/fi';
+import { FiEdit2, FiPlus, FiEye, FiTrash2, FiCalendar, FiUsers, FiClock, FiSearch } from 'react-icons/fi';
+import { FaMapMarkerAlt } from 'react-icons/fa';
 import '../../../styles/Admin/ListarItinerarios/ListarItinerarios.css';
 
 const LListarItinerario = () => {
   const [itinerarios, setItinerarios] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [filtros, setFiltros] = useState({
+    busqueda: '',
+    estado: '',
+    fechaInicio: '',
+    fechaFin: '',
+    ordenarPor: 'fecha_creacion',
+    orden: 'desc',
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -32,18 +40,45 @@ const LListarItinerario = () => {
     };
   }, []);
 
-  // Filtrar itinerarios por término de búsqueda
+  // Filtrar y ordenar itinerarios
   const filteredItinerarios = itinerarios.filter(itinerario => {
-    if (!searchTerm) return true; // Si no hay término de búsqueda, mostrar todos
-    
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      (itinerario.id?.toString() || '').toLowerCase().includes(searchLower) ||
-      (itinerario.grupo?.nombre_grupo?.toLowerCase() || '').includes(searchLower) ||
-      (itinerario.fecha_inicio || '').includes(searchLower) ||
-      (itinerario.fecha_fin || '').includes(searchLower) ||
-      (itinerario.estado_presupuesto?.toLowerCase() || '').includes(searchLower)
-    );
+    // Filtro por búsqueda general
+    if (filtros.busqueda) {
+      const searchLower = filtros.busqueda.toLowerCase();
+      const cumpleBusqueda = 
+        (itinerario.id?.toString() || '').toLowerCase().includes(searchLower) ||
+        (itinerario.grupo?.nombre_grupo?.toLowerCase() || '').includes(searchLower) ||
+        (itinerario.destino_principal?.toLowerCase() || '').includes(searchLower);
+      
+      if (!cumpleBusqueda) return false;
+    }
+
+    // Filtro por estado
+    if (filtros.estado && itinerario.estado_presupuesto?.toLowerCase() !== filtros.estado.toLowerCase()) {
+      return false;
+    }
+
+    // Filtro por rango de fechas
+    if (filtros.fechaInicio && new Date(itinerario.fecha_inicio) < new Date(filtros.fechaInicio)) {
+      return false;
+    }
+    if (filtros.fechaFin && new Date(itinerario.fecha_fin) > new Date(filtros.fechaFin)) {
+      return false;
+    }
+
+    return true;
+  }).sort((a, b) => {
+    // Ordenar resultados
+    if (filtros.ordenarPor === 'fecha_creacion') {
+      return filtros.orden === 'asc' 
+        ? new Date(a.fecha_creacion) - new Date(b.fecha_creacion)
+        : new Date(b.fecha_creacion) - new Date(a.fecha_creacion);
+    } else if (filtros.ordenarPor === 'fecha_inicio') {
+      return filtros.orden === 'asc'
+        ? new Date(a.fecha_inicio) - new Date(b.fecha_inicio)
+        : new Date(b.fecha_inicio) - new Date(a.fecha_inicio);
+    }
+    return 0;
   });
 
   // Obtener itinerarios para la página actual
@@ -54,6 +89,31 @@ const LListarItinerario = () => {
 
   // Cambiar de página
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // Manejadores de cambio de filtros
+  const handleFiltroChange = (e) => {
+    const { name, value } = e.target;
+    setFiltros(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    setCurrentPage(1); // Resetear a la primera página al cambiar filtros
+  };
+
+  const toggleFiltros = () => {
+    setMostrarFiltros(!mostrarFiltros);
+  };
+
+  const limpiarFiltros = () => {
+    setFiltros({
+      busqueda: '',
+      estado: '',
+      fechaInicio: '',
+      fechaFin: '',
+      ordenarPor: 'fecha_creacion',
+      orden: 'desc',
+    });
+  };
 
   // Formatear fecha
   const formatDate = (dateString) => {
@@ -89,9 +149,9 @@ const LListarItinerario = () => {
 
   if (loading) {
     return (
-      <div className="listar-itinerarios-loading">
-        <div className="spinner"></div>
-        <p>Cargando itinerarios...</p>
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p className="loading-text">Cargando itinerarios...</p>
       </div>
     );
   }
@@ -106,78 +166,198 @@ const LListarItinerario = () => {
       </div>
 
       <div className="listar-itinerarios-filters">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Buscar itinerarios..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="form-control"
-          />
-          <span className="search-icon">🔍</span>
+        <div className="filters-header">
+          <div className="search-box">
+            <input
+              type="text"
+              name="busqueda"
+              placeholder="Buscar por ID, grupo o destino..."
+              value={filtros.busqueda}
+              onChange={handleFiltroChange}
+              className="form-control"
+            />
+            <FiSearch className="search-icon" />
+          </div>
+          <button 
+            onClick={toggleFiltros} 
+            className="btn btn-outline-secondary btn-filtros"
+          >
+            {mostrarFiltros ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+          </button>
         </div>
+
+        {mostrarFiltros && (
+          <div className="filtros-avanzados">
+            <div className="filtros-grid">
+              <div className="filtro-group">
+                <label>Estado</label>
+                <select 
+                  name="estado" 
+                  value={filtros.estado}
+                  onChange={handleFiltroChange}
+                  className="form-control"
+                >
+                  <option value="">Todos los estados</option>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="aprobado">Aprobado</option>
+                  <option value="rechazado">Rechazado</option>
+                  <option value="en_revision">En Revisión</option>
+                </select>
+              </div>
+
+              <div className="filtro-group">
+                <label>Fecha Inicio Desde</label>
+                <input
+                  type="date"
+                  name="fechaInicio"
+                  value={filtros.fechaInicio}
+                  onChange={handleFiltroChange}
+                  className="form-control"
+                />
+              </div>
+
+              <div className="filtro-group">
+                <label>Fecha Fin Hasta</label>
+                <input
+                  type="date"
+                  name="fechaFin"
+                  value={filtros.fechaFin}
+                  onChange={handleFiltroChange}
+                  className="form-control"
+                />
+              </div>
+
+              <div className="filtro-group">
+                <label>Ordenar por</label>
+                <select 
+                  name="ordenarPor"
+                  value={filtros.ordenarPor}
+                  onChange={handleFiltroChange}
+                  className="form-control"
+                >
+                  <option value="fecha_creacion">Fecha de Creación</option>
+                  <option value="fecha_inicio">Fecha de Inicio</option>
+                </select>
+              </div>
+
+              <div className="filtro-group">
+                <label>Orden</label>
+                <select 
+                  name="orden"
+                  value={filtros.orden}
+                  onChange={handleFiltroChange}
+                  className="form-control"
+                >
+                  <option value="desc">Más recientes primero</option>
+                  <option value="asc">Más antiguos primero</option>
+                </select>
+              </div>
+
+              <div className="filtro-group filtro-acciones">
+                <button 
+                  onClick={limpiarFiltros} 
+                  className="btn btn-outline-secondary"
+                >
+                  Limpiar Filtros
+                </button>
+                <span className="resultados-count">
+                  {filteredItinerarios.length} resultados encontrados
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="table-responsive">
-        <table className="itinerarios-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Grupo</th>
-              <th>Fecha Inicio</th>
-              <th>Fecha Fin</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItinerarios.length > 0 ? (
-              currentItinerarios.map((itinerario) => (
-                <tr key={itinerario.id}>
-                  <td>#{itinerario.id}</td>
-                  <td>{itinerario.grupo?.nombre_grupo || 'Sin grupo'}</td>
-                  <td>{formatDate(itinerario.fecha_inicio)}</td>
-                  <td>{formatDate(itinerario.fecha_fin)}</td>
-                  <td>{getEstadoBadge(itinerario.estado_presupuesto)}</td>
-                  <td className="actions">
-                    <Link 
-                      to={`/admin/itinerarios/${itinerario.id}`} 
-                      className="btn-icon btn-view"
-                      title="Ver detalles"
-                    >
-                      <FiEye />
-                    </Link>
-                    <Link 
-                      to={`/admin/editar-itinerario/${itinerario.id}`} 
-                      className="btn-icon btn-edit"
-                      title="Editar"
-                      state={{ itinerario: itinerario }}
-                    >
-                      <FiEdit2 />
-                    </Link>
-                    <button 
-                      onClick={() => handleDelete(itinerario.id)}
-                      className="btn-icon btn-delete"
-                      title="Eliminar"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="no-results">
-                  {searchTerm ? 'No se encontraron itinerarios que coincidan con la búsqueda' : 'No hay itinerarios registrados'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {filteredItinerarios.length > 0 ? (
+        <div className="itinerarios-grid">
+          {currentItinerarios.map((itinerario) => (
+            <div key={itinerario.id} className="itinerario-card">
+              <div className="itinerario-card-header">
+                <h3 className="itinerario-card-title">
+                  🗓️ {itinerario.grupo?.nombre_grupo || 'Itinerario sin grupo'}
+                  <span className="itinerario-card-id">#{itinerario.id}</span>
+                </h3>
+              </div>
+              <div className="itinerario-card-body">
+                <div className="itinerario-detail">
+                  <span className="itinerario-detail-label">Fechas</span>
+                  <span className="itinerario-detail-value">
+                    <FiCalendar />
+                    {formatDate(itinerario.fecha_inicio)} - {formatDate(itinerario.fecha_fin)}
+                  </span>
+                </div>
+                
+                <div className="itinerario-detail">
+                  <span className="itinerario-detail-label">Estado</span>
+                  <span className="itinerario-detail-value">
+                    {getEstadoBadge(itinerario.estado_presupuesto)}
+                  </span>
+                </div>
+                
+                {itinerario.grupo?.descripcion && (
+                  <div className="itinerario-detail">
+                    <span className="itinerario-detail-label">Descripción</span>
+                    <span className="itinerario-detail-value">
+                      {itinerario.grupo.descripcion.substring(0, 80)}
+                      {itinerario.grupo.descripcion.length > 80 ? '...' : ''}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="itinerario-card-footer">
+                <div className="actions">
+                  <Link 
+                    to={`/admin/itinerarios/${itinerario.id}/resumen`}
+                    className="btn-icon btn-view"
+                    title="Ver detalles"
+                    state={{ itinerario: itinerario }}
+                  >
+                    <FiEye size={16} />
+                  </Link>
+                  <Link 
+                    to={`/admin/editar-itinerario/${itinerario.id}`}
+                    className="btn-icon btn-edit"
+                    title="Editar"
+                    state={{ itinerario: itinerario }}
+                  >
+                    <FiEdit2 size={16} />
+                  </Link>
+                  <button 
+                    className="btn-icon btn-delete"
+                    title="Eliminar (próximamente)"
+                    type="button"
+                    disabled
+                  >
+                    <FiTrash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            {searchTerm ? '🔍' : '📋'}
+          </div>
+          <h3 className="empty-state-title">
+            {searchTerm 
+              ? 'No se encontraron itinerarios' 
+              : 'No hay itinerarios registrados'}
+          </h3>
+          <p className="empty-state-description">
+            {searchTerm 
+              ? 'No hay resultados que coincidan con tu búsqueda. Intenta con otros términos.'
+              : 'Comienza creando un nuevo itinerario para gestionar tus viajes.'}
+          </p>
+          {!searchTerm && (
+            <Link to="/admin/itinerarios/nuevo" className="btn btn-primary">
+              <FiPlus className="icon" /> Crear primer itinerario
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Paginación */}
       {totalPages > 1 && (
@@ -186,6 +366,7 @@ const LListarItinerario = () => {
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
             className="pagination-arrow"
+            aria-label="Página anterior"
           >
             &laquo;
           </button>
@@ -205,8 +386,10 @@ const LListarItinerario = () => {
             return (
               <button
                 key={pageNum}
-                onClick={() => paginate(pageNum)}
+                onClick={() => setCurrentPage(pageNum)}
                 className={`pagination-number ${currentPage === pageNum ? 'active' : ''}`}
+                aria-current={currentPage === pageNum ? 'page' : undefined}
+                aria-label={`Ir a la página ${pageNum}`}
               >
                 {pageNum}
               </button>
@@ -217,9 +400,14 @@ const LListarItinerario = () => {
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
             className="pagination-arrow"
+            aria-label="Siguiente página"
           >
             &raquo;
           </button>
+          
+          <div className="pagination-info">
+            Página {currentPage} de {totalPages}
+          </div>
         </div>
       )}
     </div>
