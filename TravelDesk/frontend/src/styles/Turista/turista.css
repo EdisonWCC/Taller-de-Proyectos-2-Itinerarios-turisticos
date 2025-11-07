@@ -1,0 +1,294 @@
+/* Estilos generales para las páginas del turista */
+.turista-page {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Estilos para las tarjetas de configuración */
+.settings-card {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.settings-card .ant-card-head {
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  border-radius: 8px 8px 0 0;
+}
+
+.settings-card .ant-card-head-title {
+  font-weight: 500;
+}
+
+/* Estilos para los formularios */
+.ant-form-item-label > label {
+  font-weight: 500;
+}
+
+/* Estilos para la sección de cuenta */
+.account-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.privacy-note {
+  background-color: #f9f9f9;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 16px;
+}
+
+/* Estilos para la página de perfil */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.profile-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.profile-avatar-section {
+  text-align: center;
+  flex: 0 0 200px;
+}
+
+.profile-avatar {
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.profile-avatar:hover {
+  opacity: 0.8;
+}
+
+.avatar-edit-hint {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 8px;
+}
+
+.profile-form {
+  flex: 1;
+  min-width: 300px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-item {
+  flex: 1;
+  min-width: 200px;
+}
+
+.preferencias-section {
+  margin-top: 16px;
+}
+
+.preferencias-list {
+  margin-top: 8px;
+}
+
+/* Estilos para la página de viajes */
+.viaje-card {
+  margin-bottom: 16px;
+  transition: all 0.3s;
+}
+
+.viaje-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.viaje-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.actividades-list {
+  margin-top: 12px;
+  padding-left: 16px;
+}
+
+.actividad-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.actividad-bullet {
+  width: 8px;
+  height: 8px;
+  background-color: #1890ff;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+/* Estilos para las estadísticas */
+.stats-row {
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  height: 100%;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+/* Estilos para la lista de actividades recientes */
+.activity-list {
+  margin-top: 16px;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f0f7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  color: #1890ff;
+}
+
+.activity-details {
+  flex: 1;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .profile-content {
+    flex-direction: column;
+  }
+  
+  .profile-avatar-section {
+    margin-bottom: 16px;
+    flex: 0 0 auto;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .form-item {
+    width: 100%;
+  }
+  
+  .account-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .account-actions button {
+    width: 100%;
+    margin-top: 8px;
+  }
+  
+  .viaje-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .viaje-actions {
+    width: 100%;
+    text-align: right;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.turista-page {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Estilos para los botones */
+.ant-btn-primary {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.ant-btn-primary:hover, 
+.ant-btn-primary:focus {
+  background: #40a9ff;
+  border-color: #40a9ff;
+}
+
+/* Estilos para los switches */
+.ant-switch-checked {
+  background-color: #52c41a;
+}
+
+/* Estilos para los selectores */
+.ant-select-selector {
+  border-radius: 6px !important;
+}
+
+/* Estilos para las pestañas */
+.ant-tabs-tab {
+  font-weight: 500;
+}
+
+.ant-tabs-tab-active {
+  font-weight: 600;
+}
+
+.ant-tabs-ink-bar {
+  height: 3px !important;
+}

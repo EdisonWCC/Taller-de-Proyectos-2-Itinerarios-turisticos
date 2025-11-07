@@ -1,6 +1,7 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Auth/Login.jsx';
 import AdminLayout from './layouts/AdminLayout.jsx';
+import MainLayout from "./layouts/MainLayout/MainLayout";
 import AdminPanel from './pages/Admin/AdminPanel.jsx';
 import RegistroGeneral from './pages/Admin/RegistroGeneral.jsx';
 import RolesAdmin from './pages/Admin/RolesAdmin.jsx';
@@ -10,7 +11,10 @@ import LListarItinerario from './pages/Admin/ListarItinerario/LListarItinerario.
 import EditarItinerario from './components/LIstarItinerarios/EditarItinerario.jsx';
 import ResumenFinal from './components/Itinerario/ResumenFinal.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import Dashboard from './pages/Dashboard.jsx';
+import Inicio from './pages/turista/Inicio';
+import MisViajes from './pages/turista/MisViajes';
+import Perfil from './pages/turista/Perfil';
+import Ajustes from './pages/turista/Ajustes';
 import './App.css';
 
 function App() {
@@ -36,10 +40,23 @@ function App() {
           <Route path="crear-itinerario" element={<ItinerarioCreatePage />} />
         </Route>
 
-        {/* Dashboard general para otros roles */}
+        {/* Rutas del turista - Protegidas */}
+        <Route path="/turista/*" element={
+          <ProtectedRoute allowedRoles={['turista', 'admin']}>
+            <MainLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<Navigate to="inicio" replace />} />
+          <Route path="inicio" element={<Inicio />} />
+          <Route path="mis-viajes" element={<MisViajes />} />
+          <Route path="perfil" element={<Perfil />} />
+          <Route path="ajustes" element={<Ajustes />} />
+        </Route>
+
+        {/* Ruta de redirección para /dashboard (mantenida por compatibilidad) */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <Dashboard />
+            <Navigate to="/turista/inicio" replace />
           </ProtectedRoute>
         } />
       </Routes>
