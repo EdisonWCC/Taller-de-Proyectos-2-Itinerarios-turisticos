@@ -198,10 +198,168 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+}
+
+/* Estilos para la vista de Mis Viajes mejorada */
+.mis-viajes-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header h2 {
+  margin-bottom: 8px;
+}
+
+.viaje-card {
+  margin-bottom: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.viaje-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.viaje-card .ant-card-head {
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.viaje-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.viaje-descripcion {
+  color: #595959;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+/* Estilos para el itinerario */
+.itinerario-container {
+  margin-top: 16px;
+}
+
+.dia-itinerario {
+  margin-bottom: 24px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dia-header h4 {
+  margin: 0;
   color: #1890ff;
 }
 
+.actividades-dia {
+  padding: 8px 0;
+}
+
+.actividad-card {
+  display: flex;
+  padding: 16px;
+  border-bottom: 1px solid #f5f5f5;
+  transition: all 0.2s;
+}
+
+.actividad-card:last-child {
+  border-bottom: none;
+}
+
+.actividad-card:hover {
+  background-color: #fafafa;
+}
+
+.actividad-hora {
+  display: flex;
+  align-items: center;
+  min-width: 100px;
+  font-weight: 500;
+  color: #595959;
+}
+
+.actividad-contenido {
+  display: flex;
+  flex: 1;
+  gap: 16px;
+}
+
+.actividad-icono {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+
+.actividad-info {
+  flex: 1;
+}
+
+.actividad-titulo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.actividad-titulo .ant-tag {
+  margin-left: 8px;
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 0 6px;
+}
+
+.actividad-detalles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mis-viajes-page {
+    padding: 12px;
+  }
+  
+  .actividad-contenido {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .actividad-hora {
+    margin-bottom: 4px;
+  }
+  
+  .viaje-card .ant-card-extra {
+    display: none;
+  }
+}
 .activity-details {
   flex: 1;
 }
