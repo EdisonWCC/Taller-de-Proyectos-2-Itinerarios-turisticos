@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card, Tag, Typography, Empty, Timeline, Row, Col, Divider, Button } from 'antd';
+import React, { useState } from 'react';
+import { Card, Tag, Typography, Empty, Divider, Button, Modal } from 'antd';
 import { 
   CalendarOutlined, 
   EnvironmentOutlined, 
@@ -57,9 +57,13 @@ const generarItinerario = (dias) => {
   return itinerario;
 };
 
+// Componente principal
 const MisViajes = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [actividadSeleccionada, setActividadSeleccionada] = useState(null);
+  
   // Datos de ejemplo - en una aplicación real, esto vendría de una API
-  const viajes = [
+  const [viajes] = useState([
     {
       id: 1,
       titulo: 'Aventura en Cusco',
@@ -93,10 +97,20 @@ const MisViajes = () => {
       descripcion: 'Descubre la riqueza cultural y gastronómica de la Ciudad de los Reyes.',
       itinerario: generarItinerario(4)
     }
-  ];
+  ]);
+
+  const mostrarDetallesActividad = (actividad) => {
+    setActividadSeleccionada(actividad);
+    setModalVisible(true);
+  };
+
+  const cerrarModal = () => {
+    setModalVisible(false);
+    setActividadSeleccionada(null);
+  };
 
   const renderActividad = (actividad) => (
-    <div key={actividad.id} className="actividad-card">
+    <div className="actividad-card">
       <div className="actividad-hora">
         <ClockCircleOutlined style={{ marginRight: 8, color: actividad.color }} />
         <Text strong>{actividad.hora}</Text>
@@ -110,93 +124,197 @@ const MisViajes = () => {
             <Text strong>{actividad.titulo}</Text>
           </div>
           <Text type="secondary">{actividad.descripcion}</Text>
+          <Button 
+            type="link" 
+            icon={<EyeOutlined />} 
+            onClick={(e) => {
+              e.stopPropagation();
+              mostrarDetallesActividad(actividad);
+            }} 
+            style={{ padding: 0, height: 'auto' }}
+          >
+            Ver detalles
+          </Button>
         </div>
       </div>
     </div>
   );
 
-  const renderDiaItinerario = (dia) => (
-    <div key={dia.id} className="dia-itinerario">
-      <div className="dia-header">
-        <div>
-          <Title level={4} style={{ margin: 0 }}>{dia.titulo}</Title>
-          <Text type="secondary">{dia.fecha}</Text>
+  const renderDia = (dia) => (
+    <Card 
+      key={dia.id} 
+      title={dia.titulo} 
+      className="dia-card"
+      extra={
+        <Text type="secondary" style={{ fontSize: '0.9em' }}>
+          {dia.fecha}
+        </Text>
+      }
+    >
+      <div className="actividades-container">
+        {dia.actividades.map(actividad => (
+          <div key={actividad.id} className="actividad-wrapper">
+            {renderActividad(actividad)}
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+
+  const renderViaje = (viaje) => (
+    <Card 
+      key={viaje.id} 
+      className="viaje-card"
+      title={
+        <div className="viaje-header">
+          <div>
+            <Title level={4} style={{ margin: 0 }}>{viaje.titulo}</Title>
+            <Text type="secondary">
+              <CalendarOutlined style={{ marginRight: 8 }} />
+              {viaje.fecha}
+              <EnvironmentOutlined style={{ margin: '0 8px 0 16px' }} />
+              {viaje.destino}
+              <Tag color={viaje.colorEstado} style={{ marginLeft: 16 }}>
+                {viaje.estado}
+              </Tag>
+            </Text>
+          </div>
+          <Button type="primary" icon={<DownloadOutlined />}>
+            Descargar itinerario
+          </Button>
         </div>
-        <Tag color="blue">{dia.actividades.length} actividades</Tag>
+      }
+    >
+      <div className="viaje-descripcion">
+        <Text>{viaje.descripcion}</Text>
       </div>
-      <div className="actividades-dia">
-        {dia.actividades.map(actividad => renderActividad(actividad))}
+      <Divider orientation="left" style={{ margin: '24px 0 16px' }}>
+        Itinerario del viaje
+      </Divider>
+      <div className="itinerario-container">
+        {viaje.itinerario.map(dia => renderDia(dia))}
       </div>
-    </div>
+    </Card>
+  );
+
+  const renderModalDetalles = () => (
+    <Modal
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {actividadSeleccionada?.icono && React.cloneElement(actividadSeleccionada.icono, { 
+            style: { 
+              color: actividadSeleccionada.color,
+              fontSize: '20px'
+            } 
+          })}
+          <span>{actividadSeleccionada?.titulo || 'Detalles de la actividad'}</span>
+        </div>
+      }
+      open={modalVisible}
+      onCancel={cerrarModal}
+      footer={[
+        <Button 
+          key="cerrar" 
+          onClick={cerrarModal}
+          type="primary"
+          style={{
+            backgroundColor: actividadSeleccionada?.color,
+            borderColor: actividadSeleccionada?.color,
+            padding: '0 24px',
+            height: '40px',
+            borderRadius: '8px',
+            fontWeight: 500
+          }}
+        >
+          Cerrar
+        </Button>
+      ]}
+      width={600}
+      className="actividad-detalle-modal"
+      bodyStyle={{ padding: '24px' }}
+    >
+      {actividadSeleccionada && (
+        <div className="detalles-actividad">
+          <div className="detalle-item">
+            <div className="detalle-icono">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 6V12L16 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="detalle-contenido">
+              <div className="detalle-etiqueta">Hora</div>
+              <div className="detalle-valor">{actividadSeleccionada.hora} <span className="detalle-duracion">• {actividadSeleccionada.duracion}</span></div>
+            </div>
+          </div>
+          
+          <div className="detalle-item">
+            <div className="detalle-icono">
+              <EnvironmentOutlined style={{ fontSize: '18px' }} />
+            </div>
+            <div className="detalle-contenido">
+              <div className="detalle-etiqueta">Lugar</div>
+              <div className="detalle-valor">{actividadSeleccionada.lugar}</div>
+            </div>
+          </div>
+          
+          <div className="detalle-item">
+            <div className="detalle-icono">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 16V12M12 8H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="detalle-contenido">
+              <div className="detalle-etiqueta">Descripción</div>
+              <div className="detalle-valor">{actividadSeleccionada.descripcion}</div>
+            </div>
+          </div>
+          
+          {actividadSeleccionada.notas && (
+            <div className="detalle-item">
+              <div className="detalle-icono">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 8H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 16H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="detalle-contenido">
+                <div className="detalle-etiqueta">Notas adicionales</div>
+                <div className="detalle-valor">{actividadSeleccionada.notas}</div>
+              </div>
+            </div>
+          )}
+          
+          <div className="detalle-badge" style={{ backgroundColor: `${actividadSeleccionada.color}15`, borderColor: actividadSeleccionada.color }}>
+            <span style={{ color: actividadSeleccionada.color }}>{actividadSeleccionada.tipo.charAt(0).toUpperCase() + actividadSeleccionada.tipo.slice(1)}</span>
+          </div>
+        </div>
+      )}
+    </Modal>
   );
 
   return (
     <div className="mis-viajes-page">
-      <div className="page-header">
-        <Title level={2}>Mis Itinerarios</Title>
-        <Text type="secondary">Revisa y gestiona tus viajes programados</Text>
-      </div>
+      <Title level={2} style={{ marginBottom: 24 }}>Mis Viajes</Title>
       
       {viajes.length > 0 ? (
-        <div className="viajes-lista">
-          {viajes.map(viaje => (
-            <Card 
-              key={viaje.id} 
-              className="viaje-card"
-              title={
-                <div className="viaje-card-header">
-                  <div>
-                    <Title level={4} style={{ margin: 0 }}>{viaje.titulo}</Title>
-                    <div style={{ marginTop: 4 }}>
-                      <Tag color={viaje.colorEstado} style={{ marginRight: 8 }}>
-                        {viaje.estado}
-                      </Tag>
-                      <Text type="secondary">
-                        <CalendarOutlined style={{ marginRight: 4 }} />
-                        {viaje.fecha} • {viaje.duracion}
-                      </Text>
-                      <Text type="secondary" style={{ marginLeft: 8 }}>
-                        <EnvironmentOutlined style={{ marginRight: 4 }} />
-                        {viaje.destino}
-                      </Text>
-                    </div>
-                  </div>
-                </div>
-              }
-              extra={[
-                <Button key="ver" type="text" icon={<EyeOutlined />}>Ver detalles</Button>,
-                <Button key="descargar" type="text" icon={<DownloadOutlined />}>Itinerario</Button>
-              ]}
-            >
-              <div className="viaje-descripcion">
-                <Text>{viaje.descripcion}</Text>
-              </div>
-              
-              <Divider orientation="left" style={{ margin: '24px 0 16px' }}>
-                Itinerario del viaje
-              </Divider>
-              
-              <div className="itinerario-container">
-                {viaje.itinerario.map(dia => renderDiaItinerario(dia))}
-              </div>
-              
-              <div className="viaje-acciones" style={{ marginTop: 24, textAlign: 'right' }}>
-                <Button type="primary" style={{ marginRight: 8 }}>Ver itinerario completo</Button>
-                <Button>Compartir</Button>
-              </div>
-            </Card>
-          ))}
+        <div className="viajes-container">
+          {viajes.map(viaje => renderViaje(viaje))}
         </div>
       ) : (
-        <Empty 
+        <Empty
           description={
             <span>No tienes viajes programados</span>
           }
-          style={{ margin: '40px 0' }}
         >
-          <Button type="primary">Planificar nuevo viaje</Button>
+          <Button type="primary">Explorar destinos</Button>
         </Empty>
       )}
+      
+      {renderModalDetalles()}
     </div>
   );
 };
