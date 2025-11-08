@@ -10,6 +10,7 @@ import {
   EyeOutlined,
   DownloadOutlined
 } from '@ant-design/icons';
+import GenerarPDF from '../../components/GenerarPDF/GenerarPDF';
 import '../../styles/Turista/turista.css';
 
 const { Title, Text } = Typography;
@@ -169,19 +170,15 @@ const MisViajes = () => {
         <div className="viaje-header">
           <div>
             <Title level={4} style={{ margin: 0 }}>{viaje.titulo}</Title>
-            <Text type="secondary">
-              <CalendarOutlined style={{ marginRight: 8 }} />
-              {viaje.fecha}
-              <EnvironmentOutlined style={{ margin: '0 8px 0 16px' }} />
-              {viaje.destino}
-              <Tag color={viaje.colorEstado} style={{ marginLeft: 16 }}>
+            <Text type="secondary" style={{ display: 'flex', alignItems: 'center', marginTop: 4 }}>
+              <CalendarOutlined />
+              <span style={{ margin: '0 8px 0 4px' }}>{viaje.fecha}</span>
+              <Tag color={viaje.colorEstado} style={{ marginLeft: 8 }}>
                 {viaje.estado}
               </Tag>
             </Text>
           </div>
-          <Button type="primary" icon={<DownloadOutlined />}>
-            Descargar itinerario
-          </Button>
+          <GenerarPDF viaje={viaje} />
         </div>
       }
     >
@@ -231,7 +228,9 @@ const MisViajes = () => {
       ]}
       width={600}
       className="actividad-detalle-modal"
-      bodyStyle={{ padding: '24px' }}
+      styles={{
+        body: { padding: '24px' }
+      }}
     >
       {actividadSeleccionada && (
         <div className="detalles-actividad">
