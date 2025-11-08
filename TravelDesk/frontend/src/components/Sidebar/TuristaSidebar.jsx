@@ -6,7 +6,8 @@ import {
   CalendarOutlined,
   UserOutlined,
   SettingOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  BellOutlined
 } from '@ant-design/icons';
 import '../../styles/Turista/Sidebar.css';
 
@@ -16,6 +17,9 @@ export const TuristaSidebar = ({ collapsed, onCollapse }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const selectedKey = location.pathname.split('/').pop() || 'inicio';
+
+  // Simulando notificaciones no leídas (esto debería venir de tu estado global o contexto)
+  const unreadCount = 3; // Esto debería venir de tu estado de notificaciones
 
   const items = [
     {
@@ -29,6 +33,37 @@ export const TuristaSidebar = ({ collapsed, onCollapse }) => {
       icon: <CalendarOutlined />,
       label: 'Mis Viajes',
       onClick: () => navigate('/turista/mis-viajes')
+    },
+    {
+      key: 'notificaciones',
+      icon: (
+        <div style={{ position: 'relative' }}>
+          <BellOutlined />
+          {unreadCount > 0 && (
+            <span 
+              style={{
+                position: 'absolute',
+                top: -8,
+                right: -8,
+                backgroundColor: '#ff4d4f',
+                color: '#fff',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                fontSize: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold'
+              }}
+            >
+              {unreadCount}
+            </span>
+          )}
+        </div>
+      ),
+      label: 'Notificaciones',
+      onClick: () => navigate('/turista/notificaciones')
     },
     {
       key: 'perfil',

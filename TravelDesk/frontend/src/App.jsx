@@ -15,6 +15,7 @@ import Inicio from './pages/turista/Inicio';
 import MisViajes from './pages/turista/MisViajes';
 import Perfil from './pages/turista/Perfil';
 import Ajustes from './pages/turista/Ajustes';
+import Notificaciones from './pages/turista/Notificaciones';
 import './App.css';
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
           <Route index element={<Navigate to="inicio" replace />} />
           <Route path="inicio" element={<Inicio />} />
           <Route path="mis-viajes" element={<MisViajes />} />
+          <Route path="notificaciones" element={<Notificaciones />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="ajustes" element={<Ajustes />} />
         </Route>
