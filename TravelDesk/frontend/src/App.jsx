@@ -49,7 +49,7 @@ function App() {
         }>
           <Route index element={<Navigate to="inicio" replace />} />
           <Route path="inicio" element={<Inicio />} />
-          <Route path="mis-viajes" element={<MisViajes />} />
+          <Route path="itinerarios" element={<MisViajes />} />
           <Route path="notificaciones" element={<Notificaciones />} />
           <Route path="perfil" element={<Perfil />} />
           <Route path="ajustes" element={<Ajustes />} />

@@ -32,10 +32,10 @@ export const TuristaSidebar = ({ collapsed, onCollapse, isMobile, onClose }) => 
       onClick: () => navigate('/turista/inicio')
     },
     {
-      key: 'mis-viajes',
+      key: 'itinerarios',
       icon: <CalendarOutlined />,
-      label: 'Mis Viajes',
-      onClick: () => navigate('/turista/mis-viajes')
+      label: 'Itinerarios',
+      onClick: () => navigate('/turista/itinerarios')
     },
     {
       key: 'notificaciones',
