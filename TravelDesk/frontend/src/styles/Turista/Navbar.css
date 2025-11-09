@@ -16,17 +16,31 @@
   align-items: center;
 }
 
-.sidebar-trigger {
+.navbar .sidebar-trigger {
+  width: 48px;
+  height: 48px;
   font-size: 18px;
-  line-height: 64px;
-  padding: 0 16px;
-  cursor: pointer;
-  transition: color 0.3s;
-  color: rgba(0, 0, 0, 0.65);
+  color: #595959;
+  transition: all 0.3s;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.sidebar-trigger:hover {
+.navbar .sidebar-trigger:hover {
   color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.navbar .sidebar-trigger.mobile-trigger {
+  color: #595959;
+  margin-right: 0;
+}
+
+.navbar .sidebar-trigger.mobile-trigger:hover {
+  color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
 }
 
 .logo-mobile {
@@ -44,6 +58,24 @@
 
 .notification-badge {
   margin-right: 16px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-badge .ant-badge-count {
+  position: absolute;
+  top: -7px;
+  left: -2px;
+  transform: translate(30%, -30%);
+  font-size: 10px;
+  height: 16px;
+  min-width: 16px;
+  line-height: 16px;
+  padding: 0 4px;
+  box-shadow: 0 0 0 1px #fff;
+  font-weight: 600;
 }
 
 .notification-btn {
@@ -54,13 +86,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .user-menu {
   display: flex;
   align-items: center;
   height: 64px;
-  padding: 0 12px;
+  padding: 0 40px;
   cursor: pointer;
   transition: all 0.3s;
 }

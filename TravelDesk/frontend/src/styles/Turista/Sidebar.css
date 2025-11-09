@@ -10,19 +10,143 @@
   transition: all 0.2s;
 }
 
-.logo {
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   height: 64px;
+  padding: 0 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  z-index: 1;
+  gap: 8px; /* Espacio entre elementos */
+}
+
+/* Ajuste cuando el sidebar está colapsado */
+.ant-layout-sider-collapsed .sidebar-header {
+  padding: 0 22px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Posicionamiento del logo cuando está colapsado */
+.ant-layout-sider-collapsed .logo-container {
+  position: static;
+  transform: none;
+  margin: 0 auto;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* Asegurar que el botón de colapso tenga espacio cuando está colapsado */
+.ant-layout-sider-collapsed .sidebar-trigger {
+  position: static;
+  transform: none;
+  margin-left: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.custom-sidebar-logo {
+  font-size: 1.4rem;
+  font-weight: 700;
   color: #1890ff;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
-  padding: 0 16px;
   white-space: nowrap;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  margin: 0;
+  padding: 0 12px;
+  line-height: 1;
+  text-align: left;
+  letter-spacing: 0.5px;
+  position: relative;
+  flex-grow: 1;
+  transition: all 0.3s ease;
+  background: linear-gradient(90deg, #1890ff 0%, #096dd9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  padding-left: 44px; /* Espacio para el ícono */
+}
+
+/* Estilo del contenedor del logo */
+.logo-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  position: relative;
+}
+
+/* Efecto hover para el logo */
+.custom-sidebar-logo:hover {
+  transform: translateX(4px);
+}
+
+/* Estilo para el ícono del logo */
+.logo-icon {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border-radius: 8px;
+  color: white;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+/* Desktop sidebar trigger */
+.sidebar-trigger {
+  font-size: 16px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  transition: all 0.3s;
+}
+
+/* Mobile sidebar trigger */
+.mobile-sidebar-trigger {
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s;
+}
+
+.mobile-sidebar-trigger:hover {
+  background: #f5f5f5;
+}
+
+/* Hide mobile trigger on desktop */
+@media (min-width: 768px) {
+  .mobile-sidebar-trigger {
+    display: none;
+  }
 }
 
 .ant-menu-item > a {
@@ -65,9 +189,61 @@
 @media (max-width: 768px) {
   .sidebar {
     z-index: 1001;
+    display: none; /* Hide the desktop sidebar on mobile */
   }
   
-  .ant-drawer-body {
+  .mobile-sidebar-drawer .ant-drawer-content {
+    background-color: #001529;
+  }
+  
+  .mobile-sidebar-drawer .ant-drawer-body {
     padding: 0;
+  }
+  
+  .mobile-sidebar {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mobile-sidebar .logo {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 8px;
+  }
+  
+  .mobile-sidebar .sidebar-menu {
+    border-right: none;
+    background: transparent;
+    color: #fff;
+  }
+  
+  .mobile-sidebar .ant-menu-item {
+    color: rgba(255, 255, 255, 0.65);
+    margin: 4px 0;
+  }
+  
+  .mobile-sidebar .ant-menu-item:hover,
+  .mobile-sidebar .ant-menu-item-selected {
+    color: #fff;
+    background: #1890ff;
+  }
+  
+  .mobile-sidebar .ant-menu-item-selected a {
+    color: #fff;
+  }
+  
+  .mobile-sidebar .ant-menu-item a {
+    color: rgba(255, 255, 255, 0.65);
+  }
+  
+  .mobile-sidebar .ant-menu-item-icon {
+    font-size: 18px;
   }
 }

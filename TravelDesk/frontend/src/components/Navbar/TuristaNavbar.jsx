@@ -1,8 +1,6 @@
 import React from 'react';
 import { Layout, Button, Dropdown, Avatar, Badge } from 'antd';
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   BellOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -14,7 +12,7 @@ import '../../styles/Turista/Navbar.css';
 
 const { Header } = Layout;
 
-export const TuristaNavbar = ({ collapsed, toggleSidebar }) => {
+export const TuristaNavbar = () => {
   const navigate = useNavigate();
 
   const items = [
@@ -48,12 +46,6 @@ export const TuristaNavbar = ({ collapsed, toggleSidebar }) => {
   return (
     <Header className="navbar">
       <div className="navbar-left">
-        <Button
-          type="text"
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          onClick={toggleSidebar}
-          className="sidebar-trigger"
-        />
         <div className="logo-mobile">TravelDesk</div>
       </div>
       

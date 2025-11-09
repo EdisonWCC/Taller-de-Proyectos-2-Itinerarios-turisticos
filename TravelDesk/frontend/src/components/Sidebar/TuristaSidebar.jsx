@@ -1,19 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Drawer, Button } from 'antd';
 import {
   HomeOutlined,
   CalendarOutlined,
   UserOutlined,
   SettingOutlined,
   LogoutOutlined,
-  BellOutlined
+  BellOutlined,
+  CloseOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined
 } from '@ant-design/icons';
 import '../../styles/Turista/Sidebar.css';
 
 const { Sider } = Layout;
 
-export const TuristaSidebar = ({ collapsed, onCollapse }) => {
+export const TuristaSidebar = ({ collapsed, onCollapse, isMobile, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const selectedKey = location.pathname.split('/').pop() || 'inicio';
@@ -89,17 +92,95 @@ export const TuristaSidebar = ({ collapsed, onCollapse }) => {
     },
   ];
 
+  const menuContent = (
+    <Menu
+      mode="inline"
+      selectedKeys={[selectedKey]}
+      items={items}
+      className="sidebar-menu"
+    />
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <Button
+          type="primary"
+          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          onClick={onClose}
+          className="mobile-sidebar-trigger"
+          style={{
+            position: 'fixed',
+            top: 16,
+            left: 16,
+            zIndex: 1001,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+          }}
+        />
+        <Drawer
+          placement="left"
+          width={250}
+          onClose={onClose}
+          open={!collapsed}
+          className="mobile-sidebar-drawer"
+          closeIcon={<CloseOutlined style={{ color: '#fff' }} />}
+          styles={{
+            body: { padding: 0 }
+          }}
+        >
+          <div className="mobile-sidebar">
+            <div className="sidebar-header">
+              <div className="logo-container">
+                <div className="logo-icon">TD</div>
+                <div className="custom-sidebar-logo">TravelDesk</div>
+              </div>
+              <Button
+                type="text"
+                icon={<CloseOutlined />}
+                onClick={onClose}
+                className="sidebar-trigger"
+                style={{ color: '#420000ff' }}
+              />
+            </div>
+            {menuContent}
+          </div>
+        </Drawer>
+      </>
+    );
+  }
+
   return (
     <Sider 
-      collapsible 
       collapsed={collapsed} 
       onCollapse={onCollapse}
       width={250}
       className="sidebar"
       theme="light"
+      trigger={null}
     >
-      <div className="logo">
-        {!collapsed ? 'TravelDesk' : 'TD'}
+      <div className="sidebar-header">
+        {!collapsed && (
+          <div className="logo-container" style={{ flex: 1 }}>
+            <div className="logo-icon">TD</div>
+            <div className="custom-sidebar-logo">TravelDesk</div>
+          </div>
+        )}
+        <Button
+          type="text"
+          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          onClick={onClose}
+          className="sidebar-trigger"
+          style={{ 
+            color: '#420000ff',
+            marginLeft: collapsed ? 0 : 'auto'
+          }}
+        />
       </div>
       
       <Menu 

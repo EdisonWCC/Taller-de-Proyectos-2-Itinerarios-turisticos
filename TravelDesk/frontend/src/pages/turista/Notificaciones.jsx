@@ -249,19 +249,6 @@ const Notificaciones = () => {
                     <Text className="notification-message">
                       {notification.message}
                     </Text>
-                    {notification.action && (
-                      <Button 
-                        type="link" 
-                        className="notification-action"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Navegar a la acción correspondiente
-                          console.log('Navegar a:', notification.action.path);
-                        }}
-                      >
-                        {notification.action.text}
-                      </Button>
-                    )}
                   </div>
                   {!notification.read && (
                     <div className="notification-badge" />
