@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Tag, Typography, Empty, Divider, Button, Modal } from 'antd';
 import { 
   CalendarOutlined, 
@@ -62,43 +62,161 @@ const generarItinerario = (dias) => {
 const MisViajes = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [actividadSeleccionada, setActividadSeleccionada] = useState(null);
-  
-  // Datos de ejemplo - en una aplicación real, esto vendría de una API
-  const [viajes] = useState([
-    {
-      id: 1,
-      titulo: 'Aventura en Cusco',
-      fecha: '15 - 20 Nov 2023',
-      destino: 'Cusco, Perú',
-      estado: 'Próximo',
-      colorEstado: 'blue',
-      duracion: '5 días / 4 noches',
-      descripcion: 'Un viaje inolvidable por la capital del Imperio Inca, explorando sus majestuosos paisajes y rica cultura.',
-      itinerario: generarItinerario(5)
-    },
-    {
-      id: 2,
-      titulo: 'Descanso en Paracas',
-      fecha: '5 - 10 Dic 2023',
-      destino: 'Paracas, Perú',
-      estado: 'Confirmado',
-      colorEstado: 'green',
-      duracion: '3 días / 2 noches',
-      descripcion: 'Disfruta de las hermosas playas y la rica biodiversidad de la Reserva Nacional de Paracas.',
-      itinerario: generarItinerario(3)
-    },
-    {
-      id: 3,
-      titulo: 'Cultura en Lima',
-      fecha: '20 - 25 Ene 2024',
-      destino: 'Lima, Perú',
-      estado: 'Pendiente',
-      colorEstado: 'orange',
-      duracion: '4 días / 3 noches',
-      descripcion: 'Descubre la riqueza cultural y gastronómica de la Ciudad de los Reyes.',
-      itinerario: generarItinerario(4)
-    }
-  ]);
+
+  const [viajes, setViajes] = useState([]);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = user?.token;
+    if (!token) return;
+
+    const estadoColor = (estado) => {
+      const s = (estado || '').toLowerCase();
+      if (s.includes('confirm')) return 'green';
+      if (s.includes('pend')) return 'orange';
+      if (s.includes('rechaz') || s.includes('deneg')) return 'red';
+      return 'blue';
+    };
+
+    const iconForTipo = (tipo) => {
+      const t = (tipo || 'tour').toLowerCase();
+      if (t === 'comida') return <RestOutlined />;
+      if (t === 'hospedaje') return <HomeOutlined />;
+      return <CarOutlined />;
+    };
+
+    const mapItinerario = (it) => {
+      const titulo = it?.grupo?.nombre_grupo ? it.grupo.nombre_grupo : `Itinerario #${it.id}`;
+      const fechaStr = `${new Date(it.fecha_inicio).toLocaleDateString()} - ${new Date(it.fecha_fin).toLocaleDateString()}`;
+      const duracionDias = (() => {
+        const d1 = new Date(it.fecha_inicio);
+        const d2 = new Date(it.fecha_fin);
+        const diff = Math.max(1, Math.round((d2 - d1) / (1000*60*60*24)) + 1);
+        return `${diff} días`;
+      })();
+
+      // Agrupar programas por fecha como días
+      const diasMap = new Map();
+      const transpByIp = new Map();
+      for (const tr of it.transportes || []) {
+        const arr = transpByIp.get(tr.id_itinerario_programa) || [];
+        arr.push(tr);
+        transpByIp.set(tr.id_itinerario_programa, arr);
+      }
+      for (const p of it.programas || []) {
+        const fecha = new Date(p.fecha).toLocaleDateString();
+        if (!diasMap.has(fecha)) diasMap.set(fecha, []);
+        const acts = diasMap.get(fecha);
+        // Actividad base del programa
+        acts.push({ __kind: 'programa', data: p });
+        // Transportes asociados a este programa como actividades
+        const trs = transpByIp.get(p.id) || transpByIp.get(p.id_itinerario_programa) || [];
+        for (const t of trs) {
+          acts.push({ __kind: 'transporte', data: t });
+        }
+        // Detalle Machu Picchu como actividad propia si existe
+        if (p.detalles_machupicchu) {
+          acts.push({ __kind: 'machu', data: p });
+        }
+      }
+
+      const dias = Array.from(diasMap.entries())
+        .sort((a,b)=> new Date(a[0]) - new Date(b[0]))
+        .map(([fecha, actividades], idx) => ({
+          id: idx + 1,
+          titulo: `Día ${idx + 1}`,
+          fecha,
+          actividades: actividades
+            .map((entry) => {
+              if (entry.__kind === 'programa') {
+                const p = entry.data;
+                return {
+                  sortKey: String(p.hora_inicio || ''),
+                  node: {
+                    id: `${idx + 1}-prog-${p.id}`,
+                    hora: p.hora_inicio || '',
+                    titulo: p.programa_info?.nombre || 'Actividad',
+                    descripcion: p.programa_info?.descripcion || '',
+                    tipo: (p.programa_info?.tipo || 'tour').toLowerCase(),
+                    icono: iconForTipo(p.programa_info?.tipo),
+                    color: p.programa_info?.tipo === 'comida' ? '#52c41a' : (p.programa_info?.tipo === 'hospedaje' ? '#722ed1' : '#1890ff'),
+                    duracion: p.hora_inicio && p.hora_fin ? `${p.hora_inicio} - ${p.hora_fin}` : '',
+                    lugar: '',
+                    notas: null
+                  }
+                };
+              }
+              if (entry.__kind === 'transporte') {
+                const t = entry.data;
+                return {
+                  sortKey: String(t.horario_recojo || ''),
+                  node: {
+                    id: `${idx + 1}-tr-${t.id_detalle_transporte}`,
+                    hora: t.horario_recojo || '',
+                    titulo: `Transporte (${t.transporte_info?.tipo || t.transporte_info?.empresa || 'Movilidad'})`,
+                    descripcion: t.transporte_info?.empresa ? `Empresa: ${t.transporte_info.empresa}` : 'Transporte programado',
+                    tipo: 'transporte',
+                    icono: <CarOutlined />,
+                    color: '#1890ff',
+                    duracion: '',
+                    lugar: t.lugar_recojo || '',
+                    notas: t.transporte_info?.contacto ? `Contacto: ${t.transporte_info.contacto}` : null
+                  }
+                };
+              }
+              if (entry.__kind === 'machu') {
+                const p = entry.data;
+                const d = p.detalles_machupicchu || {};
+                return {
+                  sortKey: String(d.horario_tren_ida || p.hora_inicio || ''),
+                  node: {
+                    id: `${idx + 1}-mp-${p.id}`,
+                    hora: d.horario_tren_ida || p.hora_inicio || '',
+                    titulo: 'Visita Machu Picchu',
+                    descripcion: d.ruta ? `Ruta: ${d.ruta}` : 'Detalle de visita',
+                    tipo: 'actividad',
+                    icono: <CarOutlined />,
+                    color: '#faad14',
+                    duracion: d.horario_tren_ida && d.horario_tren_retor ? `${d.horario_tren_ida} - ${d.horario_tren_retor}` : '',
+                    lugar: '',
+                    notas: `Guía: ${d.nombre_guia || '-'}`
+                  }
+                };
+              }
+              return { sortKey: '', node: null };
+            })
+            .filter(x => x && x.node)
+            .sort((a,b)=> a.sortKey.localeCompare(b.sortKey))
+            .map(x => x.node)
+        }));
+
+      return {
+        id: it.id,
+        titulo,
+        fecha: fechaStr,
+        destino: it?.grupo?.nombre_grupo || '',
+        estado: it.estado_presupuesto || 'Próximo',
+        colorEstado: estadoColor(it.estado_presupuesto),
+        duracion: `${duracionDias}`,
+        descripcion: it?.grupo?.descripcion || '',
+        itinerario: dias
+      };
+    };
+
+    (async () => {
+      try {
+        const res = await fetch('http://localhost:3000/api/turista/itinerarios', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setViajes(data.map(mapItinerario));
+        }
+      } catch (e) {
+        console.error('Error cargando mis viajes:', e);
+      }
+    })();
+  }, []);
 
   const mostrarDetallesActividad = (actividad) => {
     setActividadSeleccionada(actividad);
