@@ -261,7 +261,6 @@ app.post("/api/registro", async (req, res) => {
   }
 });
 
-
 // Endpoint de login
 app.post("/api/login", async (req, res) => {
   const { usuario, contrasena } = req.body;
@@ -343,7 +342,6 @@ app.get("/api/turistas", async (req, res) => {
   }
 });
 
-
 // Actualizar datos de un turista y su email (usuario asociado)
 app.put("/api/turistas/:id", async (req, res) => {
   const { id } = req.params;
@@ -389,31 +387,6 @@ app.put("/api/turistas/:id", async (req, res) => {
     res.status(500).json({ ok: false, error: "Error al actualizar turista" });
   } finally {
     if (conn) conn.release();
-  }
-});
-
-
-
-
-// Endpoint para actualizar el rol de un usuario
-app.put("/api/usuarios/:id/rol", requireRole(["ADMIN"]), async (req, res) => {
-  const { id } = req.params;
-  const { role } = req.body;
-  if (!role) {
-    return res.status(400).json({ error: "El rol es obligatorio." });
-  }
-  try {
-    const [result] = await pool.query(
-      "UPDATE usuarios SET rol = ? WHERE id_usuario = ?",
-      [role.toLowerCase(), id]
-    );
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Usuario no encontrado." });
-    }
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("❌ Error al actualizar rol:", err.message);
-    res.status(500).json({ error: "Error al actualizar el rol." });
   }
 });
 
@@ -483,7 +456,6 @@ app.get("/api/turistas", async (req, res) => {
   }
 });
 
-
 // Borrado lógico de turista
 app.delete("/api/turistas/:id", async (req, res) => {
   const { id } = req.params;
@@ -514,7 +486,6 @@ app.delete("/api/turistas/:id", async (req, res) => {
   }
 });
 
-
 // Endpoint para eliminar un usuario (borrado lógico)
 app.delete("/api/usuarios/:id", requireRole(["ADMIN"]), async (req, res) => {
   const { id } = req.params;
@@ -533,6 +504,7 @@ app.delete("/api/usuarios/:id", requireRole(["ADMIN"]), async (req, res) => {
     res.status(500).json({ error: "Error al eliminar usuario." });
   }
 });
+
 app.post("/api/usuarios/registro-completo", async (req, res) => {
   const { usuario, turista } = req.body;
   if (!usuario || !turista) {
@@ -955,6 +927,16 @@ app.patch("/api/itinerarios/:id/programas/:ipId", async (req, res) => {
       return res.status(400).json({ ok: false, error: "El programa no pertenece a este itinerario" });
     }
 
+    // Snapshot previo del ip y del programa para auditoría
+    let prevIp = null;
+    try {
+      const [rPrev] = await conn.query(
+        `SELECT fecha, hora_inicio, hora_fin FROM itinerario_programas WHERE id_itinerario_programa = ?`,
+        [ipId]
+      );
+      prevIp = Array.isArray(rPrev) && rPrev[0] ? rPrev[0] : null;
+    } catch {}
+
     // Actualizar campos del itinerario_programas si fueron provistos
     const updates = [];
     const params = [];
@@ -970,10 +952,31 @@ app.patch("/api/itinerarios/:id/programas/:ipId", async (req, res) => {
       console.log("itinerario_programas UPDATE affectedRows:", upRes?.affectedRows);
     }
 
+    // Auditoría de cambios en itinerario_programas (si se enviaron campos)
+    try {
+      if (prevIp) {
+        const ch = [];
+        if (typeof fecha !== 'undefined' && String(fecha) !== String(prevIp.fecha)) ch.push(`fecha: ${prevIp.fecha || ''} → ${fecha}`);
+        if (typeof hora_inicio !== 'undefined' && String(hora_inicio || '') !== String(prevIp.hora_inicio || '')) ch.push(`hora_inicio: ${prevIp.hora_inicio || ''} → ${hora_inicio || ''}`);
+        if (typeof hora_fin !== 'undefined' && String(hora_fin || '') !== String(prevIp.hora_fin || '')) ch.push(`hora_fin: ${prevIp.hora_fin || ''} → ${hora_fin || ''}`);
+        if (ch.length > 0) {
+          await conn.query(
+            `INSERT INTO itinerario_cambios (id_itinerario, tipo_cambio, referencia_id, detalle) VALUES (?, 'programa', ?, ?)`,
+            [current.id_itinerario, ipId, `Horario de programa actualizado (${ch.join('; ')})`]
+          );
+        }
+      }
+    } catch (e) { console.warn('Audit ip change skip:', e?.message); }
+
     // Actualizar datos del programa vinculado si se enviaron
     if (programa_info && Object.keys(programa_info).length > 0) {
       const pUpdates = [];
       const pParams = [];
+      let prevProg = null;
+      try {
+        const [prow] = await conn.query(`SELECT nombre, descripcion, tipo, duracion, costo FROM programas WHERE id_programa = ?`, [current.id_programa]);
+        prevProg = Array.isArray(prow) && prow[0] ? prow[0] : null;
+      } catch {}
       if (typeof programa_info.nombre !== 'undefined') { pUpdates.push('nombre = ?'); pParams.push(programa_info.nombre); }
       if (typeof programa_info.descripcion !== 'undefined') { pUpdates.push('descripcion = ?'); pParams.push(programa_info.descripcion); }
       if (typeof programa_info.tipo !== 'undefined') { pUpdates.push('tipo = ?'); pParams.push(programa_info.tipo); }
@@ -988,6 +991,24 @@ app.patch("/api/itinerarios/:id/programas/:ipId", async (req, res) => {
         console.log("programas UPDATE affectedRows:", pRes?.affectedRows);
       }
     }
+
+    // Auditoría de cambios en programa_info
+    try {
+      if (programa_info && prevProg) {
+        const cambios = [];
+        if (typeof programa_info.nombre !== 'undefined' && programa_info.nombre !== prevProg.nombre) cambios.push(`nombre: ${prevProg.nombre || ''} → ${programa_info.nombre || ''}`);
+        if (typeof programa_info.tipo !== 'undefined' && programa_info.tipo !== prevProg.tipo) cambios.push(`tipo: ${prevProg.tipo || ''} → ${programa_info.tipo || ''}`);
+        if (typeof programa_info.duracion !== 'undefined' && (parseInt(programa_info.duracion||0)||0) !== (parseInt(prevProg.duracion||0)||0)) cambios.push(`duracion: ${prevProg.duracion || 0} → ${parseInt(programa_info.duracion||0)||0}`);
+        if (typeof programa_info.costo !== 'undefined' && Number(programa_info.costo||0) !== Number(prevProg.costo||0)) cambios.push(`costo: ${prevProg.costo || 0} → ${Number(programa_info.costo||0)}`);
+        if (typeof programa_info.descripcion !== 'undefined' && programa_info.descripcion !== prevProg.descripcion) cambios.push('descripcion cambiada');
+        if (cambios.length > 0) {
+          await conn.query(
+            `INSERT INTO itinerario_cambios (id_itinerario, tipo_cambio, referencia_id, detalle) VALUES (?, 'programa', ?, ?)`,
+            [current.id_itinerario, current.id_programa, `Programa actualizado (${cambios.join('; ')})`]
+          );
+        }
+      }
+    } catch (e) { console.warn('Audit programa_info skip:', e?.message); }
 
     await conn.commit();
     console.log("PATCH commit ok for ipId=", ipId);
@@ -1029,6 +1050,13 @@ app.put("/api/itinerarios/:id", async (req, res) => {
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
+    // Snapshot previo del itinerario
+    let prevIt = null;
+    try {
+      const [prow] = await conn.query(`SELECT id_grupo, fecha_inicio, fecha_fin, estado_presupuesto_id FROM itinerarios WHERE id_itinerario = ?`, [id]);
+      prevIt = Array.isArray(prow) && prow[0] ? prow[0] : null;
+    } catch {}
+
     // Actualizar datos base
     let id_grupo = null;
     if (grupo?.id_grupo || grupo?.id) id_grupo = grupo.id_grupo || grupo.id;
@@ -1059,9 +1087,12 @@ app.put("/api/itinerarios/:id", async (req, res) => {
     for (const itp of programas || []) {
       const info = itp.programa_info || {};
       let id_programa = info.id_programa;
+      // Si viene un id_programa, validar existencia; si no existe, crearlo
       if (id_programa) {
         const [chk] = await conn.query(`SELECT id_programa FROM programas WHERE id_programa = ?`, [id_programa]);
-        if (!Array.isArray(chk) || chk.length === 0) id_programa = undefined;
+        if (!Array.isArray(chk) || chk.length === 0) {
+          id_programa = undefined; // forzar creación
+        }
       }
       if (!id_programa) {
         const [p] = await conn.query(
@@ -1100,6 +1131,37 @@ app.put("/api/itinerarios/:id", async (req, res) => {
     await conn.commit();
     console.log("PUT commit ok for itinerario id=", id);
     res.json({ ok: true });
+    // Auditoría fuera de la transacción principal
+    try {
+      // Cambios base del itinerario
+      if (prevIt) {
+        const baseCh = [];
+        if ((prevIt.id_grupo || null) !== (id_grupo || null)) baseCh.push(`grupo: ${prevIt.id_grupo || '—'} → ${id_grupo || '—'}`);
+        if (String(prevIt.fecha_inicio) !== String(datosItinerario.fecha_inicio)) baseCh.push(`fecha_inicio: ${prevIt.fecha_inicio} → ${datosItinerario.fecha_inicio}`);
+        if (String(prevIt.fecha_fin) !== String(datosItinerario.fecha_fin)) baseCh.push(`fecha_fin: ${prevIt.fecha_fin} → ${datosItinerario.fecha_fin}`);
+        if (prevIt.estado_presupuesto_id !== datosItinerario.estado_presupuesto_id) baseCh.push(`estado_presupuesto: ${prevIt.estado_presupuesto_id} → ${datosItinerario.estado_presupuesto_id}`);
+        if (baseCh.length > 0) {
+          await pool.query(
+            `INSERT INTO itinerario_cambios (id_itinerario, tipo_cambio, detalle) VALUES (?, 'itinerario', ?)`,
+            [id, `Itinerario actualizado (${baseCh.join('; ')})`]
+          );
+        }
+      }
+      // Altas en transportes
+      for (const d of transportes || []) {
+        await pool.query(
+          `INSERT INTO itinerario_cambios (id_itinerario, tipo_cambio, referencia_id, detalle) VALUES (?, 'transporte', ?, ?)`,
+          [id, d.id_transporte || 0, `Transporte agregado (id_programa_ref=${d.id_itinerario_programa || '—'}, transporte=${d.id_transporte || '—'})`]
+        );
+      }
+      // Altas en Machu
+      for (const m of detallesMachu || []) {
+        await pool.query(
+          `INSERT INTO itinerario_cambios (id_itinerario, tipo_cambio, detalle) VALUES (?, 'machu', ?)`,
+          [id, `Detalle Machu agregado (empresa=${m.empresa_tren || '—'}, guia=${m.nombre_guia || '—'})`]
+        );
+      }
+    } catch (e) { console.warn('Audit PUT skip:', e?.message); }
   } catch (err) {
     if (conn) await conn.rollback();
     console.error("❌ Error actualizando itinerario:", err.message);
@@ -1262,6 +1324,406 @@ try {
   console.error("❌ Error al obtener itinerarios del turista:", err.message);
   return res.status(500).json({ ok: false, error: "Error al obtener itinerarios del turista" });
 }
+});
+
+app.get("/api/turista/notificaciones", requireRole(["CLIENTE","TURISTA","ADMIN"]), async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "No autenticado" });
+    const dias = Math.min(Math.max(parseInt(req.query?.dias || 14, 10) || 14, 1), 60);
+
+    const [rowsTurista] = await pool.query(
+      "SELECT id_turista FROM turistas WHERE id_usuario = ?",
+      [userId]
+    );
+    if (!Array.isArray(rowsTurista) || rowsTurista.length === 0) {
+      return res.json([]);
+    }
+    const idTurista = rowsTurista[0].id_turista;
+
+    const [prog] = await pool.query(
+      `SELECT 
+         ip.id_itinerario,
+         ip.id_itinerario_programa,
+         ip.fecha,
+         ip.hora_inicio,
+         ip.hora_fin,
+         p.nombre AS programa_nombre
+       FROM itinerario_programas ip
+       JOIN programas p ON p.id_programa = ip.id_programa
+       JOIN itinerario_turistas it ON it.id_itinerario = ip.id_itinerario
+       WHERE it.id_turista = ?
+         AND ip.fecha BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
+       ORDER BY ip.fecha, ip.hora_inicio`,
+      [idTurista, dias]
+    );
+
+    const [transp] = await pool.query(
+      `SELECT 
+         ip.id_itinerario,
+         dti.id_detalle_transporte,
+         dti.id_itinerario_programa,
+         dti.horario_recojo,
+         dti.lugar_recojo,
+         ip.fecha,
+         t.empresa,
+         t.tipo
+       FROM detalle_transporte_itinerario dti
+       JOIN itinerario_programas ip ON ip.id_itinerario_programa = dti.id_itinerario_programa
+       JOIN transportes t ON t.id_transporte = dti.id_transporte
+       JOIN itinerario_turistas it ON it.id_itinerario = ip.id_itinerario
+       WHERE it.id_turista = ?
+         AND ip.fecha BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
+       ORDER BY ip.fecha, dti.horario_recojo`,
+      [idTurista, dias]
+    );
+
+    const [updates] = await pool.query(
+      `SELECT 
+         i.id_itinerario,
+         i.updated_at
+       FROM itinerarios i
+       JOIN itinerario_turistas it ON it.id_itinerario = i.id_itinerario
+       WHERE it.id_turista = ?
+         AND i.updated_at > i.created_at
+         AND i.updated_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+       ORDER BY i.updated_at DESC`,
+      [idTurista, dias]
+    );
+
+    // Cambios recientes en programas del itinerario (requiere columna updated_at en itinerario_programas)
+    let progUpdated = [];
+    try {
+      const [rows] = await pool.query(
+        `SELECT 
+           ip.id_itinerario,
+           ip.id_itinerario_programa,
+           ip.fecha,
+           ip.hora_inicio,
+           ip.hora_fin,
+           ip.updated_at,
+           p.nombre AS programa_nombre
+         FROM itinerario_programas ip
+         JOIN programas p ON p.id_programa = ip.id_programa
+         JOIN itinerario_turistas it ON it.id_itinerario = ip.id_itinerario
+         WHERE it.id_turista = ?
+           AND ip.updated_at IS NOT NULL
+           AND ip.updated_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+         ORDER BY ip.updated_at DESC`,
+        [idTurista, dias]
+      );
+      progUpdated = rows;
+    } catch (e) {
+      console.warn("Aviso: columna updated_at no encontrada en itinerario_programas o consulta falló");
+    }
+
+    // Cambios recientes en transportes del itinerario (requiere columna updated_at en detalle_transporte_itinerario)
+    let transpUpdated = [];
+    try {
+      const [rows] = await pool.query(
+        `SELECT 
+           ip.id_itinerario,
+           dti.id_detalle_transporte,
+           dti.id_itinerario_programa,
+           dti.horario_recojo,
+           dti.lugar_recojo,
+           dti.updated_at,
+           ip.fecha,
+           t.empresa,
+           t.tipo
+         FROM detalle_transporte_itinerario dti
+         JOIN itinerario_programas ip ON ip.id_itinerario_programa = dti.id_itinerario_programa
+         JOIN transportes t ON t.id_transporte = dti.id_transporte
+         JOIN itinerario_turistas it ON it.id_itinerario = ip.id_itinerario
+         WHERE it.id_turista = ?
+           AND dti.updated_at IS NOT NULL
+           AND dti.updated_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+         ORDER BY dti.updated_at DESC`,
+        [idTurista, dias]
+      );
+      transpUpdated = rows;
+    } catch (e) {
+      console.warn("Aviso: columna updated_at no encontrada en detalle_transporte_itinerario o consulta falló");
+    }
+
+    // Cambios recientes en la información base del programa (tabla programas)
+    let progInfoUpdated = [];
+    try {
+      const [rows] = await pool.query(
+        `SELECT 
+           ip.id_itinerario,
+           ip.id_itinerario_programa,
+           p.id_programa,
+           p.nombre,
+           p.updated_at
+         FROM itinerario_programas ip
+         JOIN programas p ON p.id_programa = ip.id_programa
+         JOIN itinerario_turistas it ON it.id_itinerario = ip.id_itinerario
+         WHERE it.id_turista = ?
+           AND p.updated_at IS NOT NULL
+           AND p.updated_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+         ORDER BY p.updated_at DESC`,
+        [idTurista, dias]
+      );
+      progInfoUpdated = rows;
+    } catch (e) {
+      console.warn("Aviso: columna updated_at no encontrada en programas o consulta falló");
+    }
+
+    // Cambios recientes en detalle de Machu Picchu
+    let machuUpdated = [];
+    try {
+      const [rows] = await pool.query(
+        `SELECT 
+           ip.id_itinerario,
+           ip.id_itinerario_programa,
+           ip.fecha,
+           dm.updated_at,
+           dm.empresa_tren,
+           dm.horario_tren_ida,
+           dm.horario_tren_retor,
+           dm.nombre_guia,
+           dm.ruta,
+           dm.tiempo_visita
+         FROM detalle_machu_itinerario dm
+         JOIN itinerario_programas ip ON ip.id_itinerario_programa = dm.id_itinerario_programa
+         JOIN itinerario_turistas it ON it.id_itinerario = ip.id_itinerario
+         WHERE it.id_turista = ?
+           AND dm.updated_at IS NOT NULL
+           AND dm.updated_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+         ORDER BY dm.updated_at DESC`,
+        [idTurista, dias]
+      );
+      machuUpdated = rows;
+    } catch (e) {
+      console.warn("Aviso: columna updated_at no encontrada en detalle_machu_itinerario o consulta falló");
+    }
+
+    const items = [];
+    for (const p of prog) {
+      items.push({
+        type: "programa_proximo",
+        title: p.programa_nombre,
+        date: p.fecha,
+        hora_inicio: p.hora_inicio,
+        hora_fin: p.hora_fin,
+        itinerario_id: p.id_itinerario,
+        id_itinerario_programa: p.id_itinerario_programa,
+        sortKey: `${p.fecha} ${p.hora_inicio || "00:00:00"}`
+      });
+    }
+    for (const tr of transp) {
+      items.push({
+        type: "transporte_recojo",
+        title: `${tr.empresa} (${tr.tipo})`,
+        date: tr.fecha,
+        hora: tr.horario_recojo,
+        lugar: tr.lugar_recojo,
+        itinerario_id: tr.id_itinerario,
+        id_itinerario_programa: tr.id_itinerario_programa,
+        id_detalle_transporte: tr.id_detalle_transporte,
+        sortKey: `${tr.fecha} ${tr.horario_recojo || "00:00:00"}`
+      });
+    }
+    for (const u of updates) {
+      items.push({
+        type: "itinerario_actualizado",
+        title: "Actualización de itinerario",
+        updated_at: u.updated_at,
+        itinerario_id: u.id_itinerario,
+        sortKey: `${new Date(u.updated_at).toISOString()}`
+      });
+    }
+
+    for (const pu of progUpdated) {
+      items.push({
+        type: "programa_actualizado",
+        title: pu.programa_nombre,
+        date: pu.fecha,
+        hora_inicio: pu.hora_inicio,
+        hora_fin: pu.hora_fin,
+        updated_at: pu.updated_at,
+        itinerario_id: pu.id_itinerario,
+        id_itinerario_programa: pu.id_itinerario_programa,
+        sortKey: `${new Date(pu.updated_at).toISOString()}`
+      });
+    }
+
+    for (const tu of transpUpdated) {
+      items.push({
+        type: "transporte_actualizado",
+        title: `${tu.empresa} (${tu.tipo})`,
+        date: tu.fecha,
+        hora: tu.horario_recojo,
+        lugar: tu.lugar_recojo,
+        updated_at: tu.updated_at,
+        itinerario_id: tu.id_itinerario,
+        id_itinerario_programa: tu.id_itinerario_programa,
+        id_detalle_transporte: tu.id_detalle_transporte,
+        sortKey: `${new Date(tu.updated_at).toISOString()}`
+      });
+    }
+
+    for (const pi of progInfoUpdated) {
+      items.push({
+        type: "programa_actualizado",
+        title: pi.nombre,
+        updated_at: pi.updated_at,
+        itinerario_id: pi.id_itinerario,
+        id_itinerario_programa: pi.id_itinerario_programa,
+        id_programa: pi.id_programa,
+        sortKey: `${new Date(pi.updated_at).toISOString()}`
+      });
+    }
+
+    for (const mu of machuUpdated) {
+      items.push({
+        type: "machu_actualizado",
+        title: mu.empresa_tren || "Machu Picchu",
+        date: mu.fecha,
+        updated_at: mu.updated_at,
+        itinerario_id: mu.id_itinerario,
+        id_itinerario_programa: mu.id_itinerario_programa,
+        detalles_machu: {
+          empresa_tren: mu.empresa_tren,
+          horario_tren_ida: mu.horario_tren_ida,
+          horario_tren_retor: mu.horario_tren_retor,
+          nombre_guia: mu.nombre_guia,
+          ruta: mu.ruta,
+          tiempo_visita: mu.tiempo_visita
+        },
+        sortKey: `${new Date(mu.updated_at).toISOString()}`
+      });
+    }
+
+    // Deduplicar por (type, itinerario_id, referencia_id) conservando el más reciente
+    const pickRef = (n) => n.id_itinerario_programa || n.id_detalle_transporte || n.id_programa || n.referencia_id || 0;
+    const getTs = (n) => {
+      const v = n.updated_at || n.created_at || n.date || n.hora || n.sortKey || 0;
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? 0 : d.getTime();
+    };
+    const byKey = new Map();
+    for (const n of items) {
+      const key = `${n.type}|${n.itinerario_id || ''}|${pickRef(n)}`;
+      const cur = byKey.get(key);
+      if (!cur) {
+        byKey.set(key, n);
+      } else {
+        if (getTs(n) >= getTs(cur)) byKey.set(key, n);
+      }
+    }
+    const deduped = Array.from(byKey.values());
+    deduped.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+    let result = deduped.map(({ sortKey, ...rest }) => rest);
+
+    // Agregar cambios detallados desde itinerario_cambios (si existe)
+    try {
+      const [changes] = await pool.query(
+        `SELECT ic.id_cambio, ic.id_itinerario, ic.tipo_cambio, ic.referencia_id, ic.detalle, ic.created_at
+         FROM itinerario_cambios ic
+         JOIN itinerario_turistas it ON it.id_itinerario = ic.id_itinerario
+         WHERE it.id_turista = ?
+           AND ic.created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+         ORDER BY ic.created_at DESC`,
+        [idTurista, dias]
+      );
+      for (const c of changes || []) {
+        result.push({
+          type: 'cambio_detallado',
+          title: `${String(c.tipo_cambio).charAt(0).toUpperCase()}${String(c.tipo_cambio).slice(1)} actualizado`,
+          detalle: c.detalle,
+          itinerario_id: c.id_itinerario,
+          referencia_id: c.referencia_id ?? 0,
+          created_at: c.created_at
+        });
+      }
+    } catch (e) {
+      console.warn('Aviso: itinerario_cambios no disponible:', e?.message);
+    }
+
+    // Aplicar estados por usuario (leída/descartada) si existe tabla notificaciones_estado
+    try {
+      const userId = req.user?.id;
+      if (userId) {
+        const [states] = await pool.query(
+          `SELECT tipo, itinerario_id, referencia_id, estado
+           FROM notificaciones_estado
+           WHERE id_usuario = ?`,
+          [userId]
+        );
+        const stateMap = new Map();
+        for (const s of states) {
+          const key = `${s.tipo}|${s.itinerario_id || ''}|${(s.referencia_id ?? 0)}`;
+          stateMap.set(key, s.estado);
+        }
+        result = result
+          .filter(n => {
+            const ref = n.id_itinerario_programa || n.id_detalle_transporte || n.id_programa || n.referencia_id || 0;
+            const key = `${n.type}|${n.itinerario_id || ''}|${ref}`;
+            return stateMap.get(key) !== 'descartada';
+          })
+          .map(n => {
+            const ref = n.id_itinerario_programa || n.id_detalle_transporte || n.id_programa || n.referencia_id || 0;
+            const key = `${n.type}|${n.itinerario_id || ''}|${ref}`;
+            const st = stateMap.get(key);
+            return st === 'leida' ? { ...n, read: true } : n;
+          });
+      }
+    } catch (e) {
+      // Si la tabla no existe o falla, ignorar estados
+      console.warn('Estados de notificaciones no aplicados:', e?.message);
+    }
+    return res.json(result);
+  } catch (err) {
+    console.error("❌ Error al obtener notificaciones del turista:", err.message);
+    return res.status(500).json({ ok: false, error: "Error al obtener notificaciones del turista" });
+  }
+});
+
+// Persistencia de estados de notificaciones
+app.post("/api/turista/notificaciones/leida", requireRole(["CLIENTE","TURISTA","ADMIN"]), async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ ok: false, error: "No autenticado" });
+    const { tipo, itinerario_id, referencia_id } = req.body || {};
+    if (!tipo || !itinerario_id) {
+      return res.status(400).json({ ok: false, error: "tipo e itinerario_id son requeridos" });
+    }
+    const ref = (referencia_id === null || referencia_id === undefined) ? 0 : referencia_id;
+    await pool.query(
+      `INSERT INTO notificaciones_estado (id_usuario, tipo, itinerario_id, referencia_id, estado, updated_at)
+       VALUES (?, ?, ?, ?, 'leida', NOW())
+       ON DUPLICATE KEY UPDATE estado = VALUES(estado), updated_at = VALUES(updated_at)`,
+      [userId, String(tipo), Number(itinerario_id), Number(ref)]
+    );
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("❌ Error persistiendo notificación leída:", e.message);
+    return res.status(500).json({ ok: false, error: "Error al persistir estado" });
+  }
+});
+
+app.post("/api/turista/notificaciones/descartar", requireRole(["CLIENTE","TURISTA","ADMIN"]), async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ ok: false, error: "No autenticado" });
+    const { tipo, itinerario_id, referencia_id } = req.body || {};
+    if (!tipo || !itinerario_id) {
+      return res.status(400).json({ ok: false, error: "tipo e itinerario_id son requeridos" });
+    }
+    const ref = (referencia_id === null || referencia_id === undefined) ? 0 : referencia_id;
+    await pool.query(
+      `INSERT INTO notificaciones_estado (id_usuario, tipo, itinerario_id, referencia_id, estado, updated_at)
+       VALUES (?, ?, ?, ?, 'descartada', NOW())
+       ON DUPLICATE KEY UPDATE estado = VALUES(estado), updated_at = VALUES(updated_at)`,
+      [userId, String(tipo), Number(itinerario_id), Number(ref)]
+    );
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("❌ Error descartando notificación:", e.message);
+    return res.status(500).json({ ok: false, error: "Error al persistir estado" });
+  }
 });
 
 // Iniciar servidor

@@ -21,67 +21,121 @@ dayjs.locale('es');
 
 const { Title, Text } = Typography;
 
-// Datos de ejemplo para las notificaciones
-const mockNotifications = [
-  {
-    id: 1,
-    title: '¡Tu itinerario está listo!',
-    message: 'Hemos preparado tu itinerario para el viaje a París. ¡Revisa los detalles!',
-    type: 'info',
-    read: false,
-    date: dayjs().subtract(5, 'minute').toISOString(),
-    action: {
-      text: 'Ver itinerario',
-      path: '/mis-viajes/123'
+// Mapeo de notificaciones desde el backend a este componente
+function mapBackendToUI(items = []) {
+  return items.map((n, idx) => {
+    const baseId = `${n.type}-${n.itinerario_id || 'it'}-${n.id_itinerario_programa || n.id_detalle_transporte || n.id_programa || n.referencia_id || idx}`;
+    let ui = {
+      id: baseId,
+      title: '',
+      message: '',
+      type: 'info',
+      read: Boolean(n.read),
+      date: dayjs().toISOString(),
+      // Passthrough para persistencia
+      backend_type: n.type,
+      itinerario_id: n.itinerario_id,
+      id_itinerario_programa: n.id_itinerario_programa,
+      id_detalle_transporte: n.id_detalle_transporte,
+      id_programa: n.id_programa,
+      referencia_id: n.referencia_id
+    };
+    if (n.type === 'programa_proximo') {
+      ui.title = 'Programa próximo';
+      const hora = n.hora_inicio ? ` a las ${n.hora_inicio}` : '';
+      ui.message = `${n.title} el ${n.date}${hora}`;
+      ui.type = 'info';
+      // combinar fecha y hora si existe
+      const dt = n.hora_inicio ? dayjs(`${n.date}T${n.hora_inicio}`) : dayjs(n.date);
+      ui.date = dt.isValid() ? dt.toISOString() : dayjs().toISOString();
+    } else if (n.type === 'transporte_recojo') {
+      ui.title = 'Recojo de transporte';
+      const hora = n.hora ? ` a las ${n.hora}` : '';
+      const lugar = n.lugar ? ` — ${n.lugar}` : '';
+      ui.message = `${n.title} el ${n.date}${hora}${lugar}`;
+      ui.type = 'warning';
+      const dt = n.hora ? dayjs(`${n.date}T${n.hora}`) : dayjs(n.date);
+      ui.date = dt.isValid() ? dt.toISOString() : dayjs().toISOString();
+    } else if (n.type === 'itinerario_actualizado') {
+      ui.title = 'Actualización de itinerario';
+      ui.message = `Se han realizado cambios en tu itinerario (ID ${n.itinerario_id}).`;
+      ui.type = 'success';
+      ui.date = n.updated_at ? dayjs(n.updated_at).toISOString() : dayjs().toISOString();
+    } else if (n.type === 'programa_actualizado') {
+      ui.title = 'Programa actualizado';
+      const hora = n.hora_inicio ? ` (${n.hora_inicio}${n.hora_fin ? ` - ${n.hora_fin}` : ''})` : '';
+      ui.message = `${n.title}${hora} — cambios recientes en el programa`;
+      ui.type = 'warning';
+      ui.date = n.updated_at ? dayjs(n.updated_at).toISOString() : dayjs().toISOString();
+    } else if (n.type === 'transporte_actualizado') {
+      ui.title = 'Transporte actualizado';
+      const hora = n.hora ? ` a las ${n.hora}` : '';
+      const lugar = n.lugar ? ` — ${n.lugar}` : '';
+      ui.message = `${n.title}${hora}${lugar} — cambios recientes en el recojo`;
+      ui.type = 'success';
+      ui.date = n.updated_at ? dayjs(n.updated_at).toISOString() : dayjs().toISOString();
+    } else if (n.type === 'machu_actualizado') {
+      ui.title = 'Machu Picchu actualizado';
+      const empresa = n.detalles_machu?.empresa_tren ? `Empresa: ${n.detalles_machu.empresa_tren}` : null;
+      const guia = n.detalles_machu?.nombre_guia ? `Guía: ${n.detalles_machu.nombre_guia}` : null;
+      const ruta = n.detalles_machu?.ruta ? `Ruta: ${n.detalles_machu.ruta}` : null;
+      const ida = n.detalles_machu?.horario_tren_ida ? `Tren ida: ${n.detalles_machu.horario_tren_ida}` : null;
+      const ret = n.detalles_machu?.horario_tren_retor ? `Tren retorno: ${n.detalles_machu.horario_tren_retor}` : null;
+      const partes = [empresa, guia, ruta, ida, ret].filter(Boolean);
+      ui.message = partes.length ? partes.join(' — ') : 'Cambios recientes en los detalles de Machu Picchu';
+      ui.type = 'success';
+      ui.date = n.updated_at ? dayjs(n.updated_at).toISOString() : dayjs().toISOString();
+    } else if (n.type === 'cambio_detallado') {
+      // Entrada proveniente de la tabla de auditoría 'itinerario_cambios'
+      ui.title = n.title || 'Cambio en itinerario';
+      ui.message = n.detalle || '';
+      ui.type = 'success';
+      ui.date = n.created_at ? dayjs(n.created_at).toISOString() : dayjs().toISOString();
+    } else {
+      // fallback
+      ui.title = n.title || 'Notificación';
+      ui.message = n.message || '';
+      ui.type = 'info';
+      ui.date = n.date ? dayjs(n.date).toISOString() : dayjs().toISOString();
     }
-  },
-  {
-    id: 2,
-    title: 'Recordatorio de pago',
-    message: 'Tu reserva en el Hotel Eiffel Tower View está pendiente de pago. Vence en 2 días.',
-    type: 'warning',
-    read: false,
-    date: dayjs().subtract(2, 'hour').toISOString(),
-    action: {
-      text: 'Pagar ahora',
-      path: '/pagos/pendientes/456'
-    }
-  },
-  {
-    id: 3,
-    title: '¡Oferta especial!',
-    message: 'Descuento del 20% en excursiones por tiempo limitado. ¡No te lo pierdas!',
-    type: 'promo',
-    read: true,
-    date: dayjs().subtract(1, 'day').toISOString(),
-    action: {
-      text: 'Ver ofertas',
-      path: '/ofertas/verano-2023'
-    }
-  },
-  {
-    id: 4,
-    title: 'Confirmación de reserva',
-    message: 'Tu vuelo de ida y vuelta a París ha sido confirmado. Número de reserva: AB123456',
-    type: 'success',
-    read: true,
-    date: dayjs().subtract(3, 'day').toISOString()
-  }
-];
+    return ui;
+  });
+}
 
 const Notificaciones = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [token, setToken] = useState('');
 
   useEffect(() => {
-    // Simular carga de datos
-    const timer = setTimeout(() => {
-      setNotifications(mockNotifications);
-      setLoading(false);
-    }, 800);
-
-    return () => clearTimeout(timer);
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      try {
+        const stored = localStorage.getItem('user');
+        const parsed = stored ? JSON.parse(stored) : null;
+        const tk = parsed?.token || '';
+        setToken(tk);
+        const url = `http://localhost:3000/api/turista/notificaciones?dias=14`;
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': tk ? `Bearer ${tk}` : ''
+          }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+        const uiItems = mapBackendToUI(Array.isArray(data) ? data : []);
+        if (!cancelled) setNotifications(uiItems);
+      } catch (err) {
+        // Si hay error de auth u otro, mostrar vacío
+        if (!cancelled) setNotifications([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
   }, []);
 
   const filteredNotifications = notifications.filter(notification => {
@@ -90,25 +144,88 @@ const Notificaciones = () => {
     return notification.type === filter;
   });
 
-  const markAsRead = (id) => {
-    setNotifications(notifications.map(notif => 
-      notif.id === id ? { ...notif, read: true } : notif
-    ));
+  const markAsRead = async (notif) => {
+    // Optimista
+    setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+    try {
+      if (!token) return;
+      await fetch('http://localhost:3000/api/turista/notificaciones/leida', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          tipo: notif.backend_type,
+          itinerario_id: notif.itinerario_id,
+          referencia_id: (notif.referencia_id ?? (notif.id_itinerario_programa || notif.id_detalle_transporte || notif.id_programa || null))
+        })
+      });
+    } catch {}
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(notif => ({
-      ...notif,
-      read: true
-    })));
+  const markAllAsRead = async () => {
+    // Optimista en UI
+    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+    try {
+      if (!token) return;
+      const unread = notifications.filter(n => !n.read);
+      await Promise.all(unread.map(n => fetch('http://localhost:3000/api/turista/notificaciones/leida', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          tipo: n.backend_type,
+          itinerario_id: n.itinerario_id,
+          referencia_id: (n.referencia_id ?? (n.id_itinerario_programa || n.id_detalle_transporte || n.id_programa || null))
+        })
+      })));
+      // Refrescar desde backend para asegurar que 'read' persista tras reload
+      const url = `http://localhost:3000/api/turista/notificaciones?dias=14`;
+      const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        setNotifications(mapBackendToUI(data));
+      }
+    } catch {}
   };
 
-  const deleteNotification = (id) => {
-    setNotifications(notifications.filter(notif => notif.id !== id));
+  const deleteNotification = async (notif) => {
+    // Optimista
+    setNotifications(prev => prev.filter(n => n.id !== notif.id));
+    try {
+      if (!token) return;
+      await fetch('http://localhost:3000/api/turista/notificaciones/descartar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          tipo: notif.backend_type,
+          itinerario_id: notif.itinerario_id,
+          referencia_id: (notif.referencia_id ?? (notif.id_itinerario_programa || notif.id_detalle_transporte || notif.id_programa || null))
+        })
+      });
+    } catch {}
   };
 
-  const clearAllNotifications = () => {
+  const clearAllNotifications = async () => {
+    // Optimista: limpiar UI
+    const toDelete = notifications.slice();
     setNotifications([]);
+    try {
+      if (!token || toDelete.length === 0) return;
+      await Promise.all(toDelete.map(n => fetch('http://localhost:3000/api/turista/notificaciones/descartar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          tipo: n.backend_type,
+          itinerario_id: n.itinerario_id,
+          referencia_id: (n.referencia_id ?? (n.id_itinerario_programa || n.id_detalle_transporte || n.id_programa || null))
+        })
+      })));
+      // Refrescar desde backend para asegurar consistencia
+      const url = `http://localhost:3000/api/turista/notificaciones?dias=14`;
+      const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      if (res.ok && Array.isArray(data)) {
+        setNotifications(mapBackendToUI(data));
+      }
+    } catch {}
   };
 
   const getNotificationIcon = (type) => {
@@ -231,7 +348,7 @@ const Notificaciones = () => {
             renderItem={(notification) => (
               <List.Item 
                 className={`notification-item ${!notification.read ? 'unread' : ''}`}
-                onClick={() => markAsRead(notification.id)}
+                onClick={() => markAsRead(notification)}
               >
                 <div className="notification-content">
                   <div className="notification-icon-container">
@@ -259,7 +376,7 @@ const Notificaciones = () => {
                     className="delete-notification"
                     onClick={(e) => {
                       e.stopPropagation();
-                      deleteNotification(notification.id);
+                      deleteNotification(notification);
                     }}
                   />
                 </div>
