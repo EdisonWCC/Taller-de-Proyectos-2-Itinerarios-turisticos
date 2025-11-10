@@ -1,5 +1,6 @@
 import React from 'react';
 import { Layout, Button, Dropdown, Avatar, Badge } from 'antd';
+
 import {
   BellOutlined,
   UserOutlined,
@@ -9,11 +10,13 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/Turista/Navbar.css';
+import useUnreadNotificationsCount from '../../hooks/useUnreadNotificationsCount';
 
 const { Header } = Layout;
 
 export const TuristaNavbar = () => {
   const navigate = useNavigate();
+  const { count } = useUnreadNotificationsCount();
 
   const items = [
     {
@@ -50,8 +53,8 @@ export const TuristaNavbar = () => {
       </div>
       
       <div className="navbar-right">
-        <Badge count={5} className="notification-badge">
-          <Button type="text" icon={<BellOutlined />} className="notification-btn" />
+        <Badge count={count} className="notification-badge">
+          <Button type="text" icon={<BellOutlined />} className="notification-btn" onClick={() => navigate('/turista/notificaciones')} />
         </Badge>
         
         <Dropdown menu={{ items }} trigger={['click']}>

@@ -13,6 +13,7 @@ import {
   MenuUnfoldOutlined
 } from '@ant-design/icons';
 import '../../styles/Turista/Sidebar.css';
+import useUnreadNotificationsCount from '../../hooks/useUnreadNotificationsCount';
 
 const { Sider } = Layout;
 
@@ -20,9 +21,10 @@ export const TuristaSidebar = ({ collapsed, onCollapse, isMobile, onClose }) => 
   const location = useLocation();
   const navigate = useNavigate();
   const selectedKey = location.pathname.split('/').pop() || 'inicio';
+  const { count } = useUnreadNotificationsCount();
 
-  // Simulando notificaciones no leídas (esto debería venir de tu estado global o contexto)
-  const unreadCount = 3; // Esto debería venir de tu estado de notificaciones
+  // Conteo real de no leídas
+  const unreadCount = count;
 
   const items = [
     {
