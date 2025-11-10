@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 13-10-2025 a las 08:03:52
+-- Tiempo de generación: 10-11-2025 a las 07:39:18
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -34,7 +34,8 @@ CREATE TABLE `detalle_machu_itinerario` (
   `horario_tren_retor` time DEFAULT NULL,
   `nombre_guia` varchar(100) DEFAULT NULL,
   `ruta` varchar(10) DEFAULT NULL,
-  `tiempo_visita` varchar(50) DEFAULT NULL
+  `tiempo_visita` varchar(50) DEFAULT NULL,
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -48,7 +49,8 @@ CREATE TABLE `detalle_transporte_itinerario` (
   `id_itinerario_programa` int(11) NOT NULL,
   `id_transporte` int(11) NOT NULL,
   `horario_recojo` time DEFAULT NULL,
-  `lugar_recojo` varchar(150) DEFAULT NULL
+  `lugar_recojo` varchar(150) DEFAULT NULL,
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -93,6 +95,22 @@ CREATE TABLE `itinerarios` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `itinerario_cambios`
+--
+
+CREATE TABLE `itinerario_cambios` (
+  `id_cambio` int(11) NOT NULL,
+  `id_itinerario` int(11) NOT NULL,
+  `tipo_cambio` enum('itinerario','programa','transporte','machu','turista') NOT NULL,
+  `referencia_id` int(11) DEFAULT NULL,
+  `detalle` varchar(255) NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`payload`)),
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `itinerario_programas`
 --
 
@@ -102,7 +120,8 @@ CREATE TABLE `itinerario_programas` (
   `id_programa` int(11) NOT NULL,
   `fecha` date NOT NULL,
   `hora_inicio` time DEFAULT NULL,
-  `hora_fin` time DEFAULT NULL
+  `hora_fin` time DEFAULT NULL,
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -119,6 +138,21 @@ CREATE TABLE `itinerario_turistas` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `notificaciones_estado`
+--
+
+CREATE TABLE `notificaciones_estado` (
+  `id_usuario` int(11) NOT NULL,
+  `tipo` varchar(50) NOT NULL,
+  `itinerario_id` int(11) NOT NULL,
+  `referencia_id` int(11) NOT NULL,
+  `estado` enum('leida','descartada') NOT NULL,
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `programas`
 --
 
@@ -128,7 +162,8 @@ CREATE TABLE `programas` (
   `descripcion` text DEFAULT NULL,
   `tipo` enum('tour','actividad','machupicchu') NOT NULL,
   `duracion` int(11) DEFAULT NULL,
-  `costo` decimal(10,2) NOT NULL
+  `costo` decimal(10,2) NOT NULL,
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -160,7 +195,8 @@ CREATE TABLE `turistas` (
   `pasaporte` varchar(20) DEFAULT NULL,
   `nacionalidad` varchar(100) DEFAULT NULL,
   `fecha_nacimiento` date DEFAULT NULL,
-  `genero` enum('M','F','Otro') DEFAULT NULL
+  `genero` enum('M','F','Otro') DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -178,15 +214,6 @@ CREATE TABLE `usuarios` (
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `usuarios` definiendo estructura de roles
---
-
-INSERT INTO `usuarios` (`id_usuario`, `nombre_usuario`, `email`, `password`, `rol`, `created_at`, `updated_at`) VALUES
-(1, 'Edison', 'edi@gmail.com', 'Edi123-', 'admin', '2025-10-13 00:59:14', '2025-10-13 00:59:14'),
-(2, 'Brandon', 'bran@gmail.com', 'Bran123-', 'agente', '2025-10-13 00:59:14', '2025-10-13 00:59:14'),
-(3, 'Shank', 'shank@one.piece', 'Shank123-', 'cliente', '2025-10-09 21:59:53', '2025-10-09 21:59:53');
 
 --
 -- Índices para tablas volcadas
@@ -228,6 +255,15 @@ ALTER TABLE `itinerarios`
   ADD KEY `estado_presupuesto_id` (`estado_presupuesto_id`);
 
 --
+-- Indices de la tabla `itinerario_cambios`
+--
+ALTER TABLE `itinerario_cambios`
+  ADD PRIMARY KEY (`id_cambio`),
+  ADD KEY `id_itinerario` (`id_itinerario`),
+  ADD KEY `tipo_cambio` (`tipo_cambio`),
+  ADD KEY `created_at` (`created_at`);
+
+--
 -- Indices de la tabla `itinerario_programas`
 --
 ALTER TABLE `itinerario_programas`
@@ -241,6 +277,15 @@ ALTER TABLE `itinerario_programas`
 ALTER TABLE `itinerario_turistas`
   ADD PRIMARY KEY (`id_itinerario`,`id_turista`),
   ADD KEY `id_turista` (`id_turista`);
+
+--
+-- Indices de la tabla `notificaciones_estado`
+--
+ALTER TABLE `notificaciones_estado`
+  ADD PRIMARY KEY (`id_usuario`,`tipo`,`itinerario_id`,`referencia_id`),
+  ADD KEY `id_usuario` (`id_usuario`),
+  ADD KEY `itinerario_id` (`itinerario_id`),
+  ADD KEY `tipo` (`tipo`);
 
 --
 -- Indices de la tabla `programas`
@@ -297,6 +342,12 @@ ALTER TABLE `itinerarios`
   MODIFY `id_itinerario` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `itinerario_cambios`
+--
+ALTER TABLE `itinerario_cambios`
+  MODIFY `id_cambio` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `itinerario_programas`
 --
 ALTER TABLE `itinerario_programas`
@@ -324,7 +375,7 @@ ALTER TABLE `turistas`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Restricciones para tablas volcadas
@@ -374,5 +425,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-ALTER TABLE turistas 
-ADD COLUMN activo TINYINT(1) NOT NULL DEFAULT 1;
