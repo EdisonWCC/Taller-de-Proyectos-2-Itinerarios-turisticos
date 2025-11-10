@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import pool, { testConnection } from "./src/config/db.js";
+import PDFDocument from 'pdfkit';
 const SECRET = 'tu_clave_secreta'; // Usa una variable de entorno en producción
 
 const app = express();
@@ -1723,6 +1724,109 @@ app.post("/api/turista/notificaciones/descartar", requireRole(["CLIENTE","TURIST
   } catch (e) {
     console.error("❌ Error descartando notificación:", e.message);
     return res.status(500).json({ ok: false, error: "Error al persistir estado" });
+  }
+});
+
+// Generar PDF del itinerario con datos del turista (separado)
+app.get('/api/pdf/itinerario', requireRole(["CLIENTE","TURISTA","ADMIN"]), async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ ok: false, error: 'No autenticado' });
+    const itinerarioId = parseInt(req.query?.itinerario_id, 10);
+    if (!itinerarioId) return res.status(400).json({ ok: false, error: 'itinerario_id requerido' });
+
+    const [rowsTurista] = await pool.query('SELECT id_turista, nombre, apellido, dni, pasaporte, nacionalidad, fecha_nacimiento, genero FROM turistas WHERE id_usuario = ?', [userId]);
+    if (!Array.isArray(rowsTurista) || rowsTurista.length === 0) return res.status(404).json({ ok: false, error: 'Turista no encontrado' });
+    const turista = rowsTurista[0];
+
+    if (req.user.role !== 'ADMIN') {
+      const [check] = await pool.query('SELECT 1 FROM itinerario_turistas WHERE id_itinerario = ? AND id_turista = ?', [itinerarioId, turista.id_turista]);
+      if (!Array.isArray(check) || check.length === 0) return res.status(403).json({ ok: false, error: 'No autorizado para este itinerario' });
+    }
+
+    const [itRows] = await pool.query(
+      `SELECT i.id_itinerario, i.id_grupo, i.fecha_inicio, i.fecha_fin, e.nombre_estado AS estado_presupuesto, g.nombre AS grupo_nombre
+       FROM itinerarios i
+       LEFT JOIN grupos g ON g.id_grupo = i.id_grupo
+       LEFT JOIN estados_presupuesto e ON e.id_estado = i.estado_presupuesto_id
+       WHERE i.id_itinerario = ?`, [itinerarioId]
+    );
+    if (!Array.isArray(itRows) || itRows.length === 0) return res.status(404).json({ ok: false, error: 'Itinerario no encontrado' });
+    const it = itRows[0];
+
+    const [prog] = await pool.query(
+      `SELECT ip.id_itinerario_programa, ip.fecha, ip.hora_inicio, ip.hora_fin, p.nombre, p.tipo
+       FROM itinerario_programas ip
+       JOIN programas p ON p.id_programa = ip.id_programa
+       WHERE ip.id_itinerario = ?
+       ORDER BY ip.fecha, ip.hora_inicio`, [itinerarioId]
+    );
+    const [transp] = await pool.query(
+      `SELECT dti.id_detalle_transporte, dti.horario_recojo, dti.lugar_recojo, t.empresa, t.tipo
+       FROM detalle_transporte_itinerario dti
+       JOIN itinerario_programas ip ON ip.id_itinerario_programa = dti.id_itinerario_programa
+       JOIN transportes t ON t.id_transporte = dti.id_transporte
+       WHERE ip.id_itinerario = ?
+       ORDER BY ip.fecha, dti.horario_recojo`, [itinerarioId]
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="itinerario_${itinerarioId}.pdf"`);
+    const doc = new PDFDocument({ margin: 50 });
+    doc.pipe(res);
+
+    doc.fontSize(20).text('Itinerario de viaje', { align: 'center' });
+    doc.moveDown(0.5);
+    doc.fontSize(10).fillColor('#666').text(`Generado: ${new Date().toLocaleString()}`, { align: 'center' });
+    doc.moveDown(1);
+
+    doc.fillColor('#000').fontSize(14).text('Datos del Turista');
+    doc.moveDown(0.3);
+    doc.fontSize(11)
+      .text(`Nombre: ${turista.nombre || ''} ${turista.apellido || ''}`)
+      .text(`Documento: ${turista.dni || turista.pasaporte || ''}`)
+      .text(`Nacionalidad: ${turista.nacionalidad || ''}`)
+      .text(`Género: ${turista.genero || ''}`)
+      .text(`Fecha de nacimiento: ${turista.fecha_nacimiento ? new Date(turista.fecha_nacimiento).toISOString().slice(0,10) : ''}`);
+    doc.moveDown(1);
+
+    doc.fontSize(14).text('Datos del Itinerario');
+    doc.moveDown(0.3);
+    doc.fontSize(11)
+      .text(`ID: ${it.id_itinerario}`)
+      .text(`Grupo: ${it.grupo_nombre || '—'}`)
+      .text(`Fechas: ${it.fecha_inicio ? new Date(it.fecha_inicio).toISOString().slice(0,10) : ''} a ${it.fecha_fin ? new Date(it.fecha_fin).toISOString().slice(0,10) : ''}`)
+      .text(`Estado: ${it.estado_presupuesto || '—'}`);
+    doc.moveDown(1);
+
+    doc.fontSize(14).text('Programas');
+    doc.moveDown(0.3);
+    if (Array.isArray(prog) && prog.length > 0) {
+      prog.forEach((p, i) => {
+        const fecha = p.fecha ? new Date(p.fecha).toISOString().slice(0,10) : '';
+        doc.fontSize(11).text(`${i+1}. ${p.nombre} (${p.tipo || '—'}) - ${fecha} ${p.hora_inicio || ''}${p.hora_fin ? ' - ' + p.hora_fin : ''}`);
+      });
+    } else {
+      doc.fontSize(11).fillColor('#666').text('Sin programas registrados');
+      doc.fillColor('#000');
+    }
+    doc.moveDown(1);
+
+    doc.fontSize(14).text('Transportes');
+    doc.moveDown(0.3);
+    if (Array.isArray(transp) && transp.length > 0) {
+      transp.forEach((t, i) => {
+        doc.fontSize(11).text(`${i+1}. ${t.empresa || '—'} (${t.tipo || '—'}) - ${t.horario_recojo || '—'} ${t.lugar_recojo ? ' — ' + t.lugar_recojo : ''}`);
+      });
+    } else {
+      doc.fontSize(11).fillColor('#666').text('Sin transportes registrados');
+      doc.fillColor('#000');
+    }
+
+    doc.end();
+  } catch (e) {
+    console.error('❌ Error generando PDF:', e.message);
+    return res.status(500).json({ ok: false, error: 'Error al generar PDF' });
   }
 });
 
