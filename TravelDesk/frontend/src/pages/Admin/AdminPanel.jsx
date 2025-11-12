@@ -53,7 +53,14 @@ const getDashboardData = async () => {
 };
 
 function AdminPanel() {
-  // Datos de ejemplo
+  // Estado para los filtros de fecha
+  const [dateRange, setDateRange] = useState({
+    startDate: new Date(new Date().setDate(new Date().getDate() - 30)), // Últimos 30 días por defecto
+    endDate: new Date(),
+    key: 'selection'
+  });
+  const [period, setPeriod] = useState('30d'); // '7d', '30d', '90d', 'ytd', '12m', 'custom'
+
   const [dashboardData, setDashboardData] = useState({
     reservationsByStatus: [],
     monthlyBookings: [],
@@ -79,26 +86,99 @@ function AdminPanel() {
     );
   };
 
-  const [dateRange, setDateRange] = useState('month');
   const [hasDimensions, setHasDimensions] = useState(false);
   const [lastUpdated] = useState(new Date());
 
+  // Función para formatear fechas para la API
+  const formatDateForApi = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  // Función para cargar datos con los filtros actuales
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Parámetros para la API
+      const params = new URLSearchParams({
+        startDate: formatDateForApi(dateRange.startDate),
+        endDate: formatDateForApi(dateRange.endDate),
+        period: period
+      });
+
+      // Simular llamada a la API (reemplazar con llamada real)
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Aquí iría la llamada real a la API:
+      // const response = await fetch(`/api/dashboard?${params}`);
+      // const data = await response.json();
+      
+      // Usando datos de ejemplo por ahora
+      const data = await getDashboardData();
+      setDashboardData(data);
+      
+    } catch (error) {
+      console.error('Error al cargar los datos:', error);
+      // Aquí podrías mostrar un mensaje de error al usuario
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  // Manejadores para los filtros rápidos
+  const handlePeriodChange = (newPeriod) => {
+    setPeriod(newPeriod);
+    const endDate = new Date();
+    let startDate = new Date();
+    
+    switch(newPeriod) {
+      case '7d':
+        startDate.setDate(endDate.getDate() - 7);
+        break;
+      case '30d':
+        startDate.setDate(endDate.getDate() - 30);
+        break;
+      case '90d':
+        startDate.setDate(endDate.getDate() - 90);
+        break;
+      case 'ytd':
+        startDate = new Date(new Date().getFullYear(), 0, 1);
+        break;
+      case '12m':
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 12);
+        break;
+      default:
+        // Para 'custom', no hacemos nada aquí
+        return;
+    }
+    
+    setDateRange(prev => ({
+      ...prev,
+      startDate,
+      endDate
+    }));
+  };
+
+  // Efecto para cargar datos cuando cambian los filtros
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Simulate API call
+        setLoading(true);
+        // Simular carga de datos
         await new Promise(resolve => setTimeout(resolve, 1000));
         const data = await getDashboardData();
         setDashboardData(data);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('Error cargando datos:', error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [period, dateRange]);
 
   if (loading) {
     return (
@@ -116,6 +196,86 @@ function AdminPanel() {
       <header className="admin-header admin-panel-header">
         <div>
           <h1 className="admin-title">Panel de Control</h1>
+          <p className="admin-subtitle">Resumen de actividades y métricas</p>
+        </div>
+        
+        {/* Filtros de fecha */}
+        <div className="date-filters">
+          <div className="quick-filters">
+            <button 
+              className={`quick-filter-btn ${period === '7d' ? 'active' : ''}`}
+              onClick={() => handlePeriodChange('7d')}
+            >
+              Últimos 7 días
+            </button>
+            <button 
+              className={`quick-filter-btn ${period === '30d' ? 'active' : ''}`}
+              onClick={() => handlePeriodChange('30d')}
+            >
+              30 días
+            </button>
+            <button 
+              className={`quick-filter-btn ${period === '90d' ? 'active' : ''}`}
+              onClick={() => handlePeriodChange('90d')}
+            >
+              90 días
+            </button>
+            <button 
+              className={`quick-filter-btn ${period === 'ytd' ? 'active' : ''}`}
+              onClick={() => handlePeriodChange('ytd')}
+            >
+              Año actual
+            </button>
+            <button 
+              className={`quick-filter-btn ${period === '12m' ? 'active' : ''}`}
+              onClick={() => handlePeriodChange('12m')}
+            >
+              12 meses
+            </button>
+          </div>
+          
+          <div className="date-range-picker">
+            <div className="date-input-group">
+              <label>Desde:</label>
+              <input 
+                type="date" 
+                value={dateRange.startDate.toISOString().split('T')[0]}
+                onChange={(e) => {
+                  setPeriod('custom');
+                  setDateRange(prev => ({
+                    ...prev,
+                    startDate: new Date(e.target.value)
+                  }));
+                }}
+                className="date-input"
+              />
+            </div>
+            
+            <div className="date-input-group">
+              <label>Hasta:</label>
+              <input 
+                type="date" 
+                value={dateRange.endDate.toISOString().split('T')[0]}
+                onChange={(e) => {
+                  setPeriod('custom');
+                  setDateRange(prev => ({
+                    ...prev,
+                    endDate: new Date(e.target.value)
+                  }));
+                }}
+                max={new Date().toISOString().split('T')[0]}
+                className="date-input"
+              />
+            </div>
+            
+            <button 
+              className="apply-filters-btn"
+              onClick={fetchDashboardData}
+              disabled={loading}
+            >
+              {loading ? 'Actualizando...' : 'Aplicar'}
+            </button>
+          </div>
         </div>
       </header>
       

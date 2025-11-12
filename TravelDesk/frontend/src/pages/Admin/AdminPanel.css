@@ -96,6 +96,191 @@ body {
   line-height: 1.5;
 }
 
+/* Estilos para el encabezado del panel */
+.admin-header {
+  background: white;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin: 0 1.5rem 1.5rem;
+  border: 1px solid var(--border);
+}
+
+.admin-panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.admin-subtitle {
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+}
+
+/* Filtros de fecha */
+.date-filters {
+  background: white;
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  width: auto;
+  max-width: 900px;
+  margin: 0.5rem 0 1.5rem;
+  display: inline-block;
+}
+
+.quick-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.quick-filter-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.quick-filter-btn:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-200);
+  color: var(--primary-700);
+}
+
+.quick-filter-btn.active {
+  background: var(--primary-100);
+  border-color: var(--primary-300);
+  color: var(--primary-700);
+  font-weight: 500;
+}
+
+.date-range-picker {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.date-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.date-input-group label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.date-input {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  transition: border-color 0.15s ease;
+  height: 32px;
+  box-sizing: border-box;
+  width: 140px;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px var(--primary-100);
+}
+
+.apply-filters-btn {
+  background: var(--primary-600);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0 0.8rem;
+  height: 32px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.apply-filters-btn:hover {
+  background: var(--primary-700);
+}
+
+.apply-filters-btn:disabled {
+  background: var(--primary-300);
+  cursor: not-allowed;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 1024px) {
+  .date-range-picker {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .date-input-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .apply-filters-btn {
+    width: 100%;
+    margin-top: 0.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-header {
+    margin: 0 1rem 1rem;
+    padding: 1rem;
+  }
+  
+  .quick-filters {
+    overflow-x: auto;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .quick-filters::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  .quick-filter-btn {
+    flex-shrink: 0;
+  }
+}
+
 /* Cabecera */
 .admin-header {
   background-color: var(--bg-secondary);
