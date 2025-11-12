@@ -1,67 +1,43 @@
-// API endpoints for dashboard data
 export const API_ENDPOINTS = {
   STATS: '/api/dashboard/stats',
   ITINERARY_TREND: '/api/dashboard/itinerary-trend',
   PROGRAM_DISTRIBUTION: '/api/dashboard/program-distribution',
   TOURIST_DEMOGRAPHICS: '/api/dashboard/tourist-demographics',
   RECENT_ACTIVITIES: '/api/dashboard/recent-activities',
+  REVENUE_BY_TYPE: '/api/dashboard/revenue-by-type',
 };
 
-// Mock data for development
-const MOCK_DATA = {
-  stats: {
-    totalItineraries: 45,
-    activeItineraries: 28,
-    totalTourists: 156,
-    totalPrograms: 89,
-    revenue: 12500,
-  },
-  itineraryTrend: {
-    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
-    data: [12, 15, 8, 18, 22, 19, 25],
-  },
-  programDistribution: {
-    labels: ['Tours', 'Actividades', 'Machu Picchu'],
-    data: [45, 30, 25],
-    colors: ['#4F46E5', '#10B981', '#F59E0B'],
-  },
-  touristDemographics: {
-    labels: ['EE.UU.', 'Reino Unido', 'Francia', 'Alemania', 'Canadá', 'Otros'],
-    data: [35, 25, 15, 10, 8, 7],
-  },
-  recentActivities: [
-    { id: 1, type: 'itinerary', action: 'created', title: 'Tour por el Valle Sagrado', date: '2025-11-10T10:30:00' },
-    { id: 2, type: 'tourist', action: 'updated', title: 'María González', date: '2025-11-09T16:45:00' },
-    { id: 3, type: 'program', action: 'created', title: 'Visita a Machu Picchu', date: '2025-11-09T09:15:00' },
-  ],
-};
+const apiBase = import.meta?.env?.VITE_API_BASE || '';
 
-export const fetchDashboardData = async (endpoint) => {
+const getToken = () => {
   try {
-    // In a real app, you would make an API call here
-    // const response = await fetch(API_ENDPOINTS[endpoint]);
-    // return await response.json();
-    
-    // For now, return mock data
-    switch (endpoint) {
-      case 'stats':
-        return MOCK_DATA.stats;
-      case 'itinerary-trend':
-        return MOCK_DATA.itineraryTrend;
-      case 'program-distribution':
-        return MOCK_DATA.programDistribution;
-      case 'tourist-demographics':
-        return MOCK_DATA.touristDemographics;
-      case 'recent-activities':
-        return MOCK_DATA.recentActivities;
-      default:
-        return null;
-    }
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
-    return null;
+    const stored = localStorage.getItem('user');
+    const parsed = stored ? JSON.parse(stored) : null;
+    return parsed?.token || '';
+  } catch {
+    return '';
   }
 };
+
+const doFetch = async (path, params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  const url = `${apiBase}${path}${qs ? `?${qs}` : ''}`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error('API error');
+  return res.json();
+};
+
+export const getStats = (params) => doFetch(API_ENDPOINTS.STATS, params);
+export const getItineraryTrend = (params) => doFetch(API_ENDPOINTS.ITINERARY_TREND, params);
+export const getProgramDistribution = (params) => doFetch(API_ENDPOINTS.PROGRAM_DISTRIBUTION, params);
+export const getTouristDemographics = (params) => doFetch(API_ENDPOINTS.TOURIST_DEMOGRAPHICS, params);
+export const getRecentActivities = (params) => doFetch(API_ENDPOINTS.RECENT_ACTIVITIES, params);
+export const getRevenueByType = (params) => doFetch(API_ENDPOINTS.REVENUE_BY_TYPE, params);
 
 // Format number with commas
 export const formatNumber = (num) => {

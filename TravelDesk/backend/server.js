@@ -39,6 +39,57 @@ app.get("/api/grupos", async (req, res) => {
   }
 });
 
+// Dashboard: ingresos por tipo de programa por mes
+app.get('/api/dashboard/revenue-by-type', requireRole(["ADMIN"]), async (req, res) => {
+  try {
+    const { startDate, endDate } = getDateRange(req);
+    const [rows] = await pool.query(
+      `SELECT 
+         DATE_FORMAT(COALESCE(ip.fecha, i.fecha_inicio), '%Y-%m') AS ym,
+         p.tipo,
+         SUM(p.costo) AS revenue
+       FROM itinerario_programas ip
+       JOIN programas p ON p.id_programa = ip.id_programa
+       JOIN itinerarios i ON i.id_itinerario = ip.id_itinerario
+       WHERE COALESCE(ip.fecha, i.fecha_inicio) BETWEEN ? AND ?
+       GROUP BY ym, p.tipo
+       ORDER BY ym`,
+      [startDate, endDate]
+    );
+
+    // Armar meses completos y pivotear tipos
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const byYm = new Map();
+    for (const r of rows) {
+      const cur = byYm.get(r.ym) || { tour: 0, actividad: 0, machupicchu: 0 };
+      const tipo = String(r.tipo || '').toLowerCase();
+      const amount = Number(r.revenue || 0);
+      if (tipo === 'tour') cur.tour += amount;
+      else if (tipo === 'actividad') cur.actividad += amount;
+      else if (tipo === 'machupicchu') cur.machupicchu += amount;
+      byYm.set(r.ym, cur);
+    }
+    const result = [];
+    const cursor = new Date(start);
+    cursor.setDate(1);
+    while (cursor <= end) {
+      const ym = `${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}`;
+      const label = cursor.toLocaleDateString('es-PE', { month: 'short' });
+      const val = byYm.get(ym) || { tour: 0, actividad: 0, machupicchu: 0 };
+      result.push({
+        month: label.charAt(0).toUpperCase() + label.slice(1),
+        ...val
+      });
+      cursor.setMonth(cursor.getMonth()+1);
+    }
+    return res.json(result);
+  } catch (e) {
+    console.error('❌ /api/dashboard/revenue-by-type error:', e.message);
+    return res.status(500).json({ ok: false, error: 'Error obteniendo ingresos por tipo' });
+  }
+});
+
 // Crear grupo
 app.post("/api/grupos", async (req, res) => {
   const { nombre, descripcion } = req.body || {};
@@ -1887,7 +1938,8 @@ app.get('/api/dashboard/stats', requireRole(["ADMIN"]), async (req, res) => {
       `SELECT COALESCE(SUM(p.costo),0) AS revenue
        FROM itinerario_programas ip
        JOIN programas p ON p.id_programa = ip.id_programa
-       WHERE ip.fecha BETWEEN ? AND ?`,
+       JOIN itinerarios i ON i.id_itinerario = ip.id_itinerario
+       WHERE COALESCE(ip.fecha, i.fecha_inicio) BETWEEN ? AND ?`,
       [startDate, endDate]
     );
 
@@ -1909,9 +1961,10 @@ app.get('/api/dashboard/itinerary-trend', requireRole(["ADMIN"]), async (req, re
   try {
     const { startDate, endDate } = getDateRange(req);
     const [rows] = await pool.query(
-      `SELECT DATE_FORMAT(ip.fecha, '%Y-%m') AS ym, COUNT(*) AS cnt
+      `SELECT DATE_FORMAT(COALESCE(ip.fecha, i.fecha_inicio), '%Y-%m') AS ym, COUNT(*) AS cnt
        FROM itinerario_programas ip
-       WHERE ip.fecha BETWEEN ? AND ?
+       JOIN itinerarios i ON i.id_itinerario = ip.id_itinerario
+       WHERE COALESCE(ip.fecha, i.fecha_inicio) BETWEEN ? AND ?
        GROUP BY ym
        ORDER BY ym`,
       [startDate, endDate]
@@ -1947,7 +2000,8 @@ app.get('/api/dashboard/program-distribution', requireRole(["ADMIN"]), async (re
       `SELECT p.tipo AS label, COUNT(*) AS cnt
        FROM itinerario_programas ip
        JOIN programas p ON p.id_programa = ip.id_programa
-       WHERE ip.fecha BETWEEN ? AND ?
+       JOIN itinerarios i ON i.id_itinerario = ip.id_itinerario
+       WHERE COALESCE(ip.fecha, i.fecha_inicio) BETWEEN ? AND ?
        GROUP BY p.tipo`,
       [startDate, endDate]
     );

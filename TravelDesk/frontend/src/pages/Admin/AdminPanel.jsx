@@ -15,42 +15,14 @@ import {
   UsersIcon
 } from '@heroicons/react/24/outline';
 import './AdminPanel.css';
-
-// Mock data - Replace with actual API calls
-const getDashboardData = async () => {
-  // This would be an API call in a real app
-  return {
-    reservationsByStatus: [
-      { name: 'Confirmado', value: 45 },
-      { name: 'Pendiente', value: 30 },
-      { name: 'Cancelado', value: 15 },
-      { name: 'Completado', value: 60 },
-    ],
-    monthlyBookings: [
-      { month: 'Ene', bookings: 12 },
-      { month: 'Feb', bookings: 19 },
-      { month: 'Mar', bookings: 15 },
-      { month: 'Abr', bookings: 28 },
-      { month: 'May', bookings: 32 },
-      { month: 'Jun', bookings: 45 },
-    ],
-    touristNationalities: [
-      { country: 'Perú', count: 45 },
-      { country: 'EE.UU.', count: 32 },
-      { country: 'España', count: 28 },
-      { country: 'México', count: 22 },
-      { country: 'Chile', count: 18 },
-    ],
-    revenueByType: [
-      { month: 'Ene', tour: 4000, actividad: 2400, machupicchu: 2400 },
-      { month: 'Feb', tour: 3000, actividad: 1398, machupicchu: 2210 },
-      { month: 'Mar', tour: 2000, actividad: 9800, machupicchu: 2290 },
-      { month: 'Abr', tour: 2780, actividad: 3908, machupicchu: 2000 },
-      { month: 'May', tour: 1890, actividad: 4800, machupicchu: 2181 },
-      { month: 'Jun', tour: 2390, actividad: 3800, machupicchu: 2500 },
-    ]
-  };
-};
+import { 
+  getStats,
+  getItineraryTrend,
+  getProgramDistribution,
+  getTouristDemographics,
+  getRecentActivities,
+  getRevenueByType
+} from '../../utils/dashboardData';
 
 function AdminPanel() {
   // Estado para los filtros de fecha
@@ -100,22 +72,48 @@ function AdminPanel() {
       setLoading(true);
       
       // Parámetros para la API
-      const params = new URLSearchParams({
+      const params = {
         startDate: formatDateForApi(dateRange.startDate),
-        endDate: formatDateForApi(dateRange.endDate),
-        period: period
+        endDate: formatDateForApi(dateRange.endDate)
+      };
+
+      const [stats, trend, distribution, demographics, revByType] = await Promise.all([
+        getStats(params),
+        getItineraryTrend(params),
+        getProgramDistribution(params),
+        getTouristDemographics(params),
+        getRevenueByType(params)
+      ]);
+
+      // Mapear respuestas al shape esperado por los componentes
+      const reservationsByStatus = (distribution?.labels || []).map((label, i) => ({
+        name: String(label).charAt(0).toUpperCase() + String(label).slice(1),
+        value: Number(distribution?.data?.[i] || 0)
+      }));
+
+      const monthlyBookings = (trend?.labels || []).map((m, i) => ({
+        month: m,
+        bookings: Number(trend?.data?.[i] || 0)
+      }));
+
+      const touristNationalities = (demographics?.labels || []).map((c, i) => ({
+        country: c,
+        count: Number(demographics?.data?.[i] || 0)
+      }));
+
+      setDashboardData({
+        reservationsByStatus,
+        monthlyBookings,
+        touristNationalities,
+        revenueByType: Array.isArray(revByType) ? revByType : []
       });
 
-      // Simular llamada a la API (reemplazar con llamada real)
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Aquí iría la llamada real a la API:
-      // const response = await fetch(`/api/dashboard?${params}`);
-      // const data = await response.json();
-      
-      // Usando datos de ejemplo por ahora
-      const data = await getDashboardData();
-      setDashboardData(data);
+      // Guardar stats para tarjetas
+      setStatsCards({
+        totalTourists: Number(stats?.totalTourists || 0),
+        activeItineraries: Number(stats?.activeItineraries || 0),
+        revenue: Number(stats?.revenue || 0)
+      });
       
     } catch (error) {
       console.error('Error al cargar los datos:', error);
@@ -161,24 +159,13 @@ function AdminPanel() {
     }));
   };
 
+  const [statsCards, setStatsCards] = useState({ totalTourists: 0, activeItineraries: 0, revenue: 0 });
+
   // Efecto para cargar datos cuando cambian los filtros
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Simular carga de datos
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const data = await getDashboardData();
-        setDashboardData(data);
-      } catch (error) {
-        console.error('Error cargando datos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    fetchDashboardData();
   }, [period, dateRange]);
+
 
   if (loading) {
     return (
@@ -290,7 +277,7 @@ function AdminPanel() {
           </div>
           <div className="metric-content">
             <p className="metric-label">Total de Turistas</p>
-            <p className="metric-value">1,248</p>
+            <p className="metric-value">{new Intl.NumberFormat('es-PE').format(statsCards.totalTourists)}</p>
             <p className="metric-trend positive">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -309,7 +296,7 @@ function AdminPanel() {
           </div>
           <div className="metric-content">
             <p className="metric-label">Itinerarios Activos</p>
-            <p className="metric-value">24</p>
+            <p className="metric-value">{new Intl.NumberFormat('es-PE').format(statsCards.activeItineraries)}</p>
             <p className="metric-trend positive">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -328,7 +315,7 @@ function AdminPanel() {
           </div>
           <div className="metric-content">
             <p className="metric-label">Ingresos Mensuales</p>
-            <p className="metric-value">S/ 48,750</p>
+            <p className="metric-value">S/ {new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 }).format(statsCards.revenue)}</p>
             <p className="metric-trend positive">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
