@@ -1830,6 +1830,202 @@ app.get('/api/pdf/itinerario', requireRole(["CLIENTE","TURISTA","ADMIN"]), async
   }
 });
 
+// Utilidad: obtener rango de fechas (por defecto últimos 30 días)
+function getDateRange(req) {
+  const start = req.query?.startDate;
+  const end = req.query?.endDate;
+  // Normalizar a YYYY-MM-DD
+  const toDate = (v) => {
+    if (!v) return null;
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString().slice(0, 10);
+  };
+  let startDate = toDate(start);
+  let endDate = toDate(end);
+  if (!endDate) endDate = new Date().toISOString().slice(0, 10);
+  if (!startDate) {
+    const d = new Date(endDate);
+    d.setDate(d.getDate() - 30);
+    startDate = d.toISOString().slice(0, 10);
+  }
+  return { startDate, endDate };
+}
+
+// Dashboard: métricas principales
+app.get('/api/dashboard/stats', requireRole(["ADMIN"]), async (req, res) => {
+  try {
+    const { startDate, endDate } = getDateRange(req);
+
+    const [[itCount]] = await pool.query(
+      `SELECT COUNT(*) AS total FROM itinerarios`
+    );
+
+    // Itinerarios activos = donde hoy está entre fecha_inicio y fecha_fin
+    const [[activeCount]] = await pool.query(
+      `SELECT COUNT(*) AS activos 
+       FROM itinerarios 
+       WHERE CURDATE() BETWEEN fecha_inicio AND fecha_fin`
+    );
+
+    // Turistas únicos vinculados a itinerarios en el rango (por fechas de itinerario)
+    const [[touristCount]] = await pool.query(
+      `SELECT COUNT(DISTINCT it.id_turista) AS total
+       FROM itinerario_turistas it
+       JOIN itinerarios i ON i.id_itinerario = it.id_itinerario
+       WHERE i.fecha_inicio <= ? AND i.fecha_fin >= ?`,
+      [endDate, startDate]
+    );
+
+    // Programas totales
+    const [[progCount]] = await pool.query(
+      `SELECT COUNT(*) AS total FROM programas`
+    );
+
+    // Ingresos aproximados en el rango: suma de costo del programa agendado
+    const [[revenueSum]] = await pool.query(
+      `SELECT COALESCE(SUM(p.costo),0) AS revenue
+       FROM itinerario_programas ip
+       JOIN programas p ON p.id_programa = ip.id_programa
+       WHERE ip.fecha BETWEEN ? AND ?`,
+      [startDate, endDate]
+    );
+
+    return res.json({
+      totalItineraries: Number(itCount?.total || 0),
+      activeItineraries: Number(activeCount?.activos || 0),
+      totalTourists: Number(touristCount?.total || 0),
+      totalPrograms: Number(progCount?.total || 0),
+      revenue: Number(revenueSum?.revenue || 0)
+    });
+  } catch (e) {
+    console.error('❌ /api/dashboard/stats error:', e.message);
+    return res.status(500).json({ ok: false, error: 'Error obteniendo métricas' });
+  }
+});
+
+// Dashboard: tendencia mensual de itinerarios programados (por fecha de ip.fecha)
+app.get('/api/dashboard/itinerary-trend', requireRole(["ADMIN"]), async (req, res) => {
+  try {
+    const { startDate, endDate } = getDateRange(req);
+    const [rows] = await pool.query(
+      `SELECT DATE_FORMAT(ip.fecha, '%Y-%m') AS ym, COUNT(*) AS cnt
+       FROM itinerario_programas ip
+       WHERE ip.fecha BETWEEN ? AND ?
+       GROUP BY ym
+       ORDER BY ym`,
+      [startDate, endDate]
+    );
+    // Mapear a etiquetas abreviadas es-PE
+    const labels = [];
+    const data = [];
+    // Generar meses entre el rango para rellenar ceros
+    const start = new Date(startDate + 'T00:00:00');
+    const end = new Date(endDate + 'T00:00:00');
+    const map = new Map(rows.map(r => [r.ym, Number(r.cnt)]));
+    const cursor = new Date(start);
+    cursor.setDate(1);
+    while (cursor <= end) {
+      const ym = `${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}`;
+      const label = cursor.toLocaleDateString('es-PE', { month: 'short' });
+      labels.push(label.charAt(0).toUpperCase() + label.slice(1));
+      data.push(map.get(ym) || 0);
+      cursor.setMonth(cursor.getMonth()+1);
+    }
+    return res.json({ labels, data });
+  } catch (e) {
+    console.error('❌ /api/dashboard/itinerary-trend error:', e.message);
+    return res.status(500).json({ ok: false, error: 'Error obteniendo tendencia' });
+  }
+});
+
+// Dashboard: distribución por tipo de programa en el rango
+app.get('/api/dashboard/program-distribution', requireRole(["ADMIN"]), async (req, res) => {
+  try {
+    const { startDate, endDate } = getDateRange(req);
+    const [rows] = await pool.query(
+      `SELECT p.tipo AS label, COUNT(*) AS cnt
+       FROM itinerario_programas ip
+       JOIN programas p ON p.id_programa = ip.id_programa
+       WHERE ip.fecha BETWEEN ? AND ?
+       GROUP BY p.tipo`,
+      [startDate, endDate]
+    );
+    const labels = rows.map(r => r.label);
+    const data = rows.map(r => Number(r.cnt));
+    return res.json({ labels, data });
+  } catch (e) {
+    console.error('❌ /api/dashboard/program-distribution error:', e.message);
+    return res.status(500).json({ ok: false, error: 'Error obteniendo distribución' });
+  }
+});
+
+// Dashboard: demografía de turistas por nacionalidad en el rango (itinerarios en el rango)
+app.get('/api/dashboard/tourist-demographics', requireRole(["ADMIN"]), async (req, res) => {
+  try {
+    const { startDate, endDate } = getDateRange(req);
+    const [rows] = await pool.query(
+      `SELECT COALESCE(t.nacionalidad,'Otros') AS nacionalidad, COUNT(DISTINCT t.id_turista) AS cnt
+       FROM itinerario_turistas it
+       JOIN itinerarios i ON i.id_itinerario = it.id_itinerario
+       JOIN turistas t ON t.id_turista = it.id_turista
+       WHERE i.fecha_inicio <= ? AND i.fecha_fin >= ?
+       GROUP BY COALESCE(t.nacionalidad,'Otros')
+       ORDER BY cnt DESC LIMIT 10`,
+      [endDate, startDate]
+    );
+    const labels = rows.map(r => r.nacionalidad);
+    const data = rows.map(r => Number(r.cnt));
+    return res.json({ labels, data });
+  } catch (e) {
+    console.error('❌ /api/dashboard/tourist-demographics error:', e.message);
+    return res.status(500).json({ ok: false, error: 'Error obteniendo demografía' });
+  }
+});
+
+// Dashboard: actividades recientes desde tabla de auditoría (si existe)
+app.get('/api/dashboard/recent-activities', requireRole(["ADMIN"]), async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query?.limit || '20', 10) || 20, 100);
+    let rows = [];
+    try {
+      const [r] = await pool.query(
+        `SELECT id_cambio AS id, id_itinerario, tipo_cambio, referencia_id, detalle, created_at
+         FROM itinerario_cambios
+         ORDER BY created_at DESC
+         LIMIT ?`,
+        [limit]
+      );
+      rows = r;
+    } catch (e) {
+      // Si la tabla no existe, devolver vacío sin romper
+      console.warn('itinerario_cambios no disponible:', e?.message);
+      rows = [];
+    }
+    // Mapear a modelo del front
+    const mapType = (t) => {
+      if (!t) return 'default';
+      if (t === 'itinerario') return 'itinerary';
+      if (t === 'turista') return 'tourist';
+      if (t === 'programa') return 'program';
+      if (t === 'transporte') return 'transport';
+      if (t === 'machu') return 'program';
+      return 'default';
+    };
+    const activities = rows.map(r => ({
+      id: r.id,
+      type: mapType(r.tipo_cambio),
+      action: 'updated',
+      title: r.detalle || 'Cambio registrado',
+      date: r.created_at
+    }));
+    return res.json(activities);
+  } catch (e) {
+    console.error('❌ /api/dashboard/recent-activities error:', e.message);
+    return res.status(500).json({ ok: false, error: 'Error obteniendo actividades' });
+  }
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
