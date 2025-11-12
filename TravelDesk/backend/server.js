@@ -44,17 +44,30 @@ app.get('/api/dashboard/revenue-by-type', requireRole(["ADMIN"]), async (req, re
   try {
     const { startDate, endDate } = getDateRange(req);
     const [rows] = await pool.query(
-      `SELECT 
-         DATE_FORMAT(COALESCE(ip.fecha, i.fecha_inicio), '%Y-%m') AS ym,
-         p.tipo,
-         SUM(p.costo) AS revenue
-       FROM itinerario_programas ip
-       JOIN programas p ON p.id_programa = ip.id_programa
-       JOIN itinerarios i ON i.id_itinerario = ip.id_itinerario
-       WHERE COALESCE(ip.fecha, i.fecha_inicio) BETWEEN ? AND ?
-       GROUP BY ym, p.tipo
+      `SELECT ym, tipo, SUM(revenue) AS revenue
+       FROM (
+         SELECT 
+           DATE_FORMAT(ip.fecha, '%Y-%m') AS ym,
+           p.tipo AS tipo,
+           SUM(p.costo) AS revenue
+         FROM itinerario_programas ip
+         JOIN programas p ON p.id_programa = ip.id_programa
+         WHERE ip.fecha IS NOT NULL AND ip.fecha BETWEEN ? AND ?
+         GROUP BY ym, p.tipo
+         UNION ALL
+         SELECT 
+           DATE_FORMAT(i.fecha_inicio, '%Y-%m') AS ym,
+           p.tipo AS tipo,
+           SUM(p.costo) AS revenue
+         FROM itinerario_programas ip
+         JOIN programas p ON p.id_programa = ip.id_programa
+         JOIN itinerarios i ON i.id_itinerario = ip.id_itinerario
+         WHERE ip.fecha IS NULL AND i.fecha_inicio BETWEEN ? AND ?
+         GROUP BY ym, p.tipo
+       ) t
+       GROUP BY ym, tipo
        ORDER BY ym`,
-      [startDate, endDate]
+      [startDate, endDate, startDate, endDate]
     );
 
     // Armar meses completos y pivotear tipos
@@ -1912,11 +1925,12 @@ app.get('/api/dashboard/stats', requireRole(["ADMIN"]), async (req, res) => {
       `SELECT COUNT(*) AS total FROM itinerarios`
     );
 
-    // Itinerarios activos = donde hoy está entre fecha_inicio y fecha_fin
+    // Itinerarios activos en el rango: solapan con [startDate, endDate]
     const [[activeCount]] = await pool.query(
-      `SELECT COUNT(*) AS activos 
-       FROM itinerarios 
-       WHERE CURDATE() BETWEEN fecha_inicio AND fecha_fin`
+      `SELECT COUNT(*) AS activos
+       FROM itinerarios
+       WHERE fecha_inicio <= ? AND fecha_fin >= ?`,
+      [endDate, startDate]
     );
 
     // Turistas únicos vinculados a itinerarios en el rango (por fechas de itinerario)
