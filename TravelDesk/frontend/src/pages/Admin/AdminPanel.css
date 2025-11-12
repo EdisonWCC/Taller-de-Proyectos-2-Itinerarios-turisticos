@@ -240,25 +240,86 @@ body {
 }
 
 /* Ajustes responsivos */
-@media (max-width: 1024px) {
-  .date-range-picker {
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Ajustes para el contenedor principal */
+  .admin-panel {
+    padding: 1rem;
+  }
+  
+  /* Ajustes para el header */
+  .admin-header {
+    padding: 1.25rem;
     flex-direction: column;
-    align-items: flex-start;
+    gap: 1.25rem;
+  }
+  
+  /* Ajustes para las tarjetas de métricas */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .metric-card {
+    padding: 1rem;
+  }
+  
+  /* Ajustes para los gráficos */
+  .chart-container {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .chart-container h3 {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  /* Ajustes para los filtros */
+  .date-filters {
+    width: 100%;
+    padding: 0.75rem;
+  }
+  
+  .quick-filters {
+    gap: 0.4rem;
+    padding-bottom: 0.75rem;
+  }
+  
+  .quick-filter-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+  
+  .date-range-picker {
+    flex-wrap: wrap;
     gap: 0.75rem;
   }
   
   .date-input-group {
-    width: 100%;
-    justify-content: space-between;
+    flex: 1 1 45%;
+    min-width: 200px;
   }
   
   .apply-filters-btn {
-    width: 100%;
-    margin-top: 0.25rem;
+    width: auto;
+    flex: 1 1 100%;
+    margin-top: 0.5rem;
+  }
+  
+  /* Ajustes para tablas */
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  /* Ajustes para el pie de página */
+  .admin-footer {
+    padding: 1rem;
+    font-size: 0.85rem;
   }
 }
 
-@media (max-width: 640px) {
+/* Estilos para móviles */
+@media (max-width: 767px) {
   .admin-header {
     margin: 0 1rem 1rem;
     padding: 1rem;
