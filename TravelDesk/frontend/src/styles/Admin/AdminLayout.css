@@ -1,113 +1,489 @@
-/* === Estructura general === */
-.admin-layout {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
-  background-color: #f5f6fa;
+/* ========================================
+   AdminLayout - Layout Moderno y Coherente
+   ======================================== */
+
+/* === Variables CSS - Sistema de Colores Admin === */
+:root {
+  --admin-primary: #1677ff;
+  --admin-primary-light: #4096ff;
+  --admin-primary-lighter: #69b1ff;
+  --admin-secondary: #0958d9;
+  --admin-bg-primary: #ffffff;
+  --admin-bg-secondary: #f8f9fa;
+  --admin-bg-tertiary: #e9ecef;
+  --admin-text-primary: #262626;
+  --admin-text-secondary: #595959;
+  --admin-border: #e9ecef;
+  --admin-shadow: rgba(22, 119, 255, 0.08);
+  --admin-shadow-hover: rgba(22, 119, 255, 0.12);
+  --admin-transition: cubic-bezier(0.645, 0.045, 0.355, 1);
 }
 
-/* === Sidebar fijo === */
-.sidebar {
-  position: fixed;
+/* === Layout Principal === */
+.admin-layout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--admin-bg-secondary) 0%, var(--admin-bg-tertiary) 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* === Contenido Principal === */
+.admin-layout-content {
+  margin: 24px;
+  padding: 32px;
+  background: var(--admin-bg-primary);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px var(--admin-shadow);
+  min-height: calc(100vh - 112px);
+  transition: all 0.3s var(--admin-transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-layout-content::before {
+  content: '';
+  position: absolute;
   top: 0;
   left: 0;
-  width: 280px;
-  height: 100vh;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-right: 1px solid #e9ecef;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
-  z-index: 100;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--admin-primary) 0%, var(--admin-primary-light) 50%, var(--admin-primary-lighter) 100%);
 }
 
-/* === Contenedor principal donde van las vistas === */
-.admin-main {
-  position: relative;
-  margin-left: 280px;        /* 💡 esto alinea con el sidebar */
-  width: calc(100% - 280px); /* ocupa el espacio restante */
-  height: 100vh;
-  overflow-y: auto;
-  background-color: #ffffff;
-  box-sizing: border-box;
-
-  /* Espaciado interno (ajustable) */
-  padding: 24px 32px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
+.admin-layout-content:hover {
+  box-shadow: 0 8px 24px var(--admin-shadow-hover);
+  transform: translateY(-2px);
 }
 
-/* === Header con información del usuario === */
-.admin-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 16px 24px;
-  margin: -24px -32px 24px -32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: relative;
+/* === Componentes Ant Design - Sidebar === */
+.admin-layout .ant-layout-sider {
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%) !important;
+  border-right: 1px solid var(--admin-border) !important;
+  box-shadow: 4px 0 16px var(--admin-shadow) !important;
+  position: fixed !important;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 101 !important;
+  transition: all 0.3s var(--admin-transition) !important;
 }
 
-.admin-header::after {
+/* === Ajustar contenido cuando sidebar está visible === */
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .admin-layout-content {
+  margin-left: 224px;
+}
+
+/* === Ajustar todos los contenedores cuando sidebar está visible === */
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout [class*="container"],
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout [class*="-container"],
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout [class*="wrapper"] {
+  margin-left: 224px;
+  transition: margin-left 0.3s var(--admin-transition);
+}
+
+/* === Ajustar contenedores específicos cuando sidebar está visible === */
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .listar-turistas-container,
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .users-roles-container,
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .listar-itinerarios-container,
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .editar-itinerario-container,
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .wizard-wrapper,
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .usuario-form-container,
+.admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .container-reg {
+  margin-left: 224px;
+  transition: margin-left 0.3s var(--admin-transition);
+}
+
+/* === Resetear márgenes cuando sidebar está colapsado === */
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .admin-layout-content {
+  margin-left: 24px;
+}
+
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout [class*="container"],
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout [class*="-container"],
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout [class*="wrapper"] {
+  margin-left: 24px;
+}
+
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .listar-turistas-container,
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .users-roles-container,
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .listar-itinerarios-container,
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .editar-itinerario-container,
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .wizard-wrapper,
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .usuario-form-container,
+.admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .container-reg {
+  margin-left: 24px;
+}
+
+.admin-layout .ant-layout-sider::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--admin-primary) 0%, var(--admin-primary-light) 50%, var(--admin-primary-lighter) 100%);
+  border-radius: 2px 0 0 2px;
+}
+
+.admin-layout .ant-layout-sider:hover {
+  box-shadow: 4px 0 24px var(--admin-shadow-hover) !important;
+}
+
+/* === Componentes Ant Design - Header/Navbar === */
+.admin-layout .ant-layout-header {
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  box-shadow: 0 2px 12px var(--admin-shadow) !important;
+  padding: 0 !important;
+  height: 64px !important;
+  line-height: 64px !important;
+  position: relative !important;
+  z-index: 100 !important;
+  transition: all 0.3s var(--admin-transition) !important;
+}
+
+.admin-layout .ant-layout-header::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.2);
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--admin-primary) 50%, transparent 100%);
 }
 
-.user-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.admin-layout .ant-layout-header:hover {
+  box-shadow: 0 4px 20px var(--admin-shadow-hover) !important;
 }
 
-.user-greeting {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0;
+/* === Componentes Ant Design - Content === */
+.admin-layout .ant-layout-content {
+  background: transparent !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  position: relative;
 }
 
-.user-role {
-  font-size: 0.85rem;
-  opacity: 0.9;
-  font-weight: 400;
-  text-transform: capitalize;
+/* === Botón Toggle Sidebar === */
+.admin-sidebar-trigger {
+  font-size: 20px;
+  color: var(--admin-primary) !important;
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+  transition: all 0.3s var(--admin-transition) !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
-/* === Responsive === */
-@media (max-width: 768px) {
-  .sidebar {
-    position: absolute;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
+.admin-sidebar-trigger::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(22, 119, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+.admin-sidebar-trigger:hover {
+  background: rgba(22, 119, 255, 0.08) !important;
+  color: var(--admin-primary-light) !important;
+  transform: scale(1.1) rotate(180deg) !important;
+}
+
+.admin-sidebar-trigger:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+.admin-sidebar-trigger:active {
+  transform: scale(0.95) !important;
+}
+
+/* === Responsive Design === */
+@media (max-width: 1200px) {
+  .admin-layout-content {
+    margin: 16px;
+    padding: 20px;
+    min-height: calc(100vh - 96px);
+    border-radius: 12px;
   }
+  
+  /* === Responsive: Ajustar contenedores cuando sidebar está visible === */
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .admin-layout-content {
+    margin-left: 224px;
+  }
+  
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout [class*="container"],
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout [class*="-container"],
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout [class*="wrapper"] {
+    margin-left: 224px;
+  }
+  
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .listar-turistas-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .users-roles-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .listar-itinerarios-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .editar-itinerario-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .wizard-wrapper,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .usuario-form-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .container-reg {
+    margin-left: 224px;
+  }
+  
+  /* === Resetear márgenes cuando sidebar está colapsado === */
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .admin-layout-content {
+    margin-left: 16px;
+  }
+  
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout [class*="container"],
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout [class*="-container"],
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout [class*="wrapper"] {
+    margin-left: 16px;
+  }
+  
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .listar-turistas-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .users-roles-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .listar-itinerarios-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .editar-itinerario-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .wizard-wrapper,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .usuario-form-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .container-reg {
+    margin-left: 16px;
+  }
+  
+  .admin-layout .ant-layout-sider {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1001 !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s var(--admin-transition) !important;
+  }
+  
+  .admin-sidebar-trigger {
+    padding: 8px 12px !important;
+    font-size: 16px !important;
+  }
+}
 
-  .sidebar.open {
+/* === Responsive Design - Mobile === */
+@media (max-width: 480px) {
+  .admin-layout-content {
+    margin: 12px 8px;
+    padding: 16px;
+    border-radius: 8px;
+  }
+  
+  /* === Mobile: Ajustar contenedores cuando sidebar está visible === */
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .admin-layout-content {
+    margin-left: 8px;
+  }
+  
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout [class*="container"],
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout [class*="-container"],
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout [class*="wrapper"] {
+    margin-left: 8px;
+  }
+  
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .listar-turistas-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .users-roles-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .listar-itinerarios-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .editar-itinerario-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .wizard-wrapper,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .usuario-form-container,
+  .admin-layout .ant-layout-sider:not(.ant-layout-sider-collapsed) ~ .ant-layout .container-reg {
+    margin-left: 8px;
+  }
+  
+  /* === Resetear márgenes cuando sidebar está colapsado === */
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .admin-layout-content {
+    margin-left: 8px;
+  }
+  
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout [class*="container"],
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout [class*="-container"],
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout [class*="wrapper"] {
+    margin-left: 8px;
+  }
+  
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .listar-turistas-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .users-roles-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .listar-itinerarios-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .editar-itinerario-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .wizard-wrapper,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .usuario-form-container,
+  .admin-layout .ant-layout-sider.ant-layout-sider-collapsed ~ .ant-layout .container-reg {
+    margin-left: 8px;
+  }
+  
+  .admin-sidebar-trigger {
+    padding: 6px 10px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* === Animaciones de Entrada === */
+@keyframes adminLayoutFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes adminLayoutSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
     transform: translateX(0);
   }
+}
 
-  .admin-header {
-    padding: 12px 16px;
-    margin: -16px -16px 16px -16px;
-  }
+.admin-layout-content {
+  animation: adminLayoutFadeIn 0.5s ease-out;
+}
 
-  .user-greeting {
-    font-size: 1rem;
-  }
+.admin-layout .ant-layout-sider {
+  animation: adminLayoutSlideIn 0.4s ease-out;
+}
 
-  .user-role {
-    font-size: 0.8rem;
-  }
+/* === Drawer para Móvil === */
+.ant-drawer-content {
+  background: linear-gradient(135deg, var(--admin-bg-primary) 0%, var(--admin-bg-secondary) 100%) !important;
+}
 
-  .admin-main {
-    margin-left: 0;
-    width: 100%;
-    padding: 16px;
+.ant-drawer-header {
+  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%) !important;
+  border-bottom: none !important;
+  padding: 20px 24px !important;
+}
+
+.ant-drawer-title {
+  color: var(--admin-bg-primary) !important;
+  font-weight: 600 !important;
+  font-size: 18px !important;
+}
+
+.ant-drawer-close {
+  color: var(--admin-bg-primary) !important;
+  font-size: 20px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-drawer-close:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  transform: rotate(90deg) !important;
+}
+
+/* === Scrollbar Personalizado === */
+.admin-layout-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.admin-layout-content::-webkit-scrollbar-track {
+  background: var(--admin-bg-secondary);
+  border-radius: 5px;
+  margin: 10px;
+}
+
+.admin-layout-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--admin-primary) 0%, var(--admin-primary-light) 100%);
+  border-radius: 5px;
+  border: 2px solid var(--admin-bg-secondary);
+}
+
+.admin-layout-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--admin-primary-light) 0%, var(--admin-primary) 100%);
+}
+
+/* === Efectos de Focus y Accesibilidad === */
+.admin-layout-content:focus-within {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+  border-radius: 16px;
+}
+
+/* === Tema Oscuro (Soporte Futuro) === */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --admin-bg-primary: #1a1a1a;
+    --admin-bg-secondary: #2d2d2d;
+    --admin-bg-tertiary: #404040;
+    --admin-text-primary: #ffffff;
+    --admin-text-secondary: #b3b3b3;
+    --admin-border: #404040;
+    --admin-shadow: rgba(22, 119, 255, 0.2);
+    --admin-shadow-hover: rgba(22, 119, 255, 0.3);
   }
+  
+  .admin-layout {
+    background: linear-gradient(135deg, var(--admin-bg-secondary) 0%, var(--admin-bg-tertiary) 100%);
+  }
+  
+  .admin-layout-content {
+    background: var(--admin-bg-primary);
+    color: var(--admin-text-primary);
+  }
+  
+  .admin-layout .ant-layout-sider {
+    background: linear-gradient(135deg, var(--admin-bg-primary) 0%, var(--admin-bg-secondary) 100%) !important;
+    border-right-color: var(--admin-border) !important;
+  }
+  
+  .admin-layout .ant-layout-header {
+    background: linear-gradient(135deg, var(--admin-bg-primary) 0%, var(--admin-bg-secondary) 100%) !important;
+    border-bottom-color: var(--admin-border) !important;
+  }
+  
+  .admin-layout-content::-webkit-scrollbar-track {
+    background: var(--admin-bg-tertiary);
+  }
+  
+  .admin-layout-content::-webkit-scrollbar-thumb {
+    border-color: var(--admin-bg-tertiary);
+  }
+}
+
+/* === Estados de Carga y Transiciones === */
+.admin-layout.loading .admin-layout-content {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.admin-layout.loading .admin-layout-content::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--admin-border);
+  border-top: 3px solid #1677ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }

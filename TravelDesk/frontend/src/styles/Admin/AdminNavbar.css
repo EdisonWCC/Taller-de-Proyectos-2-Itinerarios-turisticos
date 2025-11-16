@@ -1,29 +1,264 @@
-/* Admin Navbar Styles */
+/* === AdminNavbar - Estilos Modernos === */
+
+/* Navbar principal */
 .admin-navbar {
-  background-color: #ffffff; /* White background */
-  padding: 10px 20px;
-  border-bottom: 2px solid #ff9500; /* Orange border */
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+  border-bottom: 1px solid #e9ecef !important;
+  box-shadow: 0 2px 8px rgba(114, 46, 209, 0.08) !important;
+  padding: 0 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 64px !important;
+  position: relative !important;
+  z-index: 100 !important;
+}
+
+.admin-navbar::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #722ed1 0%, #9254de 50%, #b37feb 100%);
+}
+
+/* Sección izquierda */
+.admin-navbar-left {
   display: flex;
-  justify-content: space-around;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  gap: 16px;
 }
 
-.admin-navbar-link {
-  color: #333; /* Dark text */
-  text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: background-color 0.3s, color 0.3s;
-  font-weight: 500;
+.admin-logo-mobile {
+  display: none;
+  font-size: 18px;
+  font-weight: 700;
+  color: #722ed1;
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.admin-navbar-link:hover {
-  background-color: #ff9500; /* Orange background on hover */
-  color: #ffffff; /* White text on hover */
+/* Sección derecha */
+.admin-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-.admin-navbar-link.active {
-  background-color: #ff9500; /* Orange background for active */
-  color: #ffffff; /* White text for active */
+/* Botón de notificaciones */
+.admin-notification-badge .ant-badge-count {
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(114, 46, 209, 0.3) !important;
+  font-size: 11px !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  line-height: 16px !important;
+}
+
+.admin-notification-btn {
+  color: #722ed1 !important;
+  font-size: 18px !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  background: transparent !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.admin-notification-btn:hover {
+  background: rgba(114, 46, 209, 0.08) !important;
+  color: #9254de !important;
+  transform: scale(1.05) !important;
+}
+
+/* Menú de usuario */
+.admin-user-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+}
+
+.admin-user-menu:hover {
+  background: rgba(114, 46, 209, 0.06);
+  transform: translateY(-1px);
+}
+
+.admin-user-avatar {
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%) !important;
+  border: 2px solid #f0f0f0 !important;
+  box-shadow: 0 2px 8px rgba(114, 46, 209, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.admin-user-menu:hover .admin-user-avatar {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(114, 46, 209, 0.3) !important;
+}
+
+.admin-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  transition: color 0.3s ease;
+}
+
+.admin-user-menu:hover .admin-user-name {
+  color: #722ed1;
+}
+
+.admin-user-menu .anticon {
+  color: #722ed1;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.admin-user-menu:hover .anticon {
+  transform: translateY(2px);
+}
+
+/* Dropdown del usuario */
+.ant-dropdown-menu {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(114, 46, 209, 0.15) !important;
+  border: 1px solid #f0f0f0 !important;
+  padding: 8px !important;
+  margin-top: 8px !important;
+}
+
+.ant-dropdown-menu-item {
+  border-radius: 8px !important;
+  margin: 2px 0 !important;
+  padding: 10px 16px !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.ant-dropdown-menu-item:hover {
+  background: rgba(114, 46, 209, 0.06) !important;
+  color: #722ed1 !important;
+  transform: translateX(4px) !important;
+}
+
+.ant-dropdown-menu-item-icon {
+  font-size: 16px !important;
+  color: #722ed1 !important;
+}
+
+.ant-dropdown-menu-item-divider {
+  margin: 8px 0 !important;
+  background: #f0f0f0 !important;
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+  .admin-navbar {
+    padding: 0 16px !important;
+  }
+  
+  .admin-navbar-left {
+    gap: 12px;
+  }
+  
+  .admin-logo-mobile {
+    display: block;
+  }
+  
+  .admin-navbar-right {
+    gap: 12px;
+  }
+  
+  .admin-user-name {
+    display: none;
+  }
+  
+  .admin-user-menu {
+    padding: 8px;
+  }
+  
+  .admin-notification-btn {
+    padding: 6px !important;
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-navbar {
+    padding: 0 12px !important;
+  }
+  
+  .admin-navbar-right {
+    gap: 8px;
+  }
+  
+  .admin-notification-btn {
+    padding: 4px !important;
+    font-size: 14px !important;
+  }
+  
+  .admin-user-avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+/* === Estados de interacción === */
+.admin-navbar .ant-btn:focus {
+  box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.2) !important;
+}
+
+.admin-user-menu:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.2);
+  border-radius: 12px;
+}
+
+/* === Animaciones suaves === */
+@keyframes adminNavbarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-navbar {
+  animation: adminNavbarSlideIn 0.3s ease-out;
+}
+
+/* === Tema oscuro (soporte futuro) === */
+@media (prefers-color-scheme: dark) {
+  .admin-navbar {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+    border-bottom-color: #404040 !important;
+  }
+  
+  .admin-user-name {
+    color: #ffffff;
+  }
+  
+  .admin-notification-btn {
+    color: #b37feb !important;
+  }
+  
+  .admin-notification-btn:hover {
+    background: rgba(179, 127, 235, 0.15) !important;
+  }
 }

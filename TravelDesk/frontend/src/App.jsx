@@ -16,6 +16,28 @@ import MisViajes from './pages/turista/MisViajes';
 import Perfil from './pages/turista/Perfil';
 import Ajustes from './pages/turista/Ajustes';
 import Notificaciones from './pages/turista/Notificaciones';
+
+// Componente para redirigir según el rol del usuario
+function DashboardRedirect() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  console.log('=== DASHBOARD REDIRECT DEBUG ===');
+  console.log('DashboardRedirect - Usuario en localStorage:', user);
+  
+  const userRole = user?.role ? user.role.toLowerCase() : '';
+  console.log('DashboardRedirect - Rol del usuario (original):', user?.role);
+  console.log('DashboardRedirect - Rol del usuario (minúsculas):', userRole);
+  console.log('DashboardRedirect - Tipo de dato del rol:', typeof user?.role);
+  
+  if (userRole === 'admin' || userRole === 'administrador') {
+    console.log('DashboardRedirect - Redirigiendo a /admin');
+    console.log('=== END DASHBOARD REDIRECT DEBUG ===');
+    return <Navigate to="/admin" replace />;
+  } else {
+    console.log('DashboardRedirect - Redirigiendo a /turista/inicio');
+    console.log('=== END DASHBOARD REDIRECT DEBUG ===');
+    return <Navigate to="/turista/inicio" replace />;
+  }
+}
 import './App.css';
 
 function App() {
@@ -55,10 +77,10 @@ function App() {
           <Route path="ajustes" element={<Ajustes />} />
         </Route>
 
-        {/* Ruta de redirección para /dashboard (mantenida por compatibilidad) */}
+        {/* Ruta de redirección para /dashboard - redirige según rol */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <Navigate to="/turista/inicio" replace />
+            <DashboardRedirect />
           </ProtectedRoute>
         } />
       </Routes>
