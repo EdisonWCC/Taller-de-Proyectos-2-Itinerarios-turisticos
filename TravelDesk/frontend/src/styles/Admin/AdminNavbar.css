@@ -35,11 +35,7 @@
   display: none;
   font-size: 18px;
   font-weight: 700;
-  color: #722ed1;
-  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: black;
 }
 
 /* Sección derecha */
@@ -88,7 +84,7 @@
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: transparent;
+  background: rgba(114, 46, 209, 0.06);
 }
 
 .admin-user-menu:hover {
@@ -111,19 +107,9 @@
 .admin-user-name {
   font-size: 14px;
   font-weight: 600;
-  color: #495057;
-  transition: color 0.3s ease;
+  color: black;
 }
 
-.admin-user-menu:hover .admin-user-name {
-  color: #722ed1;
-}
-
-.admin-user-menu .anticon {
-  color: #722ed1;
-  font-size: 12px;
-  transition: transform 0.3s ease;
-}
 
 .admin-user-menu:hover .anticon {
   transform: translateY(2px);
@@ -162,9 +148,20 @@
 .ant-dropdown-menu-item-divider {
   margin: 8px 0 !important;
   background: #f0f0f0 !important;
-}
+} 
 
-/* === Responsive Design === */
+/* === NAVBAR RESPONSIVE === */
+
+.admin-custom-sidebar-logo {
+  margin-left: 40px;
+  font-size: 1.2rem;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
 @media (max-width: 768px) {
   .admin-navbar {
     padding: 0 16px !important;
@@ -248,10 +245,6 @@
   .admin-navbar {
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
     border-bottom-color: #404040 !important;
-  }
-  
-  .admin-user-name {
-    color: #ffffff;
   }
   
   .admin-notification-btn {

@@ -119,8 +119,8 @@ const PieChart = ({
 
   if (!hasDimensions) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600"></div>
+      <div className="piechart-loading-container">
+        <div className="piechart-loading-spinner"></div>
       </div>
     );
   }
@@ -128,13 +128,13 @@ const PieChart = ({
   return (
     <div 
       ref={chartRef}
-      className="w-full h-full flex flex-col"
+      className="piechart-container"
       style={{ minHeight: '300px' }}
     >
-      {title && <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>}
-      <div className="flex-1 w-full">
-        <div className="relative w-full h-full">
-          <ResponsiveContainer width="100%" height="100%" className="min-h-[250px]">
+      {title && <h3 className="piechart-title">{title}</h3>}
+      <div className="piechart-content">
+        <div className="piechart-wrapper">
+          <ResponsiveContainer width="100%" height="100%" className="piechart-responsive">
             <RechartsPieChart>
               <Pie
                 data={chartData}

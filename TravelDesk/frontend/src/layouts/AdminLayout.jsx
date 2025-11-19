@@ -11,6 +11,7 @@ function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Detecta cambios de tamaño de pantalla
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -24,20 +25,27 @@ function AdminLayout() {
     return () => window.removeEventListener('resize', handleResize);
   }, [collapsed]);
 
-  const toggleSidebar = () => {
-    setCollapsed(!collapsed);
-  };
+  // Redibuja charts, tablas y vistas al colapsar sidebar
+  useEffect(() => {
+    window.dispatchEvent(new Event('resize'));
+  }, [collapsed]);
+
+  const toggleSidebar = () => setCollapsed(!collapsed);
 
   return (
-    <Layout className="admin-layout">
-      <AdminSidebar 
-        collapsed={collapsed} 
+    <Layout
+      className={`admin-layout ${collapsed ? 'collapsed' : 'expanded'} ${isMobile ? 'mobile' : ''}`}
+    >
+      <AdminSidebar
+        collapsed={collapsed}
         onCollapse={setCollapsed}
         isMobile={isMobile}
         onClose={toggleSidebar}
       />
+
       <Layout className="admin-site-layout">
         <AdminNavbar />
+
         <Content className="admin-content">
           <div className="admin-content-wrapper">
             <Outlet />

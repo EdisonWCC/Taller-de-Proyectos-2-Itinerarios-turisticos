@@ -1,3 +1,74 @@
+/* Estilos para contenedor principal */
+.statscard-container {
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  height: 100%;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.statscard-container:hover {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.statscard-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  gap: 0.375rem;
+}
+
+.statscard-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.statscard-title {
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statscard-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.25;
+}
+
+.statscard-trend {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.625rem;
+  margin-top: 0.125rem;
+}
+
+.statscard-trend-icon {
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-right: 0.125rem;
+}
+
+.statscard-icon {
+  padding: 0.125rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.statscard-main-icon {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
 /* StatsCard Component */
 .stats-card {
   border-radius: 0.75rem;

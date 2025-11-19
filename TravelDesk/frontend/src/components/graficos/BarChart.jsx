@@ -74,16 +74,16 @@ const BarChart = ({
 
   if (!hasDimensions) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600"></div>
+      <div className="barchart-loading-container">
+        <div className="barchart-loading-spinner"></div>
       </div>
     );
   }
 
   return (
-    <div className="bar-chart-container w-full h-full min-h-[300px]" ref={chartRef}>
+    <div className="barchart-container" ref={chartRef}>
       {title && <h3 className="chart-title">{title}</h3>}
-      <div className="chart-wrapper w-full h-full">
+      <div className="barchart-wrapper">
         <ResponsiveContainer width="100%" height="100%">
           <RechartsBarChart
             data={chartData}

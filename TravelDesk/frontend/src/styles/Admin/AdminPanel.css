@@ -2,11 +2,8 @@
 .admin-panel {
   display: flex;
   flex-direction: column;
-  background-color: #f5f6fa;
-  min-height: 100vh;
-  padding: 1.5rem 1rem 2rem 1rem; /* menos padding lateral */
-  box-sizing: border-box;
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* ======= Encabezado ======= */
@@ -23,7 +20,6 @@
   font-size: 2rem;
   font-weight: 700;
   color: #ff7b00;
-  margin: 0;
 }
 
 .admin-panel-header p {
@@ -31,62 +27,141 @@
   font-size: 1rem;
 }
 
-/* ======= Sección principal de métricas ======= */
-.dashboard-cards {
+/* ======= Cards de estadísticas ======= */
+.metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.metric-card {
+  background: #fff;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
   gap: 1rem;
+  transition: .2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.metric-content {
+  flex: 1;
+}
+
+.metric-label {
+  margin: 0;
+  font-size: .9rem;
+  color: #555;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .8rem;
+}
+
+.metric-trend.positive {
+  color: #16a34a;
+}
+
+.metric-trend.negative {
+  color: #dc2626;
+}
+
+/* ======= Grid principal ======= */
+.main-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
   width: 100%;
 }
 
-/* ======= Tarjetas de métricas ======= */
-.card {
-  background-color: #ffffff;
-  border-radius: 10px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* ======= Chart container ======= */
+.chart-container {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  border-left: 5px solid #ff7b00;
-  transition: all 0.3s ease;
-  min-height: 120px;
+  min-height: 340px;
+  transition: .2s ease;
 }
 
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(255, 123, 0, 0.2);
+.chart-container:hover {
+  transform: translateY(-2px);
+  border-color: #1677ff;
 }
 
-/* ======= Contenido dentro de cada tarjeta ======= */
-.card-icon {
-  font-size: 2.2rem;
-  color: #ff7b00;
+.chart-header {
+  padding-bottom: .75rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
 }
 
-.card-title {
+.chart-title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #333;
-  margin-top: 0.4rem;
+  color: #374151;
 }
 
-.card-value {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #222;
-  margin-top: 0.3rem;
+/* ======= Contenido del chart ======= */
+.chart-content {
+  flex: 1;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+}
+
+.chart-content * {
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* ======= Responsivo ======= */
-@media (max-width: 1200px) {
-  .dashboard-cards {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+  .chart-content {
+    height: 250px;
   }
 }
 
-@media (max-width: 768px) {
-  .dashboard-cards {
-    grid-template-columns: 1fr;
+@media (max-width: 480px) {
+  .chart-content {
+    height: 200px;
   }
 }

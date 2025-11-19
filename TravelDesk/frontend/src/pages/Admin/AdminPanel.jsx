@@ -279,7 +279,7 @@ function AdminPanel() {
             <p className="metric-label">Total de Turistas</p>
             <p className="metric-value">{new Intl.NumberFormat('es-PE').format(statsCards.totalTourists)}</p>
             <p className="metric-trend positive">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="metric-trend-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
               </svg>
               <span>12% vs mes anterior</span>
@@ -298,7 +298,7 @@ function AdminPanel() {
             <p className="metric-label">Itinerarios Activos</p>
             <p className="metric-value">{new Intl.NumberFormat('es-PE').format(statsCards.activeItineraries)}</p>
             <p className="metric-trend positive">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="metric-trend-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
               </svg>
               <span>8% vs mes anterior</span>
@@ -317,7 +317,7 @@ function AdminPanel() {
             <p className="metric-label">Ingresos Mensuales</p>
             <p className="metric-value">S/ {new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 }).format(statsCards.revenue)}</p>
             <p className="metric-trend positive">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="metric-trend-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
               </svg>
               <span>15% vs mes anterior</span>
@@ -336,7 +336,7 @@ function AdminPanel() {
             <p className="metric-label">Notificaciones</p>
             <p className="metric-value">5</p>
             <p className="metric-trend negative">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="metric-trend-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
               <span>2 nuevas hoy</span>

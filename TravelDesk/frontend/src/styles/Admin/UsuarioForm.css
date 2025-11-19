@@ -1,329 +1,162 @@
-/* === VARIABLES CSS PARA CONSISTENCIA === */
-:root {
-  --primary-color: #ff6600;
-  --primary-dark: #e85c00;
-  --primary-light: #ff8533;
-  --secondary-color: #333;
-  --gray-light: #f8f9fa;
-  --gray-medium: #dee2e6;
-  --gray-dark: #495057;
-  --success-color: #28a745;
-  --error-color: #dc3545;
-  --shadow-soft: 0 4px 20px rgba(255, 102, 0, 0.1);
-  --shadow-medium: 0 8px 30px rgba(255, 102, 0, 0.15);
-  --border-radius: 16px;
-  --border-radius-small: 12px;
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* ========================================
+   UsuarioForm - Registro de Usuario y Turista
+   ======================================== */
 
-/* === CONTENEDOR PRINCIPAL === */
+/* === Contenedor Principal === */
 .usuario-form-container {
   width: 100%;
-  animation: slideInUp 0.6s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  min-height: 100vh;
+  background-color: #fafafa;
 }
 
-/* === TÍTULO DEL FORMULARIO === */
+/* === Título Principal === */
 .usuario-form-title {
-  text-align: left;
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-size: 2.2rem;
+  color: #ff6600;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 2rem;
-  position: relative;
-  padding-bottom: 1rem;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
-.usuario-form-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 80px;
-  height: 3px;
-  background: var(--primary-color);
-  border-radius: 2px;
-}
-
-/* === CONTENEDOR DEL FORMULARIO === */
+/* === Formulario === */
 .registro-form {
   width: 100%;
-  background: linear-gradient(145deg, #ffffff 0%, #fff9f5 100%);
-  border-radius: var(--border-radius);
-  padding: 3rem;
-  box-shadow: var(--shadow-medium);
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  max-width: 800px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(255, 102, 0, 0.1);
+  padding: 40px;
   box-sizing: border-box;
-  position: relative;
-  border: 1px solid rgba(255, 102, 0, 0.05);
-}
-
-.registro-form::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary-color) 0%, var(--primary-light) 50%, var(--primary-color) 100%);
-}
-
-/* === ETIQUETAS === */
-.registro-form label {
   display: flex;
   flex-direction: column;
+  gap: 25px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* === Fieldset y Legend === */
+fieldset {
+  border: 1px solid #ff6600;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+legend {
+  padding: 0 10px;
+  font-size: 1.4rem;
   font-weight: 600;
-  color: var(--secondary-color);
-  font-size: 0.95rem;
-  letter-spacing: 0.3px;
-  margin-bottom: 0.5rem;
+  color: #ff6600;
 }
 
-/* === CAMPOS DE ENTRADA === */
-.registro-form input,
-.registro-form select {
-  padding: 1rem 1.25rem;
-  border: 2px solid var(--gray-medium);
-  border-radius: var(--border-radius-small);
+/* === Labels e Inputs === */
+label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  color: #333;
+}
+
+input,
+select {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
   font-size: 1rem;
-  background-color: var(--gray-light);
-  transition: var(--transition);
-  font-family: inherit;
-  line-height: 1.4;
+  margin-top: 6px;
+  transition: all 0.3s ease;
+}
+
+input:focus,
+select:focus {
   outline: none;
+  border-color: #ff6600;
+  box-shadow: 0 0 0 2px rgba(255, 102, 0, 0.2);
 }
 
-.registro-form input:focus,
-.registro-form select:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(255, 102, 0, 0.1);
-  background-color: #ffffff;
-  transform: translateY(-2px);
+/* === Hints y errores === */
+.field-hint {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 3px;
 }
 
-.registro-form input:hover,
-.registro-form select:hover {
-  border-color: var(--primary-light);
+.error-message {
+  color: #dc3545;
+  font-size: 0.85rem;
+  margin-top: 3px;
 }
 
-/* === PLACEHOLDERS === */
-.registro-form input::placeholder,
-.registro-form select::placeholder {
-  color: var(--gray-dark);
-  opacity: 0.7;
-}
-
-/* === BOTÓN PRINCIPAL === */
-.registro-form button {
-  padding: 1.25rem 2rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+/* === Botón Registrar === */
+.btn-submit {
+  padding: 12px 20px;
+  background-color: #ff6600;
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
   border: none;
-  border-radius: var(--border-radius-small);
+  border-radius: 8px;
   cursor: pointer;
-  transition: var(--transition);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-  margin-top: 1rem;
+  transition: all 0.3s ease;
+  margin-top: 10px;
 }
 
-.registro-form button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
+.btn-submit:hover {
+  background-color: #e65c00;
 }
 
-.registro-form button:hover::before {
-  left: 100%;
+/* === Scroll en caso de overflow === */
+.usuario-form-container {
+  overflow-y: auto;
 }
 
-.registro-form button:hover {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(255, 102, 0, 0.3);
+.usuario-form-container::-webkit-scrollbar {
+  width: 8px;
 }
 
-.registro-form button:active {
-  transform: translateY(-1px);
+.usuario-form-container::-webkit-scrollbar-thumb {
+  background-color: #ff6600;
+  border-radius: 4px;
 }
 
-/* === MENSAJES DE VALIDACIÓN === */
-.error {
-  color: var(--error-color);
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.error::before {
-  content: '⚠️';
-  font-size: 0.75rem;
-}
-
-.success {
-  text-align: center;
-  color: var(--success-color);
-  font-weight: 600;
-  margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(40, 167, 69, 0.1);
-  border-radius: var(--border-radius-small);
-  border: 1px solid var(--success-color);
-}
-
-/* === RESPONSIVE DESIGN === */
-@media (max-width: 768px) {
+/* === Responsive === */
+@media (max-width: 1024px) {
   .registro-form {
-    padding: 2rem 1.5rem;
-    gap: 1.5rem;
+    padding: 30px;
   }
 
-  .usuario-form-title {
-    text-align: center;
-    font-size: 2rem;
-  }
-
-  .usuario-form-title::after {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .registro-form input,
-  .registro-form select {
-    padding: 0.875rem 1rem;
-  }
-
-  .registro-form button {
-    padding: 1rem 1.5rem;
-    font-size: 1rem;
+  fieldset {
+    padding: 15px;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .registro-form {
-    padding: 1.5rem 1rem;
+    padding: 20px;
   }
 
   .usuario-form-title {
     font-size: 1.8rem;
   }
 
-  .registro-form input,
-  .registro-form select {
-    font-size: 16px; /* Prevenir zoom en iOS */
+  legend {
+    font-size: 1.2rem;
   }
 }
 
-/* === ANIMACIONES === */
-@keyframes slideInUp {
+/* === Animación === */
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(15px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* === ACCESIBILIDAD === */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* === MENSAJES DE ERROR EN TIEMPO REAL === */
-.error-message {
-  color: var(--error-color);
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  animation: slideInError 0.3s ease-out;
-}
-
-.error-message::before {
-  content: '⚠️';
-  font-size: 0.75rem;
-}
-
-/* === HINTS DE AYUDA === */
-.password-hint,
-.field-hint {
-  color: var(--gray-dark);
-  font-size: 0.8rem;
-  margin-top: 0.25rem;
-  font-style: italic;
-  opacity: 0.8;
-}
-
-.field-hint {
-  text-align: right;
-  margin-bottom: 0.25rem;
-}
-
-/* === ANIMACIÓN PARA ERRORES === */
-@keyframes slideInError {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* === ESTILOS PARA CAMPOS CON ERRORES === */
-.registro-form input.error-field,
-.registro-form select.error-field {
-  border-color: var(--error-color);
-  box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.1);
-}
-
-.registro-form input.error-field:focus,
-.registro-form select.error-field:focus {
-  border-color: var(--error-color);
-  box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.15);
-}
-
-/* === SECCIONES DEL FORMULARIO === */
-.registro-form h3 {
-  color: var(--secondary-color);
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 1.5rem 0 1rem 0;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--primary-color);
-  position: relative;
-}
-
-.registro-form h3::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 40px;
-  height: 2px;
-  background: var(--primary-light);
 }

@@ -62,26 +62,26 @@ const StatsCard = ({
   const TrendIcon = isPositive ? ArrowUpIcon : ArrowDownIcon;
 
   return (
-    <div className={`${colors.bg} rounded-lg p-2 h-full border ${colors.border} transition-all duration-200 hover:shadow-sm`}>
-      <div className="flex items-center justify-between h-full gap-1.5">
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-medium text-gray-500 truncate">{title}</p>
-          <p className="text-base font-bold text-gray-900 leading-tight">
+    <div className={`statscard-container ${colors.bg} ${colors.border}`}>
+      <div className="statscard-content">
+        <div className="statscard-info">
+          <p className="statscard-title">{title}</p>
+          <p className="statscard-value">
             {typeof value === 'number' ? formatNumber(value) : value}
           </p>
           
           {trend !== null && (
-            <div className={`inline-flex items-center text-[10px] ${trendColor} mt-0.5`}>
-              <TrendIcon className="h-2.5 w-2.5 mr-0.5" />
+            <div className={`statscard-trend ${trendColor}`}>
+              <TrendIcon className="statscard-trend-icon" />
               <span>{Math.abs(trend)}%</span>
             </div>
           )}
         </div>
         
         {icon && (
-          <div className={`p-0.5 rounded-full ${colors.iconBg} ${colors.iconText} flex-shrink-0 flex items-center justify-center`} style={{ width: '20px', height: '20px' }}>
+          <div className={`statscard-icon ${colors.iconBg} ${colors.iconText}`}>
             {React.cloneElement(icon, { 
-              className: 'h-2.5 w-2.5',
+              className: 'statscard-main-icon',
               'aria-hidden': 'true'
             })}
           </div>
