@@ -314,10 +314,10 @@ app.post("/api/registro", async (req, res) => {
   }
 
   try {
-    // Aquí podrías hashear la contraseña con bcrypt
+    const hashed = await bcrypt.hash(contrasena, 10);
     await pool.query(
       "INSERT INTO usuarios (nombre_usuario, email, password) VALUES (?, ?, ?)",
-      [usuario, email, contrasena]
+      [usuario, email.toLowerCase(), hashed]
     );
     res.json({ ok: true });
   } catch (err) {
@@ -341,17 +341,28 @@ app.post("/api/login", async (req, res) => {
       return res.status(401).json({ error: "Credenciales incorrectas." });
     }
     const user = rows[0];
-    if (user.password !== contrasena) {
+    const stored = user.password;
+
+    // Requerir hash bcrypt en la base de datos; no permitir fallback a plain-text.
+    if (typeof stored !== 'string' || !stored.startsWith('$2')) {
+      console.warn(`Intento de login con usuario que tiene password no-hasheada en DB: ${usuario}`);
+      return res.status(401).json({ error: "Credenciales incorrectas. Por seguridad, restablezca la contraseña." });
+    }
+
+    const match = await bcrypt.compare(contrasena, stored);
+    if (!match) {
       return res.status(401).json({ error: "Credenciales incorrectas." });
     }
-    // Genera el token con el rol
+
+    const role = (user.rol || "CLIENTE").toString().toUpperCase();
     const token = jwt.sign(
-      { id: user.id_usuario, usuario: user.nombre_usuario, role: user.rol.toUpperCase() },
+      { id: user.id_usuario, usuario: user.nombre_usuario, role },
       SECRET,
       { expiresIn: '2h' }
     );
-    res.json({ ok: true, usuario: user.nombre_usuario, role: user.rol.toUpperCase(), token });
+    res.json({ ok: true, usuario: user.nombre_usuario, role, token });
   } catch (err) {
+    console.error("❌ Error en login:", err.message);
     res.status(500).json({ error: "Error en el servidor." });
   }
 });
@@ -1456,7 +1467,7 @@ app.get("/api/turista/notificaciones", requireRole(["CLIENTE","TURISTA","ADMIN"]
       [idTurista, dias]
     );
 
-    // Cambios recientes en programas del itinerario (requiere columna updated_at en itinerario_programas)
+    // Cambios recientes en programas del itinerario (requiere columna updated_at in itinerario_programas)
     let progUpdated = [];
     try {
       const [rows] = await pool.query(
