@@ -65,7 +65,7 @@ function App() {
 
         {/* Rutas del turista - Protegidas */}
         <Route path="/turista/*" element={
-          <ProtectedRoute allowedRoles={['turista', 'admin']}>
+          <ProtectedRoute allowedRoles={['turista', 'cliente']}>
             <MainLayout />
           </ProtectedRoute>
         }>
